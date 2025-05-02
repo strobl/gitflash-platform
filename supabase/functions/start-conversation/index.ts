@@ -71,7 +71,7 @@ serve(async (req) => {
       );
     }
     
-    // Check if user has 'business' role
+    // Check if user has a valid role (either 'business' or 'user')
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -82,17 +82,6 @@ serve(async (req) => {
       console.error('Error fetching user profile:', profileError);
       return new Response(
         JSON.stringify({ error: 'User profile not found', details: profileError?.message }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-    
-    if (profileData.role !== 'business') {
-      console.error('User does not have business role');
-      return new Response(
-        JSON.stringify({ error: 'Only business users can start interviews' }),
         {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -125,23 +114,52 @@ serve(async (req) => {
       );
     }
 
-    // Check if the conversation belongs to this user
+    // Fetch the conversation details
     const { data: conversationData, error: conversationError } = await supabase
       .from('conversations')
       .select('*')
       .eq('id', requestData.interview_id)
-      .eq('created_by', userId)
       .single();
     
     if (conversationError || !conversationData) {
       console.error('Error fetching conversation or conversation not found:', conversationError);
       return new Response(
         JSON.stringify({ 
-          error: 'Conversation not found or you do not have permission to access it', 
+          error: 'Conversation not found', 
           details: conversationError?.message 
         }),
         {
           status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Apply role-based permissions:
+    // - Business users can only start conversations they created
+    // - Talent users (role='user') can start any active/pending conversations
+    if (profileData.role === 'business') {
+      if (conversationData.created_by !== userId) {
+        console.error('Permission denied: Business user can only start their own interviews');
+        return new Response(
+          JSON.stringify({ error: 'You do not have permission to start this interview' }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    } else if (profileData.role === 'user') {
+      // Talent users are allowed to start any active/pending conversation
+      console.log('Talent user is starting an interview');
+      // No additional permission check needed - any talent can start any interview
+    } else {
+      // Unknown role
+      console.error('Unknown user role:', profileData.role);
+      return new Response(
+        JSON.stringify({ error: 'Invalid user role' }),
+        {
+          status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
