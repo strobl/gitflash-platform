@@ -1,14 +1,16 @@
+
 import { Button } from '@/components/ui/button';
 import { DashboardCard } from '@/components/shared/DashboardCard';
 import { StatsCard } from '@/components/shared/StatsCard';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Building, FileSearch, MessageSquare, TrendingUp, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function BusinessDashboard() {
+  const navigate = useNavigate();
+  
   const handleCreateInterview = () => {
-    // In a real app, this would redirect to the interview creation page
-    window.location.href = "/interviews/create";
+    navigate('/interviews/create');
   };
 
   return (
