@@ -1,20 +1,20 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.8.0';
-import { jwtVerify } from 'https://deno.land/x/jose@v4.13.1/jwt/verify.ts';
-import { createRemoteJWKSet } from 'https://deno.land/x/jose@v4.13.1/jwks/remote.ts';
+import * as jose from 'https://deno.land/x/jose@v4.13.1/index.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Access TAVUS_API_KEY from environment variables
+// Access environment variables
 const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const SUPABASE_JWT_SECRET = Deno.env.get('SUPABASE_JWT_SECRET') || '';
 
-// Initialize Supabase client
+// Initialize Supabase client with service role for admin access
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
@@ -43,27 +43,22 @@ serve(async (req) => {
     // Extract the JWT token
     const token = authHeader.replace('Bearer ', '');
     
-    // Verify the JWT token and extract user information
+    // Verify the JWT token using service role
     let userId;
     try {
-      // Correctly construct the JWKS URL
-      const jwksUrl = `${SUPABASE_URL}/auth/v1/jwks`;
-      console.log('Using JWKS URL:', jwksUrl);
+      // Use Supabase client to get user from token
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
       
-      const JWKS = createRemoteJWKSet(new URL(jwksUrl));
-      const { payload } = await jwtVerify(token, JWKS);
-      
-      // Extract the user ID from the sub claim
-      userId = payload.sub;
-      if (!userId) {
-        throw new Error('User ID not found in token');
+      if (userError || !user) {
+        throw new Error('Invalid token or user not found');
       }
       
+      userId = user.id;
       console.log('Authenticated user ID:', userId);
-    } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError);
+    } catch (authError) {
+      console.error('Authentication failed:', authError);
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication token', details: jwtError.message }),
+        JSON.stringify({ error: 'Invalid authentication token', details: authError.message }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

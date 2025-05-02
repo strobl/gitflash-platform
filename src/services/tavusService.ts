@@ -94,10 +94,21 @@ export async function startConversation(interviewId: string): Promise<any> {
       throw new Error('Interview nicht gefunden');
     }
     
+    // Get the current auth token to pass to the edge function
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      throw new Error('Sie müssen angemeldet sein, um ein Interview zu starten');
+    }
+    
     // Rufe die Edge Function auf, um das Interview zu starten
     const { data: functionData, error } = await supabase.functions.invoke(
       'start-conversation',
       {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
         body: JSON.stringify({
           interview_id: interviewId,
           conversation_name: interview.conversation_name,

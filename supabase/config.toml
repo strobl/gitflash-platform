@@ -28,7 +28,7 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:5173"
+site_url = "https://f9a066f2-9d12-4f0b-af71-28b08853f25f.lovableproject.com"
 
 [auth.email]
 enable_signup = true
@@ -46,4 +46,5 @@ provider = "twitch"
 verify_jwt = true
 
 [functions.start-conversation]
-verify_jwt = true
+verify_jwt = false
+
