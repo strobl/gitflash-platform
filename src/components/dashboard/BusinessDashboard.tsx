@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { DashboardCard } from '@/components/shared/DashboardCard';
 import { StatsCard } from '@/components/shared/StatsCard';
@@ -9,7 +8,7 @@ import { toast } from 'sonner';
 export function BusinessDashboard() {
   const handleCreateInterview = () => {
     // In a real app, this would redirect to the interview creation page
-    toast.info('Interview-Erstellung würde gestartet werden.');
+    window.location.href = "/interviews/create";
   };
 
   return (

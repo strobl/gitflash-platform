@@ -9,7 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          conversation_context: string | null
+          conversation_id: string
+          conversation_name: string
+          conversation_url: string
+          created_at: string
+          created_by: string
+          custom_greeting: string | null
+          id: string
+          language: string | null
+          max_call_duration: number | null
+          participant_absent_timeout: number | null
+          participant_left_timeout: number | null
+          persona_id: string | null
+          replica_id: string | null
+          status: Database["public"]["Enums"]["conversation_status"]
+        }
+        Insert: {
+          conversation_context?: string | null
+          conversation_id: string
+          conversation_name: string
+          conversation_url: string
+          created_at?: string
+          created_by: string
+          custom_greeting?: string | null
+          id?: string
+          language?: string | null
+          max_call_duration?: number | null
+          participant_absent_timeout?: number | null
+          participant_left_timeout?: number | null
+          persona_id?: string | null
+          replica_id?: string | null
+          status?: Database["public"]["Enums"]["conversation_status"]
+        }
+        Update: {
+          conversation_context?: string | null
+          conversation_id?: string
+          conversation_name?: string
+          conversation_url?: string
+          created_at?: string
+          created_by?: string
+          custom_greeting?: string | null
+          id?: string
+          language?: string | null
+          max_call_duration?: number | null
+          participant_absent_timeout?: number | null
+          participant_left_timeout?: number | null
+          persona_id?: string | null
+          replica_id?: string | null
+          status?: Database["public"]["Enums"]["conversation_status"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +71,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      conversation_status: "active" | "pending" | "ended" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +186,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      conversation_status: ["active", "pending", "ended", "failed"],
+    },
   },
 } as const

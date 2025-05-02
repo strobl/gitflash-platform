@@ -10,6 +10,9 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import Interviews from "./pages/Interviews";
+import CreateInterview from "./pages/CreateInterview";
+import InterviewDetail from "./pages/InterviewDetail";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +28,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/interviews" element={<Interviews />} />
+            <Route path="/interviews/create" element={<CreateInterview />} />
+            <Route path="/interviews/:id" element={<InterviewDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
