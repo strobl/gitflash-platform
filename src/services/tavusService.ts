@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -116,7 +115,7 @@ export async function startConversation(interviewId: string): Promise<any> {
           persona_id: interview.persona_id,
           custom_greeting: interview.custom_greeting,
           conversation_context: interview.conversation_context,
-          language: interview.language,
+          language: interview.language || 'deutsch',
           max_call_duration: interview.max_call_duration,
           participant_left_timeout: interview.participant_left_timeout,
           participant_absent_timeout: interview.participant_absent_timeout
@@ -126,12 +125,26 @@ export async function startConversation(interviewId: string): Promise<any> {
 
     if (error) {
       console.error('Error starting conversation with Tavus API:', error);
-      throw new Error(error.message);
+      throw new Error(`Fehler beim Starten des Interviews: ${error.message || JSON.stringify(error)}`);
+    }
+    
+    // Add more detailed logging for troubleshooting
+    console.log('Tavus API response data:', functionData);
+    
+    if (!functionData.conversation_url && !functionData.url) {
+      console.error('No conversation URL returned from Tavus API', functionData);
+      throw new Error('Keine Interview-URL von Tavus erhalten');
     }
 
-    return functionData;
+    // Return the data including the conversation URL
+    return {
+      ...functionData,
+      conversation_url: functionData.conversation_url || functionData.url,
+      interview_id: interviewId
+    };
   } catch (err) {
     console.error('Failed to start conversation with Tavus API:', err);
+    toast.error(`${err instanceof Error ? err.message : 'Unbekannter Fehler beim Starten des Interviews'}`);
     throw err;
   }
 }

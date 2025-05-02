@@ -15,6 +15,7 @@ import {
 import { getConversation, startConversation } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function InterviewDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export default function InterviewDetail() {
   const [interview, setInterview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isTalent = profile?.role === 'user';
   const isBusiness = profile?.role === 'business';
@@ -54,26 +56,35 @@ export default function InterviewDetail() {
     if (!id) return;
     
     setIsStarting(true);
+    setErrorMessage(null);
+    
     try {
+      console.log('Starting interview, ID:', id);
       const result = await startConversation(id);
-      console.log('Interview started:', result);
+      console.log('Interview started, response:', result);
       
       // Update the local interview data with the Tavus response
       setInterview(prev => ({
         ...prev,
-        conversation_id: result.conversation_id,
-        conversation_url: result.conversation_url,
+        conversation_id: result.conversation_id || result.id,
+        conversation_url: result.conversation_url || result.url,
         status: result.status || 'active'
       }));
       
       toast.success('Interview erfolgreich gestartet! Sie können jetzt teilnehmen.');
       
       // Open the Tavus interview in a new tab
-      if (result.conversation_url) {
-        window.open(result.conversation_url, '_blank');
+      const conversationUrl = result.conversation_url || result.url;
+      if (conversationUrl) {
+        window.open(conversationUrl, '_blank');
+      } else {
+        setErrorMessage('Keine gültige Interview-URL erhalten');
+        console.error('No valid conversation URL received', result);
       }
     } catch (error) {
       console.error('Error starting interview:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      setErrorMessage(`Fehler beim Starten des Interviews: ${errorMsg}`);
       toast.error('Fehler beim Starten des Interviews');
     } finally {
       setIsStarting(false);
@@ -174,6 +185,12 @@ export default function InterviewDetail() {
             )}
           </div>
         </div>
+        
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>

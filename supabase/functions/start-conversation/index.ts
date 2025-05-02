@@ -160,25 +160,33 @@ serve(async (req) => {
       );
     }
 
-    // Call Tavus API to create a conversation
+    // Call Tavus API to create a conversation - UPDATED ACCORDING TO DOCS
     console.log('Calling Tavus API...');
+    
+    // Format the request body according to Tavus API documentation
+    const tavusRequestBody = {
+      replica_id: requestData.replica_id || undefined,
+      persona_id: requestData.persona_id || undefined,
+      conversation_name: requestData.conversation_name,
+      conversational_context: requestData.conversation_context || undefined,
+      custom_greeting: requestData.custom_greeting || undefined,
+      properties: {
+        max_call_duration: parseInt(requestData.max_call_duration) || 600,
+        participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
+        participant_absent_timeout: parseInt(requestData.participant_absent_timeout) || 300,
+        language: requestData.language || 'deutsch',
+      }
+    };
+    
+    console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
+    
     const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${TAVUS_API_KEY}`,
+        'x-api-key': TAVUS_API_KEY,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        conversation_name: requestData.conversation_name,
-        replica_id: requestData.replica_id || undefined,
-        persona_id: requestData.persona_id || undefined,
-        custom_greeting: requestData.custom_greeting || undefined,
-        conversation_context: requestData.conversation_context || undefined,
-        language: requestData.language || 'de',
-        max_call_duration: parseInt(requestData.max_call_duration) || 600,
-        participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
-        participant_absent_timeout: parseInt(requestData.participant_absent_timeout) || 300
-      }),
+      body: JSON.stringify(tavusRequestBody),
     });
 
     const tavusResponseText = await tavusResponse.text();
@@ -223,8 +231,8 @@ serve(async (req) => {
       const { data: updateData, error: updateError } = await supabase
         .from('conversations')
         .update({
-          conversation_id: responseData.conversation_id,
-          conversation_url: responseData.conversation_url,
+          conversation_id: responseData.conversation_id || responseData.id,
+          conversation_url: responseData.conversation_url || responseData.url,
           status: responseData.status || 'active',
         })
         .eq('id', requestData.interview_id)
