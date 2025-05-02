@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ExternalLink, ChevronLeft, Play, AlertTriangle } from 'lucide-react';
+import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,25 +32,38 @@ export default function InterviewDetail() {
   const isBusiness = profile?.role === 'business';
 
   useEffect(() => {
-    async function fetchInterviewDetails() {
-      if (!id) return;
-      
-      try {
-        const data = await getConversation(id);
-        setInterview(data);
-      } catch (error) {
-        console.error('Error fetching interview details:', error);
-        toast.error('Fehler beim Laden der Interview-Details');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchInterviewDetails();
   }, [id]);
 
+  async function fetchInterviewDetails() {
+    if (!id) return;
+    
+    try {
+      setIsLoading(true);
+      const data = await getConversation(id);
+      console.log('Fetched interview details:', data);
+      setInterview(data);
+      
+      // Wenn das Interview bereits aktiv ist, bereinigen wir mögliche Fehlermeldungen
+      if (data.status === 'active' && data.conversation_url && data.conversation_url !== 'pending') {
+        setErrorMessage(null);
+        setDebugInfo(null);
+      }
+    } catch (error) {
+      console.error('Error fetching interview details:', error);
+      toast.error('Fehler beim Laden der Interview-Details');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const handleBackClick = () => {
     navigate('/interviews');
+  };
+
+  const handleRefresh = () => {
+    fetchInterviewDetails();
+    toast.info('Daten werden aktualisiert...');
   };
 
   // Funktion zum Starten eines Interviews über die Tavus API
@@ -63,13 +76,14 @@ export default function InterviewDetail() {
     
     try {
       console.log('Starting interview, ID:', id);
-      toast.loading('Interview wird gestartet...');
+      
+      const toastId = toast.loading('Interview wird gestartet...');
       
       const result = await startConversation(id);
-      console.log('Interview started, response:', result);
+      console.log('Interview started successfully, response:', result);
       
       // Erfolgsmeldung anzeigen
-      toast.dismiss();
+      toast.dismiss(toastId);
       toast.success('Interview erfolgreich gestartet! Sie können jetzt teilnehmen.');
       
       // Update the local interview data with the Tavus response
@@ -89,10 +103,10 @@ export default function InterviewDetail() {
         console.error('No valid conversation URL received', result);
       }
     } catch (error) {
-      toast.dismiss();
       console.error('Error starting interview:', error);
       
-      let errorMsg, debugMsg;
+      let errorMsg = '';
+      let debugMsg = '';
       
       if (error instanceof Error) {
         errorMsg = `Fehler beim Starten des Interviews: ${error.message}`;
@@ -156,14 +170,24 @@ export default function InterviewDetail() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <div className="container py-8">
-        <Button 
-          variant="ghost" 
-          onClick={handleBackClick} 
-          className="mb-6"
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Zurück zur Übersicht
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={handleBackClick}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Zurück zur Übersicht
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh} 
+            className="flex gap-2 items-center"
+          >
+            <RefreshCcw size={16} />
+            Aktualisieren
+          </Button>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
           <div>
@@ -189,10 +213,10 @@ export default function InterviewDetail() {
           
           {/* Verschiedene Buttons je nach Status und Benutzerrolle */}
           <div className="flex gap-2">
-            {isTalent && isDraft && (
+            {isDraft && (
               <Button 
                 onClick={handleStartInterview}
-                className="bg-green-600 hover:bg-green-700"
+                className={isTalent ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
                 disabled={isStarting}
               >
                 {isStarting ? (
@@ -203,7 +227,7 @@ export default function InterviewDetail() {
                 ) : (
                   <>
                     <Play className="mr-2 h-4 w-4" />
-                    Interview starten
+                    {isTalent ? 'Interview starten' : 'Interview testen'}
                   </>
                 )}
               </Button>
@@ -216,27 +240,6 @@ export default function InterviewDetail() {
               >
                 {isTalent ? 'Am Interview teilnehmen' : 'Interview öffnen'}
                 <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            )}
-
-            {/* Für Testing - auch Business-Benutzern ermöglichen, das Interview zu starten */}
-            {isBusiness && isDraft && (
-              <Button 
-                onClick={handleStartInterview}
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={isStarting}
-              >
-                {isStarting ? (
-                  <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white/20 border-t-white rounded-full"></div>
-                    Wird getestet...
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    Interview testen
-                  </>
-                )}
               </Button>
             )}
           </div>
@@ -254,6 +257,19 @@ export default function InterviewDetail() {
                   <pre>{debugInfo}</pre>
                 </div>
               )}
+              
+              <div className="mt-4">
+                <p className="font-medium mb-2">Mögliche Lösungen:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Überprüfen Sie, ob der TAVUS_API_KEY korrekt in den Supabase-Secrets konfiguriert ist.</li>
+                  <li>Stellen Sie sicher, dass eine Internetverbindung besteht.</li>
+                  <li>Versuchen Sie es später noch einmal.</li>
+                </ul>
+                
+                <Button onClick={handleStartInterview} variant="outline" size="sm" className="mt-3">
+                  Erneut versuchen
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
@@ -357,22 +373,26 @@ export default function InterviewDetail() {
             </CardContent>
           </Card>
           
-          {isTalent && isDraft && (
-            <Card className="border-green-200 bg-green-50">
+          {isDraft && (
+            <Card className={isTalent ? "border-green-200 bg-green-50" : "border-blue-200 bg-blue-50"}>
               <CardHeader>
-                <CardTitle className="text-green-800">Interview starten</CardTitle>
-                <CardDescription className="text-green-700">
-                  Nehmen Sie an diesem KI-Interview teil
+                <CardTitle className={isTalent ? "text-green-800" : "text-blue-800"}>Interview starten</CardTitle>
+                <CardDescription className={isTalent ? "text-green-700" : "text-blue-700"}>
+                  {isTalent ? "Nehmen Sie an diesem KI-Interview teil" : "Testen Sie dieses KI-Interview"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-green-700">
-                  Klicken Sie auf "Interview starten", um mit diesem KI-Interview zu beginnen. 
-                  Ihre Antworten werden aufgezeichnet und können vom Unternehmen eingesehen werden.
+                <p className={`mb-4 ${isTalent ? "text-green-700" : "text-blue-700"}`}>
+                  {isTalent 
+                    ? "Klicken Sie auf \"Interview starten\", um mit diesem KI-Interview zu beginnen. Ihre Antworten werden aufgezeichnet und können vom Unternehmen eingesehen werden."
+                    : "Als Ersteller können Sie dieses Interview testen, bevor Sie es an Kandidaten freigeben."
+                  }
                 </p>
                 <Button 
                   onClick={handleStartInterview} 
-                  className="bg-green-600 hover:bg-green-700 w-full"
+                  className={`w-full ${isTalent 
+                    ? "bg-green-600 hover:bg-green-700" 
+                    : "bg-blue-600 hover:bg-blue-700"}`}
                   disabled={isStarting}
                 >
                   {isStarting ? (
@@ -383,7 +403,7 @@ export default function InterviewDetail() {
                   ) : (
                     <>
                       <Play className="mr-2 h-4 w-4" />
-                      Interview starten
+                      {isTalent ? 'Interview starten' : 'Interview testen'}
                     </>
                   )}
                 </Button>

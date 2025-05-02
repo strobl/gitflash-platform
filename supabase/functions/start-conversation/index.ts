@@ -102,7 +102,20 @@ serve(async (req) => {
     if (!TAVUS_API_KEY) {
       console.error('TAVUS_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
+        JSON.stringify({ error: 'API key not configured', tip: 'Please set the TAVUS_API_KEY in the Supabase dashboard' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Log API key exists (without revealing it)
+    console.log('TAVUS_API_KEY is configured:', !!TAVUS_API_KEY, 'Length:', TAVUS_API_KEY ? TAVUS_API_KEY.length : 0);
+    if (TAVUS_API_KEY && TAVUS_API_KEY.trim() === '') {
+      console.error('TAVUS_API_KEY is empty');
+      return new Response(
+        JSON.stringify({ error: 'API key is empty', tip: 'Please set a valid TAVUS_API_KEY in the Supabase dashboard' }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -155,81 +168,151 @@ serve(async (req) => {
       );
     }
 
-    // Basierend auf den Screenshots - vereinfachter API-Aufruf
+    // Vereinfachter API-Aufruf basierend auf den Screenshots
     console.log('Calling Tavus API...');
     
-    // Korrekte API-Request Struktur basierend auf den Screenshots
+    // Vereinfachte API-Request Struktur
     const tavusRequestBody = {
       replica_id: DEFAULT_REPLICA_ID,
       persona_id: DEFAULT_PERSONA_ID,
-      conversation_name: requestData.conversation_name || conversationData.conversation_name,
-      conversational_context: requestData.conversation_context || conversationData.conversation_context || undefined,
-      custom_greeting: requestData.custom_greeting || conversationData.custom_greeting || undefined,
+      conversation_name: requestData.conversation_name || conversationData.conversation_name || 'Interview'
     };
+    
+    // Optional Felder nur hinzufügen, wenn sie vorhanden sind
+    if (requestData.conversation_context || conversationData.conversation_context) {
+      tavusRequestBody.conversation_context = requestData.conversation_context || conversationData.conversation_context;
+    }
+    
+    if (requestData.custom_greeting || conversationData.custom_greeting) {
+      tavusRequestBody.custom_greeting = requestData.custom_greeting || conversationData.custom_greeting;
+    }
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
     
-    // API-Aufruf mit korrektem Endpunkt und Headers
-    const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': TAVUS_API_KEY,
-      },
-      body: JSON.stringify(tavusRequestBody),
-    });
-
-    const responseStatus = tavusResponse.status;
-    const tavusResponseText = await tavusResponse.text();
-    console.log('Tavus API response status:', responseStatus);
-    console.log('Tavus API response body:', tavusResponseText);
-
-    // Versuch, die Antwort als JSON zu parsen
-    let responseData;
     try {
-      responseData = JSON.parse(tavusResponseText);
-    } catch (e) {
-      console.error('Error parsing Tavus response:', e);
-      return new Response(
-        JSON.stringify({ 
-          error: `Fehler beim Verarbeiten der Tavus-Antwort (Status ${responseStatus})`, 
-          status: responseStatus,
-          raw_response: tavusResponseText 
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      // API-Aufruf mit korrektem Endpunkt und Headers
+      const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': TAVUS_API_KEY,
+        },
+        body: JSON.stringify(tavusRequestBody),
+      });
+
+      const responseStatus = tavusResponse.status;
+      console.log('Tavus API response status:', responseStatus);
+      
+      // Versuch, die Antwort als JSON zu parsen
+      let responseData;
+      try {
+        const tavusResponseText = await tavusResponse.text();
+        console.log('Tavus API response body:', tavusResponseText);
+        
+        if (tavusResponseText) {
+          responseData = JSON.parse(tavusResponseText);
         }
-      );
-    }
-    
-    if (!tavusResponse.ok) {
-      console.error(`Tavus API error (${responseStatus}):`, tavusResponseText);
+      } catch (parseError) {
+        console.error('Error parsing Tavus response:', parseError);
+        return new Response(
+          JSON.stringify({ 
+            error: `Failed to parse Tavus API response (Status ${responseStatus})`, 
+            details: parseError.message
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      
+      if (!tavusResponse.ok) {
+        console.error(`Tavus API error (${responseStatus}):`, responseData || 'No response data');
+        return new Response(
+          JSON.stringify({
+            error: `Tavus API error (Status ${responseStatus})`,
+            details: responseData || 'No response data'
+          }),
+          {
+            status: responseStatus || 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      if (!responseData) {
+        console.error('Empty response from Tavus API');
+        return new Response(
+          JSON.stringify({ error: 'Empty response from Tavus API' }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      console.log('Conversation created successfully:', JSON.stringify(responseData));
+      
+      // Extrahiere die daily.co URL aus der Antwort
+      const conversationId = responseData.id;
+      const conversationUrl = responseData.url;
+      
+      if (!conversationUrl || !conversationId) {
+        console.error('Missing conversation URL or ID in Tavus response:', responseData);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Missing conversation URL in Tavus response', 
+            details: responseData 
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      // Update the interview in Supabase with Tavus response data
+      try {
+        const { data: updateData, error: updateError } = await supabase
+          .from('conversations')
+          .update({
+            conversation_id: conversationId,
+            conversation_url: conversationUrl,
+            status: 'active',
+            replica_id: DEFAULT_REPLICA_ID,
+            persona_id: DEFAULT_PERSONA_ID
+          })
+          .eq('id', requestData.interview_id)
+          .select();
+
+        if (updateError) {
+          console.error('Error updating interview:', updateError);
+        } else {
+          console.log('Interview updated successfully:', updateData);
+        }
+      } catch (dbError) {
+        console.error('Database update error:', dbError);
+      }
+
+      // Return successful response with the URL that the frontend will open
       return new Response(
         JSON.stringify({
-          error: `Fehler beim Erstellen des Interviews (Status ${responseStatus})`,
-          details: responseData || tavusResponseText,
-          status: responseStatus
+          id: conversationId,
+          url: conversationUrl,
+          interview_id: requestData.interview_id,
+          status: 'active'
         }),
         {
-          status: responseStatus || 500,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
-    }
-
-    console.log('Conversation created successfully:', JSON.stringify(responseData));
-    
-    // Extrahiere die daily.co URL aus der Antwort
-    const conversationId = responseData.id || responseData.conversation_id;
-    const conversationUrl = responseData.url || responseData.conversation_url;
-    
-    if (!conversationUrl || !conversationId) {
-      console.error('Missing conversation URL or ID in Tavus response:', responseData);
+    } catch (fetchError) {
+      console.error('Network error when calling Tavus API:', fetchError);
       return new Response(
         JSON.stringify({ 
-          error: 'Fehlende Conversation-URL in Tavus-Antwort', 
-          details: responseData 
+          error: 'Network error when calling Tavus API', 
+          details: fetchError.message || String(fetchError)
         }),
         {
           status: 500,
@@ -237,50 +320,13 @@ serve(async (req) => {
         }
       );
     }
-
-    // Update the interview in Supabase with Tavus response data
-    try {
-      const { data: updateData, error: updateError } = await supabase
-        .from('conversations')
-        .update({
-          conversation_id: conversationId,
-          conversation_url: conversationUrl,
-          status: 'active',
-          replica_id: DEFAULT_REPLICA_ID,
-          persona_id: DEFAULT_PERSONA_ID
-        })
-        .eq('id', requestData.interview_id)
-        .select();
-
-      if (updateError) {
-        console.error('Error updating interview:', updateError);
-      } else {
-        console.log('Interview updated successfully:', updateData);
-      }
-    } catch (dbError) {
-      console.error('Database update error:', dbError);
-    }
-
-    // Return successful response with the URL that the frontend will open
-    return new Response(
-      JSON.stringify({
-        id: conversationId,
-        url: conversationUrl,
-        interview_id: requestData.interview_id,
-        status: 'active'
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
   } catch (error) {
     console.error('Error in start-conversation function:', error.message, error.stack);
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        stack: error.stack
+        error: error.message || 'Unknown error',
+        stack: error.stack || 'No stack trace available'
       }),
       {
         status: 500,

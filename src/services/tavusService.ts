@@ -93,6 +93,8 @@ export async function startConversation(interviewId: string): Promise<any> {
       console.error('Error fetching interview details:', fetchError);
       throw new Error('Interview nicht gefunden');
     }
+
+    console.log('Retrieved interview data:', interview);
     
     // Get the current auth token to pass to the edge function
     const { data: { session } } = await supabase.auth.getSession();
@@ -102,6 +104,18 @@ export async function startConversation(interviewId: string): Promise<any> {
       throw new Error('Sie müssen angemeldet sein, um ein Interview zu starten');
     }
     
+    console.log('Sending request to edge function with interview ID:', interviewId);
+    
+    // Vereinfachte Daten für die Edge Function
+    const requestBody = {
+      interview_id: interviewId,
+      conversation_name: interview.conversation_name,
+      custom_greeting: interview.custom_greeting,
+      conversation_context: interview.conversation_context
+    };
+    
+    console.log('Edge function request body:', JSON.stringify(requestBody));
+    
     // Rufe die Edge Function auf, um das Interview zu starten
     const { data: functionData, error } = await supabase.functions.invoke(
       'start-conversation',
@@ -109,27 +123,20 @@ export async function startConversation(interviewId: string): Promise<any> {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({
-          interview_id: interviewId,
-          conversation_name: interview.conversation_name,
-          replica_id: "r9fa0878977a",  // Standard-Replica-ID verwenden
-          persona_id: "pe13ed370726",  // Standard-Persona-ID verwenden
-          custom_greeting: interview.custom_greeting,
-          conversation_context: interview.conversation_context
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
     // Detaillierteres Fehlerlogging
     if (error) {
-      console.error('Error invoking start-conversation edge function:', error);
+      console.error('Edge function error object:', error);
       
       // Versuch, eine detailliertere Fehlermeldung zu extrahieren
       let errorMessage = 'Fehler beim Aufrufen der Edge Function';
-      if (typeof error === 'object' && error !== null) {
-        errorMessage += ': ' + JSON.stringify(error, null, 2);
-      } else if (error) {
-        errorMessage += ': ' + error.toString();
+      if (error.message) {
+        errorMessage += ': ' + error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage += ': ' + JSON.stringify(error);
       }
       
       throw new Error(errorMessage);
@@ -140,20 +147,22 @@ export async function startConversation(interviewId: string): Promise<any> {
       throw new Error('Keine Daten von der Edge Function erhalten');
     }
     
+    console.log('Edge function response:', functionData);
+    
     // Check if the response contains an error
     if (functionData.error) {
       console.error('Edge function returned an error:', functionData.error, functionData.details);
-      throw new Error(`${functionData.error}${functionData.details ? ': ' + JSON.stringify(functionData.details) : ''}`);
+      let errorDetails = functionData.details ? 
+        (typeof functionData.details === 'object' ? JSON.stringify(functionData.details) : functionData.details) 
+        : '';
+      throw new Error(`${functionData.error}${errorDetails ? ': ' + errorDetails : ''}`);
     }
-    
-    // Add more detailed logging for troubleshooting
-    console.log('Tavus API response data:', functionData);
     
     // Verwenden Sie 'url' oder 'conversation_url', je nachdem, was zurückgegeben wird
     const conversationUrl = functionData.url || functionData.conversation_url;
     
     if (!conversationUrl) {
-      console.error('No conversation URL returned from Tavus API', functionData);
+      console.error('No conversation URL returned', functionData);
       throw new Error('Keine Interview-URL von Tavus erhalten');
     }
 
