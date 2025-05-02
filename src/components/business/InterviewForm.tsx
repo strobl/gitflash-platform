@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -72,7 +73,7 @@ export function InterviewForm() {
     },
   });
 
-  // Handle form submission
+  // Handle form submission - now just saves to database
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -80,7 +81,7 @@ export function InterviewForm() {
     try {
       console.log('Submitting interview with data:', data);
       
-      // Make sure conversation_name is not undefined by using the validated form data
+      // Jetzt speichern wir nur die Daten in der Datenbank, ohne die Tavus API aufzurufen
       const result = await createConversation({
         conversation_name: data.conversation_name,
         replica_id: data.replica_id || undefined,
@@ -110,7 +111,7 @@ export function InterviewForm() {
       <CardHeader>
         <CardTitle>Neues KI-Interview erstellen</CardTitle>
         <CardDescription>
-          Definieren Sie ein KI-gestütztes Interview für Talente über die Tavus API.
+          Definieren Sie ein KI-gestütztes Interview für Talente.
         </CardDescription>
       </CardHeader>
       <Form {...form}>

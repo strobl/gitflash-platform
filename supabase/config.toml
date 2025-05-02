@@ -44,3 +44,7 @@ provider = "twitch"
 [functions]
 [functions.create-conversation]
 verify_jwt = true
+
+[functions.start-conversation]
+verify_jwt = true
+
