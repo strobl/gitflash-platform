@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -49,8 +50,8 @@ export async function createConversation(data: ConversationData): Promise<any> {
         conversation_name: data.conversation_name,
         created_by: userId,
         status: 'pending',
-        replica_id: data.replica_id || null,
-        persona_id: data.persona_id || null,
+        replica_id: data.replica_id || "r9fa0878977a",  // Standard-Replica-ID
+        persona_id: data.persona_id || "pe13ed370726",  // Standard-Persona-ID
         custom_greeting: data.custom_greeting || null,
         conversation_context: data.conversation_context || null,
         language: data.language || 'de',
@@ -111,8 +112,8 @@ export async function startConversation(interviewId: string): Promise<any> {
         body: JSON.stringify({
           interview_id: interviewId,
           conversation_name: interview.conversation_name,
-          replica_id: interview.replica_id,
-          persona_id: interview.persona_id,
+          replica_id: interview.replica_id || "r9fa0878977a",  // Standard-Replica-ID verwenden
+          persona_id: interview.persona_id || "pe13ed370726",  // Standard-Persona-ID verwenden
           custom_greeting: interview.custom_greeting,
           conversation_context: interview.conversation_context,
           language: interview.language || 'deutsch',
@@ -123,9 +124,25 @@ export async function startConversation(interviewId: string): Promise<any> {
       }
     );
 
+    // Detaillierteres Fehlerlogging
     if (error) {
-      console.error('Error starting conversation with Tavus API:', error);
-      throw new Error(`Fehler beim Starten des Interviews: ${error.message || JSON.stringify(error)}`);
+      console.error('Error invoking start-conversation edge function:', error);
+      
+      // Versuch, eine detailliertere Fehlermeldung zu extrahieren
+      const errorDetails = typeof error === 'object' && error !== null ? JSON.stringify(error, null, 2) : error?.toString();
+      
+      throw new Error(`Fehler beim Aufrufen der Edge Function: ${errorDetails}`);
+    }
+    
+    if (!functionData) {
+      console.error('No data returned from start-conversation edge function');
+      throw new Error('Keine Daten von der Edge Function erhalten');
+    }
+    
+    // Check if the response contains an error
+    if (functionData.error) {
+      console.error('Edge function returned an error:', functionData.error, functionData.details);
+      throw new Error(`${functionData.error}${functionData.details ? ': ' + JSON.stringify(functionData.details) : ''}`);
     }
     
     // Add more detailed logging for troubleshooting

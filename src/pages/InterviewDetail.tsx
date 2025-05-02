@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ExternalLink, ChevronLeft, Play } from 'lucide-react';
+import { ExternalLink, ChevronLeft, Play, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,8 @@ import {
 import { getConversation, startConversation } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 export default function InterviewDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function InterviewDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   const isTalent = profile?.role === 'user';
   const isBusiness = profile?.role === 'business';
@@ -57,11 +59,18 @@ export default function InterviewDetail() {
     
     setIsStarting(true);
     setErrorMessage(null);
+    setDebugInfo(null);
     
     try {
       console.log('Starting interview, ID:', id);
+      toast.loading('Interview wird gestartet...');
+      
       const result = await startConversation(id);
       console.log('Interview started, response:', result);
+      
+      // Erfolgsmeldung anzeigen
+      toast.dismiss();
+      toast.success('Interview erfolgreich gestartet! Sie können jetzt teilnehmen.');
       
       // Update the local interview data with the Tavus response
       setInterview(prev => ({
@@ -70,8 +79,6 @@ export default function InterviewDetail() {
         conversation_url: result.conversation_url || result.url,
         status: result.status || 'active'
       }));
-      
-      toast.success('Interview erfolgreich gestartet! Sie können jetzt teilnehmen.');
       
       // Open the Tavus interview in a new tab
       const conversationUrl = result.conversation_url || result.url;
@@ -82,9 +89,23 @@ export default function InterviewDetail() {
         console.error('No valid conversation URL received', result);
       }
     } catch (error) {
+      toast.dismiss();
       console.error('Error starting interview:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unbekannter Fehler';
-      setErrorMessage(`Fehler beim Starten des Interviews: ${errorMsg}`);
+      
+      let errorMsg, debugMsg;
+      
+      if (error instanceof Error) {
+        errorMsg = `Fehler beim Starten des Interviews: ${error.message}`;
+        debugMsg = error.stack || '';
+      } else if (typeof error === 'object' && error !== null) {
+        errorMsg = 'Fehler beim Starten des Interviews';
+        debugMsg = JSON.stringify(error, null, 2);
+      } else {
+        errorMsg = `Fehler beim Starten des Interviews: ${String(error)}`;
+      }
+      
+      setErrorMessage(errorMsg);
+      setDebugInfo(debugMsg);
       toast.error('Fehler beim Starten des Interviews');
     } finally {
       setIsStarting(false);
@@ -147,9 +168,23 @@ export default function InterviewDetail() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{interview.conversation_name}</h1>
-            <p className="text-muted-foreground">
-              Status: {isDraft ? 'Entwurf' : interview.status}
-            </p>
+            <div className="flex flex-wrap gap-3 mt-1">
+              <Badge variant={isDraft ? "outline" : "default"}>
+                Status: {isDraft ? 'Entwurf' : interview.status}
+              </Badge>
+              
+              {interview.replica_id && (
+                <Badge variant="secondary">
+                  Replica ID: {interview.replica_id}
+                </Badge>
+              )}
+              
+              {interview.persona_id && (
+                <Badge variant="secondary">
+                  Persona ID: {interview.persona_id}
+                </Badge>
+              )}
+            </div>
           </div>
           
           {/* Verschiedene Buttons je nach Status und Benutzerrolle */}
@@ -188,7 +223,17 @@ export default function InterviewDetail() {
         
         {errorMessage && (
           <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{errorMessage}</AlertDescription>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Fehler</AlertTitle>
+            <AlertDescription className="whitespace-pre-line">
+              {errorMessage}
+              
+              {debugInfo && (
+                <div className="mt-3 p-2 rounded bg-black/5 overflow-x-auto text-xs">
+                  <pre>{debugInfo}</pre>
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
         )}
 
@@ -231,6 +276,16 @@ export default function InterviewDetail() {
               <div>
                 <h3 className="font-medium mb-1">Maximale Dauer</h3>
                 <p>{interview.max_call_duration} Sekunden</p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-1">Replica ID</h3>
+                <p>{interview.replica_id || "Nicht angegeben"}</p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-1">Persona ID</h3>
+                <p>{interview.persona_id || "Nicht angegeben"}</p>
               </div>
             </CardContent>
           </Card>
