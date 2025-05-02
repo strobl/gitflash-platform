@@ -32,6 +32,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { createConversation } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
@@ -55,6 +57,7 @@ export function InterviewForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Initialize the form with default values
   const form = useForm<FormValues>({
@@ -80,13 +83,17 @@ export function InterviewForm() {
     }
     
     setIsSubmitting(true);
+    setErrorMessage(null);
     
     try {
+      console.log('Submitting interview with data:', data);
+      console.log('User ID:', user.id);
+      
       // Make sure conversation_name is not undefined by using the validated form data
       const result = await createConversation({
         conversation_name: data.conversation_name,
-        replica_id: data.replica_id,
-        persona_id: data.persona_id,
+        replica_id: data.replica_id || undefined,
+        persona_id: data.persona_id || undefined,
         custom_greeting: data.custom_greeting,
         conversation_context: data.conversation_context,
         language: data.language,
@@ -99,7 +106,9 @@ export function InterviewForm() {
       navigate('/interviews');
     } catch (error) {
       console.error('Failed to create interview:', error);
-      toast.error('Fehler beim Erstellen des Interviews: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+      const errorMsg = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      setErrorMessage(`Fehler beim Erstellen des Interviews: ${errorMsg}`);
+      toast.error('Fehler beim Erstellen des Interviews');
     } finally {
       setIsSubmitting(false);
     }
@@ -116,6 +125,13 @@ export function InterviewForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
+            {errorMessage && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+            
             <FormField
               control={form.control}
               name="conversation_name"
@@ -302,7 +318,12 @@ export function InterviewForm() {
           <CardFooter className="flex justify-between">
             <Button variant="outline" type="button" onClick={() => navigate(-1)}>Abbrechen</Button>
             <Button type="submit" className="bg-gitflash-accent hover:bg-gitflash-accent/90" disabled={isSubmitting}>
-              {isSubmitting ? 'Wird erstellt...' : 'Interview erstellen'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Wird erstellt...
+                </>
+              ) : 'Interview erstellen'}
             </Button>
           </CardFooter>
         </form>

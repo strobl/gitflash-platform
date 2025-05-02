@@ -2,4 +2,4 @@
 project_id = "gehhxwqlhzsesxzqleks"
 
 [functions.create-conversation]
-verify_jwt = true
+verify_jwt = false

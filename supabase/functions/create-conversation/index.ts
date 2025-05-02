@@ -12,6 +12,7 @@ const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -20,6 +21,17 @@ serve(async (req) => {
     const requestData = await req.json();
 
     console.log('Creating conversation with data:', JSON.stringify(requestData));
+
+    if (!TAVUS_API_KEY) {
+      console.error('TAVUS_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'API key not configured' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     // Call Tavus API to create a conversation
     const response = await fetch('https://api.tavus.io/v2/conversations', {
@@ -30,10 +42,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         conversation_name: requestData.conversation_name,
-        replica_id: requestData.replica_id,
-        persona_id: requestData.persona_id,
-        custom_greeting: requestData.custom_greeting,
-        conversation_context: requestData.conversation_context,
+        replica_id: requestData.replica_id || undefined,
+        persona_id: requestData.persona_id || undefined,
+        custom_greeting: requestData.custom_greeting || undefined,
+        conversation_context: requestData.conversation_context || undefined,
         language: requestData.language || 'de',
         max_call_duration: parseInt(requestData.max_call_duration) || 600,
         participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
@@ -44,7 +56,7 @@ serve(async (req) => {
     const responseData = await response.json();
     
     if (!response.ok) {
-      console.error('Tavus API error:', responseData);
+      console.error('Tavus API error:', JSON.stringify(responseData));
       return new Response(
         JSON.stringify({
           error: 'Failed to create conversation',
@@ -57,6 +69,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('Conversation created successfully:', JSON.stringify(responseData));
+
     // Return successful response
     return new Response(
       JSON.stringify(responseData),
@@ -66,7 +80,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in create-conversation function:', error);
+    console.error('Error in create-conversation function:', error.message);
     
     return new Response(
       JSON.stringify({ error: error.message }),
