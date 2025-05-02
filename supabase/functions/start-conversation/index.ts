@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.8.0';
-import * as jose from 'https://deno.land/x/jose@v4.13.1/index.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +11,6 @@ const corsHeaders = {
 const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const SUPABASE_JWT_SECRET = Deno.env.get('SUPABASE_JWT_SECRET') || '';
 
 // Standard Replica und Persona IDs
 const DEFAULT_REPLICA_ID = "r9fa0878977a";
@@ -168,32 +166,38 @@ serve(async (req) => {
     console.log('Calling Tavus API...');
     
     // Format the request body according to Tavus API documentation
+    // WICHTIG: Angepasst an den korrekten Format für die Tavus API
     const tavusRequestBody = {
-      // Immer die Standard-IDs verwenden, wenn keine IDs angegeben sind
-      replica_id: DEFAULT_REPLICA_ID,  // Standardwert verwenden
-      persona_id: DEFAULT_PERSONA_ID,  // Standardwert verwenden
+      replica_id: DEFAULT_REPLICA_ID,
+      persona_id: DEFAULT_PERSONA_ID,
       conversation_name: requestData.conversation_name || conversationData.conversation_name,
       conversational_context: requestData.conversation_context || conversationData.conversation_context || undefined,
       custom_greeting: requestData.custom_greeting || conversationData.custom_greeting || undefined,
-      properties: {
+    };
+    
+    // Nur Properties hinzufügen, wenn sie benötigt werden
+    if (conversationData.max_call_duration || 
+        conversationData.participant_left_timeout || 
+        conversationData.participant_absent_timeout ||
+        conversationData.language) {
+      tavusRequestBody.properties = {
         max_call_duration: parseInt(requestData.max_call_duration) || conversationData.max_call_duration || 600,
         participant_left_timeout: parseInt(requestData.participant_left_timeout) || conversationData.participant_left_timeout || 30,
         participant_absent_timeout: parseInt(requestData.participant_absent_timeout) || conversationData.participant_absent_timeout || 300,
         language: requestData.language || conversationData.language || 'deutsch',
-        // Optional weitere Properties
         enable_recording: true,
         enable_closed_captions: true
-      }
-    };
+      };
+    }
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
     
-    // Rohes Fetch mit detaillierter Fehlerbehandlung
+    // Korrigierter API-Aufruf mit x-api-key Header
     const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
       method: 'POST',
       headers: {
-        'x-api-key': TAVUS_API_KEY,
         'Content-Type': 'application/json',
+        'x-api-key': TAVUS_API_KEY,
       },
       body: JSON.stringify(tavusRequestBody),
     });

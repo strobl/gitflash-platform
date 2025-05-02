@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -59,8 +58,8 @@ export async function createConversation(data: ConversationData): Promise<any> {
         participant_left_timeout: data.participant_left_timeout || 30,
         participant_absent_timeout: data.participant_absent_timeout || 300,
         // Diese werden später beim Start des Interviews durch die Tavus API befüllt
-        conversation_id: 'pending',
-        conversation_url: 'pending'
+        conversation_id: null,
+        conversation_url: null
       })
       .select('*')
       .single();
@@ -129,9 +128,14 @@ export async function startConversation(interviewId: string): Promise<any> {
       console.error('Error invoking start-conversation edge function:', error);
       
       // Versuch, eine detailliertere Fehlermeldung zu extrahieren
-      const errorDetails = typeof error === 'object' && error !== null ? JSON.stringify(error, null, 2) : error?.toString();
+      let errorMessage = 'Fehler beim Aufrufen der Edge Function';
+      if (typeof error === 'object' && error !== null) {
+        errorMessage += ': ' + JSON.stringify(error, null, 2);
+      } else if (error) {
+        errorMessage += ': ' + error.toString();
+      }
       
-      throw new Error(`Fehler beim Aufrufen der Edge Function: ${errorDetails}`);
+      throw new Error(errorMessage);
     }
     
     if (!functionData) {
@@ -161,7 +165,6 @@ export async function startConversation(interviewId: string): Promise<any> {
     };
   } catch (err) {
     console.error('Failed to start conversation with Tavus API:', err);
-    toast.error(`${err instanceof Error ? err.message : 'Unbekannter Fehler beim Starten des Interviews'}`);
     throw err;
   }
 }
