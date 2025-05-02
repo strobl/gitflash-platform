@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -74,13 +75,13 @@ export default function InterviewDetail() {
       // Update the local interview data with the Tavus response
       setInterview(prev => ({
         ...prev,
-        conversation_id: result.conversation_id || result.id,
-        conversation_url: result.conversation_url || result.url,
-        status: result.status || 'active'
+        conversation_id: result.id || result.conversation_id,
+        conversation_url: result.url || result.conversation_url,
+        status: 'active'
       }));
       
       // Open the Tavus interview in a new tab
-      const conversationUrl = result.conversation_url || result.url;
+      const conversationUrl = result.url || result.conversation_url;
       if (conversationUrl) {
         window.open(conversationUrl, '_blank');
       } else {
@@ -148,8 +149,8 @@ export default function InterviewDetail() {
     );
   }
 
-  const isActive = interview.status === 'active' && interview.conversation_url !== 'pending';
-  const isDraft = interview.status === 'draft' || interview.conversation_url === 'pending';
+  const isActive = interview.status === 'active' && interview.conversation_url && interview.conversation_url !== 'pending';
+  const isDraft = interview.status === 'pending' || !interview.conversation_url || interview.conversation_url === 'pending';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -217,6 +218,27 @@ export default function InterviewDetail() {
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             )}
+
+            {/* Für Testing - auch Business-Benutzern ermöglichen, das Interview zu starten */}
+            {isBusiness && isDraft && (
+              <Button 
+                onClick={handleStartInterview}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={isStarting}
+              >
+                {isStarting ? (
+                  <>
+                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white/20 border-t-white rounded-full"></div>
+                    Wird getestet...
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Interview testen
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
         
@@ -279,13 +301,35 @@ export default function InterviewDetail() {
               
               <div>
                 <h3 className="font-medium mb-1">Replica ID</h3>
-                <p>{interview.replica_id || "Nicht angegeben"}</p>
+                <p>{interview.replica_id || "r9fa0878977a (Standard)"}</p>
               </div>
               
               <div>
                 <h3 className="font-medium mb-1">Persona ID</h3>
-                <p>{interview.persona_id || "Nicht angegeben"}</p>
+                <p>{interview.persona_id || "pe13ed370726 (Standard)"}</p>
               </div>
+              
+              {interview.conversation_id && interview.conversation_id !== 'pending' && (
+                <div>
+                  <h3 className="font-medium mb-1">Conversation ID</h3>
+                  <p className="break-all">{interview.conversation_id}</p>
+                </div>
+              )}
+
+              {isActive && (
+                <div>
+                  <h3 className="font-medium mb-1">Conversation Link</h3>
+                  <a 
+                    href={interview.conversation_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-all flex items-center"
+                  >
+                    {interview.conversation_url}
+                    <ExternalLink className="h-3 w-3 ml-1 inline-block" />
+                  </a>
+                </div>
+              )}
             </CardContent>
           </Card>
           

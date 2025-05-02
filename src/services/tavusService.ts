@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -111,14 +112,10 @@ export async function startConversation(interviewId: string): Promise<any> {
         body: JSON.stringify({
           interview_id: interviewId,
           conversation_name: interview.conversation_name,
-          replica_id: interview.replica_id || "r9fa0878977a",  // Standard-Replica-ID verwenden
-          persona_id: interview.persona_id || "pe13ed370726",  // Standard-Persona-ID verwenden
+          replica_id: "r9fa0878977a",  // Standard-Replica-ID verwenden
+          persona_id: "pe13ed370726",  // Standard-Persona-ID verwenden
           custom_greeting: interview.custom_greeting,
-          conversation_context: interview.conversation_context,
-          language: interview.language || 'deutsch',
-          max_call_duration: interview.max_call_duration,
-          participant_left_timeout: interview.participant_left_timeout,
-          participant_absent_timeout: interview.participant_absent_timeout
+          conversation_context: interview.conversation_context
         }),
       }
     );
@@ -152,7 +149,10 @@ export async function startConversation(interviewId: string): Promise<any> {
     // Add more detailed logging for troubleshooting
     console.log('Tavus API response data:', functionData);
     
-    if (!functionData.conversation_url && !functionData.url) {
+    // Verwenden Sie 'url' oder 'conversation_url', je nachdem, was zurückgegeben wird
+    const conversationUrl = functionData.url || functionData.conversation_url;
+    
+    if (!conversationUrl) {
       console.error('No conversation URL returned from Tavus API', functionData);
       throw new Error('Keine Interview-URL von Tavus erhalten');
     }
@@ -160,7 +160,7 @@ export async function startConversation(interviewId: string): Promise<any> {
     // Return the data including the conversation URL
     return {
       ...functionData,
-      conversation_url: functionData.conversation_url || functionData.url,
+      conversation_url: conversationUrl,
       interview_id: interviewId
     };
   } catch (err) {
