@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ConversationData {
   conversation_name: string;
@@ -26,14 +27,29 @@ export async function createConversation(data: ConversationData): Promise<any> {
       throw new Error('Sie müssen angemeldet sein, um ein Interview zu erstellen');
     }
     
-    // Insert directly into the database with status "pending" instead of "draft"
-    // "pending" is a valid status in the conversation_status enum
+    // Verify that the user has the 'business' role
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    if (profileError || !profileData) {
+      console.error('Error fetching user profile:', profileError);
+      throw new Error('Fehler beim Abrufen des Benutzerprofils');
+    }
+    
+    if (profileData.role !== 'business') {
+      throw new Error('Nur Unternehmen können Interviews erstellen');
+    }
+    
+    // Insert directly into the database with status "pending" 
     const { data: conversation, error } = await supabase
       .from('conversations')
       .insert({
         conversation_name: data.conversation_name,
         created_by: userId,
-        status: 'pending', // Changed from 'draft' to 'pending' which is a valid enum value
+        status: 'pending',
         replica_id: data.replica_id || null,
         persona_id: data.persona_id || null,
         custom_greeting: data.custom_greeting || null,
