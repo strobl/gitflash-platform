@@ -1,6 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.8.0';
+import { jwtVerify } from 'https://deno.land/x/jose@v4.13.1/jwt/verify.ts';
+import { createRemoteJWKSet } from 'https://deno.land/x/jose@v4.13.1/jwks/remote.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,6 +11,11 @@ const corsHeaders = {
 
 // Access TAVUS_API_KEY from environment variables
 const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,6 +33,63 @@ serve(async (req) => {
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Extract the JWT token
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verify the JWT token and extract user information
+    let userId;
+    try {
+      // Verify JWT token using Supabase JWKS
+      const JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/jwks`));
+      const { payload } = await jwtVerify(token, JWKS);
+      
+      // Extract the user ID from the sub claim
+      userId = payload.sub;
+      if (!userId) {
+        throw new Error('User ID not found in token');
+      }
+      
+      console.log('Authenticated user ID:', userId);
+    } catch (jwtError) {
+      console.error('JWT verification failed:', jwtError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    
+    // Verify that the user exists and has the 'business' role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+      
+    if (profileError || !profile) {
+      console.error('Error fetching user profile:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'User profile not found' }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    
+    if (profile.role !== 'business') {
+      console.error('Unauthorized: Only business users can create interviews');
+      return new Response(
+        JSON.stringify({ error: 'Only business users can create interviews' }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
@@ -103,24 +167,16 @@ serve(async (req) => {
 
     console.log('Conversation created successfully:', JSON.stringify(responseData));
 
-    // Save to Supabase database
+    // Save to Supabase database - use the userId from JWT, not from request
     try {
-      // Create a Supabase client
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      // Extract user_id from the request data
-      const userId = requestData.user_id;
-
-      // Insert the conversation data
+      // Insert the conversation data with the verified userId
       const { data: insertedData, error: insertError } = await supabase
         .from('conversations')
         .insert({
           conversation_id: responseData.conversation_id,
           conversation_name: requestData.conversation_name,
           conversation_url: responseData.conversation_url,
-          created_by: userId,
+          created_by: userId, // Use the authenticated user ID from the JWT
           status: responseData.status || 'active',
           persona_id: requestData.persona_id || null,
           replica_id: requestData.replica_id || null,

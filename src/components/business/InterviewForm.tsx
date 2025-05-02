@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -36,7 +35,6 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { createConversation } from '@/services/tavusService';
-import { useAuth } from '@/context/AuthContext';
 
 // Define the form schema with validations
 const formSchema = z.object({
@@ -54,7 +52,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function InterviewForm() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -77,17 +74,11 @@ export function InterviewForm() {
 
   // Handle form submission
   async function onSubmit(data: FormValues) {
-    if (!user) {
-      toast.error('Sie müssen angemeldet sein, um ein Interview zu erstellen.');
-      return;
-    }
-    
     setIsSubmitting(true);
     setErrorMessage(null);
     
     try {
       console.log('Submitting interview with data:', data);
-      console.log('User ID:', user.id);
       
       // Make sure conversation_name is not undefined by using the validated form data
       const result = await createConversation({
@@ -100,7 +91,7 @@ export function InterviewForm() {
         max_call_duration: data.max_call_duration,
         participant_left_timeout: data.participant_left_timeout,
         participant_absent_timeout: data.participant_absent_timeout
-      }, user.id);
+      });
       
       toast.success('Interview erfolgreich erstellt!');
       navigate('/interviews');

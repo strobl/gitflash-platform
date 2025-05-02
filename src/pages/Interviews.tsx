@@ -1,40 +1,54 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Plus } from 'lucide-react';
+import { MessageSquare, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { listConversations } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Navbar } from '@/components/navigation/Navbar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Interviews() {
-  const { user, profile } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [interviews, setInterviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Redirect if not logged in
-    if (!user) {
+    if (!isAuthenticated) {
       toast.error('Sie müssen angemeldet sein, um Interviews zu sehen.');
       navigate('/login');
       return;
     }
 
+    // Redirect if not a business user
+    if (profile?.role !== 'business') {
+      toast.error('Nur Unternehmen können Interviews verwalten.');
+      navigate('/dashboard');
+      return;
+    }
+
     async function fetchInterviews() {
+      setIsLoading(true);
+      setError(null);
+      
       try {
         const data = await listConversations();
         setInterviews(data || []);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching interviews:', error);
-        toast.error('Fehler beim Laden der Interviews');
+        setError(error.message || 'Fehler beim Laden der Interviews');
+        toast.error(error.message || 'Fehler beim Laden der Interviews');
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchInterviews();
-  }, [user, navigate]);
+  }, [user, profile, navigate, isAuthenticated]);
 
   const handleCreateInterview = () => {
     navigate('/interviews/create');
@@ -43,6 +57,12 @@ export default function Interviews() {
   const handleViewInterview = (id: string) => {
     navigate(`/interviews/${id}`);
   };
+
+  // If not authenticated or not a business user, don't render anything
+  // (the useEffect will handle the redirect)
+  if (!isAuthenticated || !user || profile?.role !== 'business') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -53,16 +73,21 @@ export default function Interviews() {
             <h1 className="text-3xl font-bold tracking-tight">KI-Interviews</h1>
             <p className="text-muted-foreground">Verwalten und erstellen Sie Ihre KI-gestützten Interviews.</p>
           </div>
-          {profile?.role === 'business' && (
-            <Button 
-              onClick={handleCreateInterview}
-              className="bg-gitflash-accent hover:bg-gitflash-accent/90"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Neues Interview erstellen
-            </Button>
-          )}
+          <Button 
+            onClick={handleCreateInterview}
+            className="bg-gitflash-accent hover:bg-gitflash-accent/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Neues Interview erstellen
+          </Button>
         </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {isLoading ? (
           <div className="text-center py-12">
@@ -78,15 +103,13 @@ export default function Interviews() {
             <p className="text-muted-foreground mb-6">
               Sie haben noch keine KI-Interviews erstellt.
             </p>
-            {profile?.role === 'business' && (
-              <Button 
-                onClick={handleCreateInterview}
-                className="bg-gitflash-accent hover:bg-gitflash-accent/90"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Jetzt erstes Interview erstellen
-              </Button>
-            )}
+            <Button 
+              onClick={handleCreateInterview}
+              className="bg-gitflash-accent hover:bg-gitflash-accent/90"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Jetzt erstes Interview erstellen
+            </Button>
           </div>
         ) : (
           <div className="grid gap-4">

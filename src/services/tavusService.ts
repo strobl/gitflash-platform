@@ -13,15 +13,12 @@ interface ConversationData {
   participant_absent_timeout?: number;
 }
 
-export async function createConversation(data: ConversationData, userId: string): Promise<any> {
+export async function createConversation(data: ConversationData): Promise<any> {
   try {
     const { data: functionData, error } = await supabase.functions.invoke(
       'create-conversation',
       {
-        body: JSON.stringify({
-          ...data,
-          user_id: userId
-        }),
+        body: JSON.stringify(data),
       }
     );
 
@@ -39,9 +36,20 @@ export async function createConversation(data: ConversationData, userId: string)
 
 export async function listConversations(): Promise<any[]> {
   try {
+    // Get the current user's ID from the session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      throw new Error('Sie müssen angemeldet sein, um Interviews anzuzeigen');
+    }
+
+    // Fetch only conversations created by the current user
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
+      .eq('created_by', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -58,15 +66,30 @@ export async function listConversations(): Promise<any[]> {
 
 export async function getConversation(id: string): Promise<any> {
   try {
+    // Get the current user's ID from the session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      throw new Error('Sie müssen angemeldet sein, um dieses Interview anzuzeigen');
+    }
+
+    // Fetch the conversation and verify it belongs to the current user
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
       .eq('id', id)
+      .eq('created_by', userId)
       .single();
 
     if (error) {
       console.error('Error fetching conversation:', error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error('Interview nicht gefunden oder keine Berechtigung');
     }
 
     return data;
