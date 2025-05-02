@@ -77,12 +77,12 @@ export async function createConversation(data: ConversationData): Promise<any> {
   }
 }
 
-// Schritt 2: Interview starten (ruft die Tavus API auf)
+// Schritt 2: Interview-Session starten (erstellt eine neue Session und ruft die Tavus API auf)
 export async function startConversation(interviewId: string): Promise<any> {
   try {
     console.log('Starting conversation with Tavus API, interview ID:', interviewId);
     
-    // Hole das Interview aus der Datenbank
+    // Hole das Interview-Template aus der Datenbank
     const { data: interview, error: fetchError } = await supabase
       .from('conversations')
       .select('*')
@@ -96,19 +96,38 @@ export async function startConversation(interviewId: string): Promise<any> {
 
     console.log('Retrieved interview data:', interview);
     
-    // Get the current auth token to pass to the edge function
+    // Get the current auth token and user ID
     const { data: { session } } = await supabase.auth.getSession();
     const authToken = session?.access_token;
+    const userId = session?.user?.id;
     
-    if (!authToken) {
+    if (!authToken || !userId) {
       throw new Error('Sie müssen angemeldet sein, um ein Interview zu starten');
     }
     
+    // Create a new interview session entry
+    const { data: interviewSession, error: sessionError } = await supabase
+      .from('interview_sessions')
+      .insert({
+        interview_id: interviewId,
+        created_by: userId,
+        status: 'pending'
+      })
+      .select('*')
+      .single();
+    
+    if (sessionError || !interviewSession) {
+      console.error('Error creating interview session:', sessionError);
+      throw new Error('Fehler beim Erstellen der Interview-Session');
+    }
+    
+    console.log('Created interview session:', interviewSession);
     console.log('Sending request to edge function with interview ID:', interviewId);
     
-    // Vereinfachte Daten für die Edge Function
+    // Daten für die Edge Function
     const requestBody = {
-      interview_id: interviewId
+      interview_id: interviewId,
+      session_id: interviewSession.id
     };
     
     console.log('Edge function request body:', JSON.stringify(requestBody));
@@ -163,11 +182,12 @@ export async function startConversation(interviewId: string): Promise<any> {
       throw new Error('Keine Interview-URL von Tavus erhalten');
     }
 
-    // Return the data including the conversation URL
+    // Return the data including the conversation URL and session ID
     return {
       ...functionData,
       conversation_url: conversationUrl,
       interview_id: interviewId,
+      session_id: interviewSession.id,
       participant_name: functionData.participant_name
     };
   } catch (err) {
@@ -236,6 +256,72 @@ export async function getConversation(id: string): Promise<any> {
     return data;
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
+    throw error;
+  }
+}
+
+// Neue Funktion zum Laden der Interview-Sessions für ein bestimmtes Interview
+export async function getInterviewSessions(interviewId: string): Promise<any[]> {
+  try {
+    // Get the current user's ID from the session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      throw new Error('Sie müssen angemeldet sein, um Interview-Sessions anzuzeigen');
+    }
+
+    // Fetch the sessions for this interview
+    const { data, error } = await supabase
+      .from('interview_sessions')
+      .select('*')
+      .eq('interview_id', interviewId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching interview sessions:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch interview sessions:', error);
+    throw error;
+  }
+}
+
+// Funktion zum Laden einer einzelnen Session
+export async function getInterviewSession(sessionId: string): Promise<any> {
+  try {
+    // Get the current user's ID from the session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      throw new Error('Sie müssen angemeldet sein, um diese Interview-Session anzuzeigen');
+    }
+
+    // Fetch the session
+    const { data, error } = await supabase
+      .from('interview_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching interview session:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Interview-Session nicht gefunden oder keine Berechtigung');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch interview session:', error);
     throw error;
   }
 }

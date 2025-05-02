@@ -9,6 +9,7 @@ interface EmbeddedInterviewProps {
   onFullscreenOpen?: () => void;
   interviewId?: string;
   status?: string;
+  sessionId?: string;
   onStartInterview?: () => Promise<string>;
 }
 
@@ -16,7 +17,8 @@ export function EmbeddedInterview({
   conversationUrl, 
   onFullscreenOpen, 
   interviewId, 
-  status, 
+  status,
+  sessionId,
   onStartInterview 
 }: EmbeddedInterviewProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +26,7 @@ export function EmbeddedInterview({
   const [isStarting, setIsStarting] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(conversationUrl);
   
-  const isDraft = status === 'pending' || !conversationUrl || conversationUrl === 'pending';
+  const isDraft = !sessionId || status === 'pending' || !conversationUrl || conversationUrl === 'pending';
   
   useEffect(() => {
     setLocalUrl(conversationUrl);

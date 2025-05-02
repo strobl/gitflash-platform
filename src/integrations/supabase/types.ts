@@ -63,6 +63,47 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_sessions: {
+        Row: {
+          conversation_id: string | null
+          conversation_url: string | null
+          created_at: string
+          created_by: string
+          id: string
+          interview_id: string
+          participant_name: string | null
+          status: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          conversation_url?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          interview_id: string
+          participant_name?: string | null
+          status?: string
+        }
+        Update: {
+          conversation_id?: string | null
+          conversation_url?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          interview_id?: string
+          participant_name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_sessions_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           id: string

@@ -1,7 +1,8 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw, PlusCircle, Clock, CheckCircle2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -11,29 +12,36 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getConversation, startConversation } from '@/services/tavusService';
+import { getConversation, startConversation, getInterviewSessions } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { EmbeddedInterview } from '@/components/interviews/EmbeddedInterview';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function InterviewDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [interview, setInterview] = useState<any>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [currentSession, setCurrentSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  const [useEmbeddedView, setUseEmbeddedView] = useState(true);
+  const [activeTab, setActiveTab] = useState('details');
 
   const isTalent = profile?.role === 'user';
   const isBusiness = profile?.role === 'business';
 
   useEffect(() => {
-    fetchInterviewDetails();
+    if (id) {
+      fetchInterviewDetails();
+      fetchInterviewSessions();
+    }
   }, [id]);
 
   async function fetchInterviewDetails() {
@@ -45,16 +53,33 @@ export default function InterviewDetail() {
       console.log('Fetched interview details:', data);
       setInterview(data);
       
-      // Wenn das Interview bereits aktiv ist, bereinigen wir mögliche Fehlermeldungen
-      if (data.status === 'active' && data.conversation_url && data.conversation_url !== 'pending') {
-        setErrorMessage(null);
-        setDebugInfo(null);
-      }
+      // Bereinigen wir mögliche Fehlermeldungen
+      setErrorMessage(null);
+      setDebugInfo(null);
     } catch (error) {
       console.error('Error fetching interview details:', error);
       toast.error('Fehler beim Laden der Interview-Details');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchInterviewSessions() {
+    if (!id) return;
+    
+    try {
+      const data = await getInterviewSessions(id);
+      console.log('Fetched interview sessions:', data);
+      setSessions(data || []);
+      
+      // Set the current session to the most recent active one if available
+      const activeSession = data.find(s => s.status === 'active' && s.conversation_url);
+      if (activeSession) {
+        setCurrentSession(activeSession);
+        setActiveTab('interview');
+      }
+    } catch (error) {
+      console.error('Error fetching interview sessions:', error);
     }
   }
 
@@ -64,6 +89,7 @@ export default function InterviewDetail() {
 
   const handleRefresh = () => {
     fetchInterviewDetails();
+    fetchInterviewSessions();
     toast.info('Daten werden aktualisiert...');
   };
 
@@ -87,14 +113,20 @@ export default function InterviewDetail() {
       toast.dismiss(toastId);
       toast.success('Interview erfolgreich gestartet!');
       
-      // Update the local interview data with the Tavus response
-      setInterview(prev => ({
-        ...prev,
-        conversation_id: result.id || result.conversation_id,
+      // Fetch updated sessions list
+      await fetchInterviewSessions();
+      
+      // Set the current session to the newly created one
+      const newSession = {
+        id: result.session_id,
+        conversation_id: result.id,
         conversation_url: result.url || result.conversation_url,
         status: 'active',
         participant_name: result.participant_name
-      }));
+      };
+      
+      setCurrentSession(newSession);
+      setActiveTab('interview');
 
       // Return the conversation URL for the embedded interview component
       return result.url || result.conversation_url;
@@ -123,16 +155,9 @@ export default function InterviewDetail() {
     }
   };
 
-  const handleOpenInterview = () => {
-    if (interview?.conversation_url && interview.conversation_url !== 'pending') {
-      // Toggle embedded view off and open in new tab
-      setUseEmbeddedView(false);
-      window.open(interview.conversation_url, '_blank');
-    }
-  };
-
-  const toggleEmbeddedView = () => {
-    setUseEmbeddedView(!useEmbeddedView);
+  const handleSelectSession = (session: any) => {
+    setCurrentSession(session);
+    setActiveTab('interview');
   };
 
   if (isLoading) {
@@ -166,8 +191,7 @@ export default function InterviewDetail() {
     );
   }
 
-  const isActive = interview.status === 'active' && interview.conversation_url && interview.conversation_url !== 'pending';
-  const isDraft = interview.status === 'pending' || !interview.conversation_url || interview.conversation_url === 'pending';
+  const hasActiveSession = currentSession && currentSession.status === 'active' && currentSession.conversation_url;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -192,12 +216,12 @@ export default function InterviewDetail() {
           </Button>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{interview.conversation_name}</h1>
             <div className="flex flex-wrap gap-3 mt-1">
-              <Badge variant={isDraft ? "outline" : "default"}>
-                Status: {isDraft ? 'Entwurf' : interview.status}
+              <Badge variant="outline">
+                Vorlage
               </Badge>
               
               {interview.replica_id && (
@@ -212,19 +236,6 @@ export default function InterviewDetail() {
                 </Badge>
               )}
             </div>
-          </div>
-          
-          {/* Nur noch Button zum Öffnen in neuem Tab, wenn bereits aktiv */}
-          <div className="flex gap-2">
-            {isActive && (
-              <Button 
-                onClick={handleOpenInterview}
-                variant="outline"
-              >
-                In neuem Tab öffnen
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            )}
           </div>
         </div>
         
@@ -257,123 +268,239 @@ export default function InterviewDetail() {
           </Alert>
         )}
         
-        {/* Embedded Interview Component */}
-        <div className="mb-6">
-          <EmbeddedInterview 
-            conversationUrl={isActive ? interview.conversation_url : null}
-            interviewId={id} 
-            status={interview.status}
-            onStartInterview={handleStartInterview}
-            onFullscreenOpen={() => setUseEmbeddedView(false)}
-          />
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Interview-Details</CardTitle>
-              <CardDescription>Grundlegende Informationen zum Interview</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-1">Status</h3>
-                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  isDraft 
-                    ? "bg-yellow-100 text-yellow-800" 
-                    : interview.status === "active" 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-gray-100 text-gray-800"
-                }`}>
-                  {isDraft ? 'Entwurf' : interview.status}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="mb-6">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="interview" disabled={!hasActiveSession && !id}>
+                Interview
+              </TabsTrigger>
+              <TabsTrigger value="sessions">Sitzungen ({sessions.length})</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="details" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Interview-Vorlage</CardTitle>
+                  <CardDescription>Grundlegende Informationen zum Interview</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h3 className="font-medium mb-1">Erstellt am</h3>
+                    <p>{new Date(interview.created_at).toLocaleDateString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-1">Maximale Dauer</h3>
+                    <p>{interview.max_call_duration} Sekunden</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-1">Replica ID</h3>
+                    <p>{interview.replica_id || "r9fa0878977a (Standard)"}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-1">Persona ID</h3>
+                    <p>{interview.persona_id || "pe13ed370726 (Standard)"}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-1">Sprache</h3>
+                    <p>{interview.language === 'de' ? 'Deutsch' : interview.language}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Interviewkontext</CardTitle>
+                  <CardDescription>Anweisungen für den KI-Interviewer</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md p-4 bg-muted/20">
+                    <p className="whitespace-pre-line">{interview.conversation_context || 'Keine Kontextinformationen verfügbar.'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Begrüßung</CardTitle>
+                  <CardDescription>Initiale Begrüßung des Kandidaten</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md p-4 bg-muted/20">
+                    <p className="whitespace-pre-line">{interview.custom_greeting || 'Keine benutzerdefinierte Begrüßung.'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="interview">
+            {hasActiveSession ? (
+              <>
+                <div className="mb-4">
+                  <h2 className="text-lg font-medium mb-1">Aktive Interview-Sitzung</h2>
+                  <p className="text-muted-foreground text-sm">
+                    Sitzung gestartet am {new Date(currentSession.created_at).toLocaleDateString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
-              </div>
-              
-              {interview.participant_name && (
-                <div>
-                  <h3 className="font-medium mb-1">Teilnehmer</h3>
-                  <p>{interview.participant_name}</p>
-                </div>
-              )}
-              
-              <div>
-                <h3 className="font-medium mb-1">Sprache</h3>
-                <p>{interview.language === 'de' ? 'Deutsch' : interview.language}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-1">Erstellt am</h3>
-                <p>{new Date(interview.created_at).toLocaleDateString('de-DE', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-1">Maximale Dauer</h3>
-                <p>{interview.max_call_duration} Sekunden</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-1">Replica ID</h3>
-                <p>{interview.replica_id || "r9fa0878977a (Standard)"}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-1">Persona ID</h3>
-                <p>{interview.persona_id || "pe13ed370726 (Standard)"}</p>
-              </div>
-              
-              {interview.conversation_id && interview.conversation_id !== 'pending' && (
-                <div>
-                  <h3 className="font-medium mb-1">Conversation ID</h3>
-                  <p className="break-all">{interview.conversation_id}</p>
-                </div>
-              )}
-
-              {isActive && (
-                <div>
-                  <h3 className="font-medium mb-1">Conversation Link</h3>
-                  <a 
-                    href={interview.conversation_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline break-all flex items-center"
+                
+                <EmbeddedInterview 
+                  conversationUrl={currentSession.conversation_url} 
+                  interviewId={id}
+                  sessionId={currentSession.id}
+                  status={currentSession.status}
+                />
+                
+                <div className="mt-4 text-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.open(currentSession.conversation_url, '_blank')}
                   >
-                    {interview.conversation_url}
-                    <ExternalLink className="h-3 w-3 ml-1 inline-block" />
-                  </a>
+                    In neuem Tab öffnen
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Interviewkontext</CardTitle>
-              <CardDescription>Anweisungen für den KI-Interviewer</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md p-4 bg-muted/20">
-                <p className="whitespace-pre-line">{interview.conversation_context || 'Keine Kontextinformationen verfügbar.'}</p>
+              </>
+            ) : (
+              <div className="text-center py-12 border rounded-lg">
+                <div className="bg-gitflash-primary/20 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Play className="h-8 w-8 text-gitflash-primary ml-1" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Kein aktives Interview</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  Starten Sie ein neues Interview, um den Interviewprozess zu beginnen.
+                </p>
+                <Button 
+                  onClick={handleStartInterview} 
+                  className="bg-gitflash-accent hover:bg-gitflash-accent/90"
+                  disabled={isStarting}
+                >
+                  {isStarting ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-white/20 border-t-white rounded-full mr-2"></div>
+                      Wird gestartet...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-4 w-4" />
+                      Neues Interview starten
+                    </>
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </TabsContent>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Begrüßung</CardTitle>
-              <CardDescription>Initiale Begrüßung des Kandidaten</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md p-4 bg-muted/20">
-                <p className="whitespace-pre-line">{interview.custom_greeting || 'Keine benutzerdefinierte Begrüßung.'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="sessions">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                  <CardTitle>Interview-Sitzungen</CardTitle>
+                  <CardDescription>
+                    Übersicht aller Durchführungen dieses Interviews
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleStartInterview}
+                  disabled={isStarting}
+                >
+                  {isStarting ? (
+                    <div className="animate-spin h-4 w-4 border-2 border-primary/20 border-t-primary rounded-full"></div>
+                  ) : (
+                    <>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Neue Sitzung
+                    </>
+                  )}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {sessions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">Keine Interview-Sitzungen vorhanden</p>
+                    <p className="text-sm text-muted-foreground/70 mt-1">
+                      Starten Sie ein neues Interview, um eine Sitzung zu erstellen
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sessions.map((session) => {
+                      const isActive = session.status === 'active' && session.conversation_url;
+                      
+                      return (
+                        <div 
+                          key={session.id}
+                          className={`p-4 border rounded-md flex items-center justify-between ${
+                            currentSession?.id === session.id ? 'border-gitflash-primary bg-gitflash-primary/5' : ''
+                          }`}
+                        >
+                          <div className="flex items-center">
+                            <div className={`rounded-full h-8 w-8 flex items-center justify-center mr-4 ${
+                              isActive ? 'bg-green-100' : 'bg-gray-100'
+                            }`}>
+                              {isActive ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                              ) : (
+                                <Clock className="h-5 w-5 text-gray-500" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                Sitzung vom {new Date(session.created_at).toLocaleDateString('de-DE', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(session.created_at).toLocaleTimeString('de-DE')} • 
+                                {session.participant_name ? ` Teilnehmer: ${session.participant_name} • ` : ' '}
+                                Status: {isActive ? 'Aktiv' : session.status}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            {isActive && (
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleSelectSession(session)}
+                                variant={currentSession?.id === session.id ? "default" : "outline"}
+                              >
+                                {currentSession?.id === session.id ? 'Aktiv' : 'Anzeigen'}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -81,6 +81,16 @@ serve(async (req) => {
       );
     }
 
+    if (!requestData.session_id) {
+      return new Response(
+        JSON.stringify({ error: 'Session ID is required' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Check if TAVUS_API_KEY is configured
     if (!TAVUS_API_KEY) {
       console.error('TAVUS_API_KEY not configured');
@@ -96,7 +106,7 @@ serve(async (req) => {
       );
     }
 
-    // Fetch the conversation details
+    // Fetch the interview template details
     const { data: conversationData, error: conversationError } = await supabase
       .from('conversations')
       .select('*')
@@ -109,6 +119,27 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'Conversation not found', 
           details: conversationError?.message 
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Fetch the interview session
+    const { data: sessionData, error: sessionError } = await supabase
+      .from('interview_sessions')
+      .select('*')
+      .eq('id', requestData.session_id)
+      .single();
+      
+    if (sessionError || !sessionData) {
+      console.error('Error fetching interview session:', sessionError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Interview session not found', 
+          details: sessionError?.message 
         }),
         {
           status: 404,
@@ -230,24 +261,23 @@ serve(async (req) => {
         );
       }
 
-      // Update the interview in Supabase with Tavus response data
+      // Update the interview session in Supabase with Tavus response data
       try {
         const { data: updateData, error: updateError } = await supabase
-          .from('conversations')
+          .from('interview_sessions')
           .update({
             conversation_id: conversationId || 'unknown',
             conversation_url: conversationUrl,
             status: 'active',
-            replica_id: tavusRequestBody.replica_id,
-            persona_id: tavusRequestBody.persona_id
+            participant_name: participantName
           })
-          .eq('id', requestData.interview_id)
+          .eq('id', requestData.session_id)
           .select();
 
         if (updateError) {
-          console.error('Error updating interview:', updateError);
+          console.error('Error updating interview session:', updateError);
         } else {
-          console.log('Interview updated successfully:', updateData);
+          console.log('Interview session updated successfully:', updateData);
         }
       } catch (dbError) {
         console.error('Database update error:', dbError);
@@ -259,6 +289,7 @@ serve(async (req) => {
           id: conversationId,
           url: conversationUrl,
           interview_id: requestData.interview_id,
+          session_id: requestData.session_id,
           status: 'active',
           message: 'Interview successfully created with Tavus',
           participant_name: participantName
