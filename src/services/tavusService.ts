@@ -154,7 +154,6 @@ export async function getConversation(id: string): Promise<any> {
       .from('conversations')
       .select('*')
       .eq('id', id)
-      .eq('created_by', userId)
       .single();
 
     if (error) {

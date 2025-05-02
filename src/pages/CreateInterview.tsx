@@ -1,10 +1,10 @@
 
 import { useNavigate } from 'react-router-dom';
-import { InterviewForm } from '@/components/business/InterviewForm';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { InterviewForm } from '@/components/business/interview/InterviewForm';
 
 export default function CreateInterview() {
   const { user, profile, isAuthenticated } = useAuth();
