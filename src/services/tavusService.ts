@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -108,10 +107,7 @@ export async function startConversation(interviewId: string): Promise<any> {
     
     // Vereinfachte Daten für die Edge Function
     const requestBody = {
-      interview_id: interviewId,
-      conversation_name: interview.conversation_name,
-      custom_greeting: interview.custom_greeting,
-      conversation_context: interview.conversation_context
+      interview_id: interviewId
     };
     
     console.log('Edge function request body:', JSON.stringify(requestBody));

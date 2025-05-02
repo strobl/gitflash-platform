@@ -12,7 +12,7 @@ const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
-// Standard Replica und Persona IDs (aus den Screenshots)
+// Standard Replica und Persona IDs
 const DEFAULT_REPLICA_ID = "r9fa0878977a";  // Luna
 const DEFAULT_PERSONA_ID = "pe13ed370726"; // AI Interviewer
 
@@ -67,24 +67,6 @@ serve(async (req) => {
       );
     }
     
-    // Check if user has a valid role
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-    
-    if (profileError || !profileData) {
-      console.error('Error fetching user profile:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'User profile not found', details: profileError?.message }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-    
     // Parse the request body
     const requestData = await req.json();
     console.log('Starting conversation with data:', JSON.stringify(requestData));
@@ -99,10 +81,14 @@ serve(async (req) => {
       );
     }
 
+    // Check if TAVUS_API_KEY is configured
     if (!TAVUS_API_KEY) {
       console.error('TAVUS_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'API key not configured', tip: 'Please set the TAVUS_API_KEY in the Supabase dashboard' }),
+        JSON.stringify({ 
+          error: 'API key not configured', 
+          tip: 'Please set the TAVUS_API_KEY in the Supabase dashboard' 
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -112,17 +98,7 @@ serve(async (req) => {
 
     // Log API key exists (without revealing it)
     console.log('TAVUS_API_KEY is configured:', !!TAVUS_API_KEY, 'Length:', TAVUS_API_KEY ? TAVUS_API_KEY.length : 0);
-    if (TAVUS_API_KEY && TAVUS_API_KEY.trim() === '') {
-      console.error('TAVUS_API_KEY is empty');
-      return new Response(
-        JSON.stringify({ error: 'API key is empty', tip: 'Please set a valid TAVUS_API_KEY in the Supabase dashboard' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
+    
     // Fetch the conversation details
     const { data: conversationData, error: conversationError } = await supabase
       .from('conversations')
@@ -144,54 +120,22 @@ serve(async (req) => {
       );
     }
 
-    // Apply role-based permissions
-    if (profileData.role === 'business') {
-      if (conversationData.created_by !== userId) {
-        console.error('Permission denied: Business user can only start their own interviews');
-        return new Response(
-          JSON.stringify({ error: 'You do not have permission to start this interview' }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      }
-    } else if (profileData.role !== 'user') {
-      // Unknown role
-      console.error('Unknown user role:', profileData.role);
-      return new Response(
-        JSON.stringify({ error: 'Invalid user role' }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    // Vereinfachter API-Aufruf basierend auf den Screenshots
-    console.log('Calling Tavus API...');
+    // Simplified API request structure based on curl example
+    console.log('Calling Tavus API with simplified structure...');
     
-    // Vereinfachte API-Request Struktur
+    // Construct request body exactly as in the curl example
     const tavusRequestBody = {
       replica_id: DEFAULT_REPLICA_ID,
+      conversation_name: conversationData.conversation_name || "Test Interview",
       persona_id: DEFAULT_PERSONA_ID,
-      conversation_name: requestData.conversation_name || conversationData.conversation_name || 'Interview'
+      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt."
     };
-    
-    // Optional Felder nur hinzufügen, wenn sie vorhanden sind
-    if (requestData.conversation_context || conversationData.conversation_context) {
-      tavusRequestBody.conversation_context = requestData.conversation_context || conversationData.conversation_context;
-    }
-    
-    if (requestData.custom_greeting || conversationData.custom_greeting) {
-      tavusRequestBody.custom_greeting = requestData.custom_greeting || conversationData.custom_greeting;
-    }
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
     
     try {
-      // API-Aufruf mit korrektem Endpunkt und Headers
-      const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
+      // Using tavusapi.com endpoint as shown in the curl example
+      const tavusResponse = await fetch('https://tavusapi.com/v2/conversations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,12 +147,13 @@ serve(async (req) => {
       const responseStatus = tavusResponse.status;
       console.log('Tavus API response status:', responseStatus);
       
-      // Versuch, die Antwort als JSON zu parsen
+      // Get response as text first to log it
+      const tavusResponseText = await tavusResponse.text();
+      console.log('Tavus API response body:', tavusResponseText);
+      
+      // Parse response if possible
       let responseData;
       try {
-        const tavusResponseText = await tavusResponse.text();
-        console.log('Tavus API response body:', tavusResponseText);
-        
         if (tavusResponseText) {
           responseData = JSON.parse(tavusResponseText);
         }
@@ -217,7 +162,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: `Failed to parse Tavus API response (Status ${responseStatus})`, 
-            details: parseError.message
+            details: tavusResponseText,
+            parseError: parseError.message
           }),
           {
             status: 500,
@@ -227,11 +173,11 @@ serve(async (req) => {
       }
       
       if (!tavusResponse.ok) {
-        console.error(`Tavus API error (${responseStatus}):`, responseData || 'No response data');
+        console.error(`Tavus API error (${responseStatus}):`, responseData || tavusResponseText);
         return new Response(
           JSON.stringify({
             error: `Tavus API error (Status ${responseStatus})`,
-            details: responseData || 'No response data'
+            details: responseData || tavusResponseText
           }),
           {
             status: responseStatus || 500,
@@ -243,7 +189,10 @@ serve(async (req) => {
       if (!responseData) {
         console.error('Empty response from Tavus API');
         return new Response(
-          JSON.stringify({ error: 'Empty response from Tavus API' }),
+          JSON.stringify({ 
+            error: 'Empty response from Tavus API',
+            rawResponse: tavusResponseText 
+          }),
           {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -253,12 +202,12 @@ serve(async (req) => {
 
       console.log('Conversation created successfully:', JSON.stringify(responseData));
       
-      // Extrahiere die daily.co URL aus der Antwort
-      const conversationId = responseData.id;
-      const conversationUrl = responseData.url;
+      // Extract conversation ID and URL (adapting to actual response structure from Tavus)
+      const conversationId = responseData.id || responseData.conversation_id;
+      const conversationUrl = responseData.url || responseData.conversation_url;
       
-      if (!conversationUrl || !conversationId) {
-        console.error('Missing conversation URL or ID in Tavus response:', responseData);
+      if (!conversationUrl) {
+        console.error('Missing conversation URL in Tavus response:', responseData);
         return new Response(
           JSON.stringify({ 
             error: 'Missing conversation URL in Tavus response', 
@@ -276,7 +225,7 @@ serve(async (req) => {
         const { data: updateData, error: updateError } = await supabase
           .from('conversations')
           .update({
-            conversation_id: conversationId,
+            conversation_id: conversationId || 'unknown',
             conversation_url: conversationUrl,
             status: 'active',
             replica_id: DEFAULT_REPLICA_ID,
@@ -294,13 +243,14 @@ serve(async (req) => {
         console.error('Database update error:', dbError);
       }
 
-      // Return successful response with the URL that the frontend will open
+      // Return successful response
       return new Response(
         JSON.stringify({
           id: conversationId,
           url: conversationUrl,
           interview_id: requestData.interview_id,
-          status: 'active'
+          status: 'active',
+          message: 'Interview successfully created with Tavus'
         }),
         {
           status: 200,
