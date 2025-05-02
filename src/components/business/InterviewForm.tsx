@@ -82,7 +82,19 @@ export function InterviewForm() {
     setIsSubmitting(true);
     
     try {
-      const result = await createConversation(data);
+      // Make sure conversation_name is not undefined by using the validated form data
+      const result = await createConversation({
+        conversation_name: data.conversation_name,
+        replica_id: data.replica_id,
+        persona_id: data.persona_id,
+        custom_greeting: data.custom_greeting,
+        conversation_context: data.conversation_context,
+        language: data.language,
+        max_call_duration: data.max_call_duration,
+        participant_left_timeout: data.participant_left_timeout,
+        participant_absent_timeout: data.participant_absent_timeout
+      }, user.id);
+      
       toast.success('Interview erfolgreich erstellt!');
       navigate('/interviews');
     } catch (error) {

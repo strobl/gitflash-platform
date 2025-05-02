@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 export interface CreateConversationRequest {
   conversation_name: string;
@@ -22,7 +23,7 @@ export interface ConversationResponse {
   status: string;
 }
 
-export const createConversation = async (data: CreateConversationRequest): Promise<ConversationResponse> => {
+export const createConversation = async (data: CreateConversationRequest, userId: string): Promise<ConversationResponse> => {
   const { data: response, error } = await supabase.functions.invoke('create-conversation', {
     body: data
   });
@@ -47,7 +48,8 @@ export const createConversation = async (data: CreateConversationRequest): Promi
       language: data.language || 'de',
       max_call_duration: data.max_call_duration || 600,
       participant_left_timeout: data.participant_left_timeout || 30,
-      participant_absent_timeout: data.participant_absent_timeout || 300
+      participant_absent_timeout: data.participant_absent_timeout || 300,
+      created_by: userId
     })
     .select()
     .single();
