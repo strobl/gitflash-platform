@@ -20,11 +20,11 @@ export function TalentDashboard() {
     const fetchAvailableInterviews = async () => {
       setIsLoading(true);
       try {
-        // Hole alle Interviews im Status "draft" oder "active"
+        // Hole alle Interviews im Status "pending" oder "active"
         const { data, error } = await supabase
           .from('conversations')
           .select('*')
-          .or('status.eq.draft,status.eq.active')
+          .or('status.eq.pending,status.eq.active')
           .order('created_at', { ascending: false })
           .limit(3);
         
@@ -194,10 +194,10 @@ export function TalentDashboard() {
                     <div>
                       <h3 className="font-medium">{interview.conversation_name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {interview.status === 'draft' ? 'Bereit zur Teilnahme' : 'Aktiv'}
+                        {interview.status === 'pending' ? 'Bereit zur Teilnahme' : 'Aktiv'}
                       </p>
                     </div>
-                    {interview.status === 'draft' && (
+                    {interview.status === 'pending' && (
                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Neu</span>
                     )}
                   </div>
