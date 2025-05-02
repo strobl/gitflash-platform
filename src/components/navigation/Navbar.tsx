@@ -10,10 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building, User, LogOut, Home } from 'lucide-react';
+import { Building, User, LogOut } from 'lucide-react';
 
 export function Navbar() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, profile, logout, isAuthenticated } = useAuth();
 
   return (
     <header className="bg-white border-b sticky top-0 z-40">
@@ -32,15 +32,20 @@ export function Navbar() {
               <Link to="/dashboard" className="text-foreground hover:text-gitflash-primary transition-colors">
                 Dashboard
               </Link>
-              {user?.role === 'user' && (
+              {profile?.role === 'user' && (
                 <Link to="/profile" className="text-foreground hover:text-gitflash-primary transition-colors">
                   Mein Profil
                 </Link>
               )}
-              {user?.role === 'business' && (
-                <Link to="/talents" className="text-foreground hover:text-gitflash-primary transition-colors">
-                  Talente finden
-                </Link>
+              {profile?.role === 'business' && (
+                <>
+                  <Link to="/talents" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Talente finden
+                  </Link>
+                  <Link to="/interviews" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Interviews
+                  </Link>
+                </>
               )}
             </>
           )}
@@ -52,7 +57,7 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                    {user?.role === 'user' ? (
+                    {profile?.role === 'user' ? (
                       <User size={18} />
                     ) : (
                       <Building size={18} />
@@ -61,18 +66,25 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Mein Konto</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {profile?.name || 'Mein Konto'}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
-                {user?.role === 'user' && (
+                {profile?.role === 'user' && (
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
                   </DropdownMenuItem>
                 )}
+                {profile?.role === 'business' && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
+                <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Abmelden</span>
                 </DropdownMenuItem>

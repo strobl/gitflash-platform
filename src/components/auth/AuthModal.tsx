@@ -14,9 +14,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type AuthMode = 'login' | 'register';
-type UserRole = 'user' | 'business' | null;
+type UserRole = 'user' | 'business';
 
 export function AuthModal() {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -24,23 +26,28 @@ export function AuthModal() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>('user');
+  const [error, setError] = useState<string | null>(null);
   
   const { login, register, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     try {
       if (mode === 'login') {
-        await login(email, password, role);
-        toast.success(`Erfolgreich als ${role === 'user' ? 'Talent' : 'Unternehmen'} angemeldet`);
+        await login(email, password);
       } else {
+        if (!name.trim()) {
+          setError('Bitte geben Sie einen Namen ein');
+          return;
+        }
         await register(name, email, password, role);
         toast.success(`Konto als ${role === 'user' ? 'Talent' : 'Unternehmen'} erstellt`);
       }
     } catch (error) {
-      toast.error('Ein Fehler ist aufgetreten');
       console.error(error);
+      setError('Ein Fehler ist aufgetreten');
     }
   };
 
@@ -73,6 +80,13 @@ export function AuthModal() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
               {mode === 'register' && (
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
@@ -132,6 +146,13 @@ export function AuthModal() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
               {mode === 'register' && (
                 <div className="space-y-2">
                   <Label htmlFor="company-name">Firmenname</Label>

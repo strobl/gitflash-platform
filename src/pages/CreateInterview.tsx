@@ -1,5 +1,5 @@
 
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { InterviewForm } from '@/components/business/InterviewForm';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 export default function CreateInterview() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -15,19 +15,19 @@ export default function CreateInterview() {
     if (!isAuthenticated) {
       toast.error('Sie müssen angemeldet sein, um ein Interview zu erstellen.');
       navigate('/login');
-    } else if (user?.role !== 'business') {
+    } else if (profile?.role !== 'business') {
       toast.error('Nur Unternehmen können Interviews erstellen.');
       navigate('/dashboard');
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, profile, navigate]);
   
   // Don't render anything while checking auth
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return null;
   }
   
   // Redirect to dashboard if not a business user
-  if (user?.role !== 'business') {
+  if (profile?.role !== 'business') {
     return null;
   }
   
