@@ -32,9 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile
   const fetchProfile = async (userId: string) => {
     try {
-      // Use type assertion to work around TypeScript limitations with dynamic tables
-      const { data, error } = await supabase
-        .from('profiles')
+      // Use a type assertion to bypass TypeScript type checking for the table name
+      const { data, error } = await (supabase
+        .from('profiles') as any)
         .select('*')
         .eq('id', userId)
         .single();
@@ -46,13 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Make sure the returned data matches our UserProfile interface
       if (data) {
-        // Type cast the data to any first since TypeScript doesn't know about our profiles table yet
-        const profileData = data as any;
-        
         const userProfile: UserProfile = {
-          id: profileData.id,
-          name: profileData.name,
-          role: profileData.role as 'user' | 'business',
+          id: data.id,
+          name: data.name,
+          role: data.role as 'user' | 'business',
         };
         return userProfile;
       }
