@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -96,18 +95,9 @@ export default function InterviewDetail() {
         status: 'active',
         participant_name: result.participant_name
       }));
-      
-      // In embedded view, no need to open a new tab
-      if (!useEmbeddedView) {
-        // Open the Tavus interview in a new tab only if not in embedded view
-        const conversationUrl = result.url || result.conversation_url;
-        if (conversationUrl) {
-          window.open(conversationUrl, '_blank');
-        } else {
-          setErrorMessage('Keine gültige Interview-URL erhalten');
-          console.error('No valid conversation URL received', result);
-        }
-      }
+
+      // Return the conversation URL for the embedded interview component
+      return result.url || result.conversation_url;
     } catch (error) {
       console.error('Error starting interview:', error);
       
@@ -127,6 +117,7 @@ export default function InterviewDetail() {
       setErrorMessage(errorMsg);
       setDebugInfo(debugMsg);
       toast.error('Fehler beim Starten des Interviews');
+      throw error;
     } finally {
       setIsStarting(false);
     }
@@ -223,38 +214,9 @@ export default function InterviewDetail() {
             </div>
           </div>
           
-          {/* Verschiedene Buttons je nach Status und Benutzerrolle */}
+          {/* Nur noch Button zum Öffnen in neuem Tab, wenn bereits aktiv */}
           <div className="flex gap-2">
-            {isDraft && (
-              <Button 
-                onClick={handleStartInterview}
-                className={isTalent ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
-                disabled={isStarting}
-              >
-                {isStarting ? (
-                  <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white/20 border-t-white rounded-full"></div>
-                    Wird gestartet...
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    {isTalent ? 'Interview starten' : 'Interview testen'}
-                  </>
-                )}
-              </Button>
-            )}
-            
-            {isActive && !useEmbeddedView && (
-              <Button 
-                onClick={() => setUseEmbeddedView(true)}
-                className="bg-gitflash-accent hover:bg-gitflash-accent/90"
-              >
-                {isTalent ? 'Interview einbetten' : 'In GitFlash anzeigen'}
-              </Button>
-            )}
-            
-            {isActive && useEmbeddedView && (
+            {isActive && (
               <Button 
                 onClick={handleOpenInterview}
                 variant="outline"
@@ -295,15 +257,16 @@ export default function InterviewDetail() {
           </Alert>
         )}
         
-        {/* Embedded Interview when active and embedded view is enabled */}
-        {isActive && useEmbeddedView && (
-          <div className="mb-6">
-            <EmbeddedInterview 
-              conversationUrl={interview.conversation_url} 
-              onFullscreenOpen={() => setUseEmbeddedView(false)}
-            />
-          </div>
-        )}
+        {/* Embedded Interview Component */}
+        <div className="mb-6">
+          <EmbeddedInterview 
+            conversationUrl={isActive ? interview.conversation_url : null}
+            interviewId={id} 
+            status={interview.status}
+            onStartInterview={handleStartInterview}
+            onFullscreenOpen={() => setUseEmbeddedView(false)}
+          />
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -410,44 +373,6 @@ export default function InterviewDetail() {
               </div>
             </CardContent>
           </Card>
-          
-          {isDraft && (
-            <Card className={isTalent ? "border-green-200 bg-green-50" : "border-blue-200 bg-blue-50"}>
-              <CardHeader>
-                <CardTitle className={isTalent ? "text-green-800" : "text-blue-800"}>Interview starten</CardTitle>
-                <CardDescription className={isTalent ? "text-green-700" : "text-blue-700"}>
-                  {isTalent ? "Nehmen Sie an diesem KI-Interview teil" : "Testen Sie dieses KI-Interview"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className={`mb-4 ${isTalent ? "text-green-700" : "text-blue-700"}`}>
-                  {isTalent 
-                    ? "Klicken Sie auf \"Interview starten\", um mit diesem KI-Interview zu beginnen. Ihre Antworten werden aufgezeichnet und können vom Unternehmen eingesehen werden."
-                    : "Als Ersteller können Sie dieses Interview testen, bevor Sie es an Kandidaten freigeben."
-                  }
-                </p>
-                <Button 
-                  onClick={handleStartInterview} 
-                  className={`w-full ${isTalent 
-                    ? "bg-green-600 hover:bg-green-700" 
-                    : "bg-blue-600 hover:bg-blue-700"}`}
-                  disabled={isStarting}
-                >
-                  {isStarting ? (
-                    <>
-                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-white/20 border-t-white rounded-full"></div>
-                      Wird gestartet...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="mr-2 h-4 w-4" />
-                      {isTalent ? 'Interview starten' : 'Interview testen'}
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
