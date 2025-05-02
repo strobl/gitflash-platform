@@ -71,6 +71,35 @@ serve(async (req) => {
       );
     }
     
+    // Check if user has 'business' role
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    if (profileError || !profileData) {
+      console.error('Error fetching user profile:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'User profile not found', details: profileError?.message }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    
+    if (profileData.role !== 'business') {
+      console.error('User does not have business role');
+      return new Response(
+        JSON.stringify({ error: 'Only business users can start interviews' }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    
     // Parse the request body
     const requestData = await req.json();
     console.log('Starting conversation with data:', JSON.stringify(requestData));
@@ -91,6 +120,28 @@ serve(async (req) => {
         JSON.stringify({ error: 'API key not configured' }),
         {
           status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Check if the conversation belongs to this user
+    const { data: conversationData, error: conversationError } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('id', requestData.interview_id)
+      .eq('created_by', userId)
+      .single();
+    
+    if (conversationError || !conversationData) {
+      console.error('Error fetching conversation or conversation not found:', conversationError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Conversation not found or you do not have permission to access it', 
+          details: conversationError?.message 
+        }),
+        {
+          status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
