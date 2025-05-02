@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -166,7 +167,8 @@ export async function startConversation(interviewId: string): Promise<any> {
     return {
       ...functionData,
       conversation_url: conversationUrl,
-      interview_id: interviewId
+      interview_id: interviewId,
+      participant_name: functionData.participant_name
     };
   } catch (err) {
     console.error('Failed to start conversation with Tavus API:', err);

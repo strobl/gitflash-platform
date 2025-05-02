@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { EmbeddedInterview } from '@/components/interviews/EmbeddedInterview';
 
 export default function InterviewDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ export default function InterviewDetail() {
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [useEmbeddedView, setUseEmbeddedView] = useState(true);
 
   const isTalent = profile?.role === 'user';
   const isBusiness = profile?.role === 'business';
@@ -84,23 +86,27 @@ export default function InterviewDetail() {
       
       // Erfolgsmeldung anzeigen
       toast.dismiss(toastId);
-      toast.success('Interview erfolgreich gestartet! Sie können jetzt teilnehmen.');
+      toast.success('Interview erfolgreich gestartet!');
       
       // Update the local interview data with the Tavus response
       setInterview(prev => ({
         ...prev,
         conversation_id: result.id || result.conversation_id,
         conversation_url: result.url || result.conversation_url,
-        status: 'active'
+        status: 'active',
+        participant_name: result.participant_name
       }));
       
-      // Open the Tavus interview in a new tab
-      const conversationUrl = result.url || result.conversation_url;
-      if (conversationUrl) {
-        window.open(conversationUrl, '_blank');
-      } else {
-        setErrorMessage('Keine gültige Interview-URL erhalten');
-        console.error('No valid conversation URL received', result);
+      // In embedded view, no need to open a new tab
+      if (!useEmbeddedView) {
+        // Open the Tavus interview in a new tab only if not in embedded view
+        const conversationUrl = result.url || result.conversation_url;
+        if (conversationUrl) {
+          window.open(conversationUrl, '_blank');
+        } else {
+          setErrorMessage('Keine gültige Interview-URL erhalten');
+          console.error('No valid conversation URL received', result);
+        }
       }
     } catch (error) {
       console.error('Error starting interview:', error);
@@ -128,8 +134,14 @@ export default function InterviewDetail() {
 
   const handleOpenInterview = () => {
     if (interview?.conversation_url && interview.conversation_url !== 'pending') {
+      // Toggle embedded view off and open in new tab
+      setUseEmbeddedView(false);
       window.open(interview.conversation_url, '_blank');
     }
+  };
+
+  const toggleEmbeddedView = () => {
+    setUseEmbeddedView(!useEmbeddedView);
   };
 
   if (isLoading) {
@@ -233,12 +245,21 @@ export default function InterviewDetail() {
               </Button>
             )}
             
-            {isActive && (
+            {isActive && !useEmbeddedView && (
               <Button 
-                onClick={handleOpenInterview}
+                onClick={() => setUseEmbeddedView(true)}
                 className="bg-gitflash-accent hover:bg-gitflash-accent/90"
               >
-                {isTalent ? 'Am Interview teilnehmen' : 'Interview öffnen'}
+                {isTalent ? 'Interview einbetten' : 'In GitFlash anzeigen'}
+              </Button>
+            )}
+            
+            {isActive && useEmbeddedView && (
+              <Button 
+                onClick={handleOpenInterview}
+                variant="outline"
+              >
+                In neuem Tab öffnen
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             )}
@@ -273,6 +294,16 @@ export default function InterviewDetail() {
             </AlertDescription>
           </Alert>
         )}
+        
+        {/* Embedded Interview when active and embedded view is enabled */}
+        {isActive && useEmbeddedView && (
+          <div className="mb-6">
+            <EmbeddedInterview 
+              conversationUrl={interview.conversation_url} 
+              onFullscreenOpen={() => setUseEmbeddedView(false)}
+            />
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -293,6 +324,13 @@ export default function InterviewDetail() {
                   {isDraft ? 'Entwurf' : interview.status}
                 </div>
               </div>
+              
+              {interview.participant_name && (
+                <div>
+                  <h3 className="font-medium mb-1">Teilnehmer</h3>
+                  <p>{interview.participant_name}</p>
+                </div>
+              )}
               
               <div>
                 <h3 className="font-medium mb-1">Sprache</h3>

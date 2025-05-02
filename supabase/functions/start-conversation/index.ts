@@ -96,9 +96,6 @@ serve(async (req) => {
       );
     }
 
-    // Log API key exists (without revealing it)
-    console.log('TAVUS_API_KEY is configured:', !!TAVUS_API_KEY, 'Length:', TAVUS_API_KEY ? TAVUS_API_KEY.length : 0);
-    
     // Fetch the conversation details
     const { data: conversationData, error: conversationError } = await supabase
       .from('conversations')
@@ -120,15 +117,28 @@ serve(async (req) => {
       );
     }
 
-    // Simplified API request structure based on curl example
-    console.log('Calling Tavus API with simplified structure...');
+    // Get the user's profile data to auto-fill the participant name
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', userId)
+      .single();
     
-    // Construct request body exactly as in the curl example
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      // Continue even if we can't get the profile, just without the participant name
+    }
+
+    const participantName = profileData?.name || 'Kandidat';
+    console.log(`Using participant name: ${participantName}`);
+
+    // Construct request body exactly as in the curl example, but adding participant information
     const tavusRequestBody = {
-      replica_id: DEFAULT_REPLICA_ID,
+      replica_id: conversationData.replica_id || DEFAULT_REPLICA_ID,
       conversation_name: conversationData.conversation_name || "Test Interview",
-      persona_id: DEFAULT_PERSONA_ID,
-      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt."
+      persona_id: conversationData.persona_id || DEFAULT_PERSONA_ID,
+      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.",
+      participant_name: participantName
     };
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
@@ -203,8 +213,8 @@ serve(async (req) => {
       console.log('Conversation created successfully:', JSON.stringify(responseData));
       
       // Extract conversation ID and URL (adapting to actual response structure from Tavus)
-      const conversationId = responseData.id || responseData.conversation_id;
-      const conversationUrl = responseData.url || responseData.conversation_url;
+      const conversationId = responseData.conversation_id || responseData.id;
+      const conversationUrl = responseData.conversation_url || responseData.url;
       
       if (!conversationUrl) {
         console.error('Missing conversation URL in Tavus response:', responseData);
@@ -228,8 +238,8 @@ serve(async (req) => {
             conversation_id: conversationId || 'unknown',
             conversation_url: conversationUrl,
             status: 'active',
-            replica_id: DEFAULT_REPLICA_ID,
-            persona_id: DEFAULT_PERSONA_ID
+            replica_id: tavusRequestBody.replica_id,
+            persona_id: tavusRequestBody.persona_id
           })
           .eq('id', requestData.interview_id)
           .select();
@@ -250,7 +260,8 @@ serve(async (req) => {
           url: conversationUrl,
           interview_id: requestData.interview_id,
           status: 'active',
-          message: 'Interview successfully created with Tavus'
+          message: 'Interview successfully created with Tavus',
+          participant_name: participantName
         }),
         {
           status: 200,
