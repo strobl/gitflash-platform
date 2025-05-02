@@ -8,6 +8,7 @@ interface UserProfile {
   id: string;
   name: string;
   role: 'user' | 'business';
+  // Add other profile fields as needed
 }
 
 interface AuthContextType {
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile
   const fetchProfile = async (userId: string) => {
     try {
+      // Use type assertion to inform TypeScript about the table structure
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -42,7 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      return data as UserProfile;
+      // Make sure the returned data matches our UserProfile interface
+      if (data) {
+        const userProfile: UserProfile = {
+          id: data.id,
+          name: data.name,
+          role: data.role as 'user' | 'business',
+        };
+        return userProfile;
+      }
+
+      return null;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       return null;
