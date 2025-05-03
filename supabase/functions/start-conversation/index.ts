@@ -160,9 +160,9 @@ serve(async (req) => {
     console.log(`Using participant name: ${participantName}`);
 
     // Extract values from conversationData with the CORRECT fallbacks
-    // Make sure we use r9d30b0e55ac and p5317866 as default values instead of the old incorrect values
+    // Using the correct persona_id value from the curl example
     const replicaId = conversationData.replica_id || "r9d30b0e55ac";
-    const personaId = conversationData.persona_id || "p5317866";
+    const personaId = conversationData.persona_id || "pe13ed370726";  // CHANGED from p5317866 to pe13ed370726 as shown in the curl example
     const conversationContext = conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.";
     
     console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);
