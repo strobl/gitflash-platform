@@ -5,9 +5,10 @@ import { DashboardCard } from '@/components/shared/DashboardCard';
 import { StatsCard } from '@/components/shared/StatsCard';
 import { Progress } from '@/components/ui/progress';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Award, Calendar, FileSearch, MessageSquare, Star } from 'lucide-react';
+import { ArrowRight, Calendar, FileSearch, MessageSquare, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Leaderboard } from './Leaderboard';
 
 export function TalentDashboard() {
   const navigate = useNavigate();
@@ -130,47 +131,7 @@ export function TalentDashboard() {
           title="Leaderboard"
           description="Sehen Sie, wie Sie im Vergleich abschneiden"
         >
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b pb-2">
-              <div className="flex items-center gap-2">
-                <div className="bg-yellow-500 text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">1</div>
-                <span className="font-medium">Sandra Müller</span>
-              </div>
-              <div className="flex items-center">
-                <Award className="h-4 w-4 text-yellow-500 mr-1" />
-                <span>97%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-b pb-2">
-              <div className="flex items-center gap-2">
-                <div className="bg-gray-300 text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">2</div>
-                <span className="font-medium">Thomas Weber</span>
-              </div>
-              <div className="flex items-center">
-                <Award className="h-4 w-4 text-gray-500 mr-1" />
-                <span>92%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-b pb-2 bg-gitflash-primary/10 -mx-6 px-6">
-              <div className="flex items-center gap-2">
-                <div className="bg-amber-700 text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">3</div>
-                <span className="font-medium">Sie</span>
-              </div>
-              <div className="flex items-center">
-                <Award className="h-4 w-4 text-amber-700 mr-1" />
-                <span>85%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-b pb-2">
-              <div className="flex items-center gap-2">
-                <div className="bg-gray-100 text-gray-800 h-6 w-6 rounded-full flex items-center justify-center text-xs">4</div>
-                <span className="font-medium">Julia Schmidt</span>
-              </div>
-              <div className="flex items-center">
-                <span>78%</span>
-              </div>
-            </div>
-          </div>
+          <Leaderboard limit={4} showViewAllButton={true} />
         </DashboardCard>
 
         <DashboardCard
