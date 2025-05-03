@@ -65,7 +65,7 @@ serve(async (req) => {
       );
     }
     
-    // Verify that the user exists and has the 'business' role
+    // Verify that the user exists and has the 'business' or 'operator' role
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -83,10 +83,11 @@ serve(async (req) => {
       );
     }
     
-    if (profile.role !== 'business') {
-      console.error('Unauthorized: Only business users can create interviews');
+    // Modified to allow both business and operator roles to create interviews
+    if (profile.role !== 'business' && profile.role !== 'operator') {
+      console.error('Unauthorized: Only business users and operators can create interviews');
       return new Response(
-        JSON.stringify({ error: 'Only business users can create interviews' }),
+        JSON.stringify({ error: 'Only business users and operators can create interviews' }),
         {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
