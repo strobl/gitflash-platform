@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -365,7 +366,7 @@ export default function InterviewDetail() {
                 <div className="mb-4">
                   <h2 className="text-lg font-medium mb-1">
                     {currentSession.status === 'ended' ? 'Beendete Interview-Sitzung' : 
-                     currentSession.status === 'waiting' ? 'Wartende Interview-Sitzung' : 
+                     currentSession.status === 'waiting' ? 'Interview wird initialisiert' : 
                      'Aktive Interview-Sitzung'}
                   </h2>
                   <p className="text-muted-foreground text-sm flex items-center gap-2">
@@ -381,7 +382,7 @@ export default function InterviewDetail() {
                     <Badge variant={currentSession.status === 'ended' ? 'outline' : 
                                     currentSession.status === 'waiting' ? 'secondary' : 'default'}>
                       {currentSession.status === 'active' ? 'Aktiv' : 
-                       currentSession.status === 'waiting' ? 'Wartet auf Teilnehmer' :
+                       currentSession.status === 'waiting' ? 'Initialisierung' :
                        currentSession.status === 'ended' ? 'Beendet' : currentSession.status}
                     </Badge>
                   </p>
@@ -474,7 +475,7 @@ export default function InterviewDetail() {
                   <div className="space-y-4">
                     {sessions.map((session) => {
                       const isActive = session.status === 'active' && session.conversation_url;
-                      const isWaiting = session.status === 'waiting' && session.conversation_url;
+                      const isInitializing = session.status === 'waiting' && session.conversation_url;
                       const isClosed = session.status === 'ended';
                       
                       return (
@@ -487,12 +488,12 @@ export default function InterviewDetail() {
                           <div className="flex items-center">
                             <div className={`rounded-full h-8 w-8 flex items-center justify-center mr-4 ${
                               isActive ? 'bg-green-100' : 
-                              isWaiting ? 'bg-yellow-100' :
+                              isInitializing ? 'bg-yellow-100' :
                               isClosed ? 'bg-gray-100' : 'bg-yellow-100'
                             }`}>
                               {isActive ? (
                                 <CheckCircle2 className="h-5 w-5 text-green-600" />
-                              ) : isWaiting ? (
+                              ) : isInitializing ? (
                                 <Clock className="h-5 w-5 text-yellow-500" />
                               ) : isClosed ? (
                                 <CheckCircle2 className="h-5 w-5 text-gray-500" />
@@ -513,7 +514,7 @@ export default function InterviewDetail() {
                                 {session.participant_name ? ` Teilnehmer: ${session.participant_name} • ` : ' '}
                                 Status: {
                                   isActive ? 'Aktiv' : 
-                                  isWaiting ? 'Wartet auf Teilnehmer' :
+                                  isInitializing ? 'Initialisierung' :
                                   isClosed ? 'Beendet' : session.status
                                 }
                               </p>
@@ -521,7 +522,7 @@ export default function InterviewDetail() {
                           </div>
                           
                           <div>
-                            {(isActive || isClosed || isWaiting) && session.conversation_url && (
+                            {(isActive || isClosed || isInitializing) && session.conversation_url && (
                               <Button 
                                 size="sm" 
                                 onClick={() => handleSelectSession(session)}

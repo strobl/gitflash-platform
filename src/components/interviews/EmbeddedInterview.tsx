@@ -43,7 +43,7 @@ export function EmbeddedInterview({
   const isDraft = !sessionId || status === 'pending' || !conversationUrl || conversationUrl === 'pending';
   const isActive = sessionStatus === 'active';
   const isClosed = sessionStatus === 'ended';
-  const isWaiting = sessionStatus === 'waiting';
+  const isInitializing = sessionStatus === 'waiting';
   
   // Status polling interval in milliseconds
   const POLLING_INTERVAL = 10000; // 10 seconds
@@ -73,16 +73,16 @@ export function EmbeddedInterview({
 
   // Poll for status updates when active
   useEffect(() => {
-    if (sessionId && conversationId && isActive && !isClosed) {
+    if (sessionId && conversationId && (isActive || isInitializing) && !isClosed) {
       startStatusPolling();
-    } else if (isClosed || !isActive) {
+    } else if (isClosed || (!isActive && !isInitializing)) {
       stopStatusPolling();
     }
     
     return () => {
       stopStatusPolling();
     };
-  }, [sessionId, conversationId, isActive, isClosed]);
+  }, [sessionId, conversationId, isActive, isClosed, isInitializing]);
   
   const startStatusPolling = () => {
     if (isPolling || !sessionId || !conversationId) return;
@@ -258,11 +258,11 @@ export function EmbeddedInterview({
           {sessionStatus && (
             <div className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
               isActive ? 'bg-green-100 text-green-800' : 
-              isWaiting ? 'bg-yellow-100 text-yellow-800' :
+              isInitializing ? 'bg-yellow-100 text-yellow-800' :
               isClosed ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
             }`}>
               {isActive ? 'Aktiv' : 
-               isWaiting ? 'Wartet' :
+               isInitializing ? 'Initialisiert' :
                isClosed ? 'Beendet' : 'Ausstehend'}
             </div>
           )}
@@ -374,16 +374,16 @@ export function EmbeddedInterview({
         </div>
       )}
       
-      {/* Waiting UI when interview is created but participant hasn't joined */}
-      {isWaiting && !isDraft && !isClosed && (
+      {/* Initializing UI when interview is created but still initializing */}
+      {isInitializing && !isDraft && !isClosed && (
         <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
           <div className="flex flex-col items-center text-center max-w-md mx-auto p-6">
             <div className="bg-yellow-100 h-16 w-16 rounded-full flex items-center justify-center mb-4">
               <Clock className="h-8 w-8 text-yellow-600" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Warte auf Teilnehmer</h3>
+            <h3 className="text-xl font-bold mb-2">KI-Interview wird initialisiert</h3>
             <p className="text-muted-foreground mb-6">
-              Das Interview wurde erstellt, aber der Teilnehmer ist noch nicht beigetreten.
+              Das KI-Interview wird gerade vorbereitet. Einen Moment bitte...
             </p>
             <div className="flex gap-3">
               <Button 
@@ -442,7 +442,7 @@ export function EmbeddedInterview({
       )}
       
       {/* Loading overlay */}
-      {isLoading && localUrl && !isDraft && !isClosed && !isWaiting && (
+      {isLoading && localUrl && !isDraft && !isClosed && !isInitializing && (
         <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
           <div className="flex flex-col items-center">
             <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mb-4"></div>
