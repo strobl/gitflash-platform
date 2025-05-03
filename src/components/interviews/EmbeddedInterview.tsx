@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle, Clock } from 'lucide-react';
@@ -37,6 +36,9 @@ export function EmbeddedInterview({
   const [statusDetails, setStatusDetails] = useState<any>(null);
   const [pollCount, setPollCount] = useState(0);
   const [pollingProgress, setPollingProgress] = useState(0);
+  const [isAutoJoinAttempted, setIsAutoJoinAttempted] = useState(false);
+  const [autoJoinSuccess, setAutoJoinSuccess] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const pollingIntervalRef = useRef<number | null>(null);
   const pollingTimeoutRef = useRef<number | null>(null);
   
@@ -71,6 +73,25 @@ export function EmbeddedInterview({
     }
   }, [localUrl]);
 
+  // Auto-join functionality
+  useEffect(() => {
+    if (
+      iframeRef.current && 
+      !isLoading && 
+      localUrl && 
+      !isDraft && 
+      !isClosed && 
+      !isAutoJoinAttempted
+    ) {
+      // Wait a bit after loading to make sure the iframe content is fully rendered
+      const autoJoinTimer = setTimeout(() => {
+        attemptAutoJoin();
+      }, 1500);
+      
+      return () => clearTimeout(autoJoinTimer);
+    }
+  }, [isLoading, localUrl, isDraft, isClosed, isAutoJoinAttempted]);
+
   // Poll for status updates when active
   useEffect(() => {
     if (sessionId && conversationId && (isActive || isInitializing) && !isClosed) {
@@ -83,6 +104,135 @@ export function EmbeddedInterview({
       stopStatusPolling();
     };
   }, [sessionId, conversationId, isActive, isClosed, isInitializing]);
+  
+  const attemptAutoJoin = () => {
+    if (!iframeRef.current || isAutoJoinAttempted) return;
+    
+    try {
+      setIsAutoJoinAttempted(true);
+      console.log('Attempting auto-join...');
+      
+      // The script to be injected into the iframe to auto-join
+      const autoJoinScript = `
+        try {
+          // Function to find and click the join button
+          function findAndClickJoinButton() {
+            console.log('Looking for join button...');
+            
+            // Look for common Daily.co join button selectors
+            const possibleSelectors = [
+              'button:contains("Join")', 
+              'button:contains("Join Meeting")',
+              'button.join-button',
+              'button[data-testid="join-button"]',
+              'button.daily-button--join',
+              '[role="button"]:contains("Join")',
+              // Additional selectors as needed
+            ];
+            
+            let joinButton = null;
+            
+            // Try each selector
+            for (const selector of possibleSelectors) {
+              try {
+                const buttons = document.querySelectorAll('button');
+                for (let btn of buttons) {
+                  if (btn.textContent && btn.textContent.includes('Join')) {
+                    joinButton = btn;
+                    break;
+                  }
+                }
+                
+                if (!joinButton) {
+                  // Try finding by attribute if text search failed
+                  joinButton = document.querySelector(selector);
+                }
+                
+                if (joinButton) break;
+              } catch (e) {
+                console.log('Selector error:', e);
+              }
+            }
+            
+            if (joinButton) {
+              console.log('Join button found, clicking...');
+              joinButton.click();
+              window.parent.postMessage({ type: 'AUTO_JOIN_SUCCESS' }, '*');
+              return true;
+            } else {
+              console.log('Join button not found');
+              window.parent.postMessage({ type: 'AUTO_JOIN_FAILED', reason: 'Button not found' }, '*');
+              return false;
+            }
+          }
+          
+          // Try immediately
+          if (!findAndClickJoinButton()) {
+            // If not found, try again in 1 second
+            setTimeout(findAndClickJoinButton, 1000);
+            
+            // And again after 3 seconds
+            setTimeout(findAndClickJoinButton, 3000);
+          }
+        } catch (error) {
+          console.error('Auto-join error:', error);
+          window.parent.postMessage({ type: 'AUTO_JOIN_ERROR', error: error.message }, '*');
+        }
+      `;
+      
+      // Set up message listener for communication from iframe
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'AUTO_JOIN_SUCCESS') {
+          console.log('Auto-join successful');
+          setAutoJoinSuccess(true);
+          toast.success('Interview beigetreten');
+        } else if (event.data.type === 'AUTO_JOIN_FAILED') {
+          console.log('Auto-join failed:', event.data.reason);
+          // Keep silent about failure as it's an automatic process
+        } else if (event.data.type === 'AUTO_JOIN_ERROR') {
+          console.error('Auto-join error:', event.data.error);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      
+      // Inject the script
+      const iframe = iframeRef.current;
+      iframe.onload = () => {
+        try {
+          const iframeDocument = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDocument) {
+            const scriptElement = iframeDocument.createElement('script');
+            scriptElement.textContent = autoJoinScript;
+            iframeDocument.body.appendChild(scriptElement);
+          }
+        } catch (error) {
+          console.error('Error injecting auto-join script:', error);
+        }
+      };
+      
+      // If iframe is already loaded, inject the script now
+      if (iframe.contentDocument || iframe.contentWindow?.document) {
+        try {
+          const iframeDocument = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDocument) {
+            const scriptElement = iframeDocument.createElement('script');
+            scriptElement.textContent = autoJoinScript;
+            iframeDocument.body.appendChild(scriptElement);
+          }
+        } catch (error) {
+          console.error('Error injecting auto-join script (already loaded):', error);
+        }
+      }
+      
+      return () => {
+        window.removeEventListener('message', handleMessage);
+      };
+    } catch (error) {
+      console.error('Error in attemptAutoJoin:', error);
+      setIsAutoJoinAttempted(true);
+    }
+  };
   
   const startStatusPolling = () => {
     if (isPolling || !sessionId || !conversationId) return;
@@ -168,6 +318,14 @@ export function EmbeddedInterview({
   
   const handleIframeLoad = () => {
     setIsLoading(false);
+    
+    // If this is the first load and auto-join hasn't been attempted yet, try it
+    if (!isAutoJoinAttempted && !isDraft && !isClosed) {
+      const timer = setTimeout(() => {
+        attemptAutoJoin();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
   };
   
   const toggleExpand = () => {
@@ -183,13 +341,15 @@ export function EmbeddedInterview({
   
   const handleRefresh = () => {
     setIsLoading(true);
+    setIsAutoJoinAttempted(false);
+    setAutoJoinSuccess(false);
+    
     // Force iframe refresh by appending a timestamp to the URL
     if (localUrl) {
       const refreshUrl = new URL(localUrl);
       refreshUrl.searchParams.set('refresh', Date.now().toString());
-      const iframe = document.getElementById('interview-iframe') as HTMLIFrameElement;
-      if (iframe) {
-        iframe.src = refreshUrl.toString();
+      if (iframeRef.current) {
+        iframeRef.current.src = refreshUrl.toString();
       }
     }
     
@@ -211,6 +371,7 @@ export function EmbeddedInterview({
       setLocalUrl(newUrl);
       setSessionStatus('active');
       toast.success("Interview erfolgreich gestartet!");
+      setIsAutoJoinAttempted(false);
       
       // Start polling for status updates
       startStatusPolling();
@@ -341,6 +502,20 @@ export function EmbeddedInterview({
         </div>
       )}
       
+      {/* Information banners - non-blocking */}
+      {isInitializing && !isDraft && !isClosed && (
+        <div className="bg-yellow-50 border-b border-yellow-100 py-1.5 px-3 text-sm text-yellow-800 flex items-center justify-center">
+          <Clock className="h-4 w-4 mr-2" />
+          KI-Interview wird initialisiert... Bitte haben Sie einen Moment Geduld.
+        </div>
+      )}
+      
+      {isAutoJoinAttempted && !autoJoinSuccess && !isClosed && !isDraft && (
+        <div className="bg-blue-50 border-b border-blue-100 py-1.5 px-3 text-sm text-blue-800 flex items-center justify-center">
+          Automatischer Beitritt wird versucht...
+        </div>
+      )}
+      
       {/* Start interview UI */}
       {isDraft && onStartInterview && (
         <div className="absolute inset-0 bg-background/95 flex items-center justify-center z-10">
@@ -374,80 +549,31 @@ export function EmbeddedInterview({
         </div>
       )}
       
-      {/* Initializing UI when interview is created but still initializing */}
-      {isInitializing && !isDraft && !isClosed && (
-        <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
-          <div className="flex flex-col items-center text-center max-w-md mx-auto p-6">
-            <div className="bg-yellow-100 h-16 w-16 rounded-full flex items-center justify-center mb-4">
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">KI-Interview wird initialisiert</h3>
-            <p className="text-muted-foreground mb-6">
-              Das KI-Interview wird gerade vorbereitet. Einen Moment bitte...
-            </p>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleOpenExternal} 
-                className="flex items-center"
-              >
-                In neuem Tab öffnen
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-              <Button 
-                onClick={handleRefresh} 
-                variant="secondary"
-              >
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Aktualisieren
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Closed interview notification */}
+      {/* Closed interview notification (minimized banner) */}
       {isClosed && (
-        <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
-          <div className="flex flex-col items-center text-center max-w-md mx-auto p-6">
-            <div className="bg-gray-100 h-16 w-16 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-gray-500" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Interview beendet</h3>
-            <p className="text-muted-foreground mb-4">
-              Diese Interview-Sitzung wurde abgeschlossen und ist jetzt im schreibgeschützten Modus.
-            </p>
-            {statusDetails && statusDetails.duration !== null && (
-              <div className="text-sm text-muted-foreground mb-2">
-                Dauer: {statusDetails.duration} Sekunden
-              </div>
-            )}
-            {sessionId && (
-              <div className="text-sm text-muted-foreground">
-                Sitzungs-ID: {sessionId}
-              </div>
-            )}
-            {localUrl && (
-              <Button 
-                variant="outline" 
-                onClick={handleOpenExternal}
-                className="mt-4"
-              >
-                Aufgezeichnetes Interview öffnen
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+        <div className="bg-gray-50 border-b border-gray-100 py-2 px-3 text-gray-800 flex items-center justify-between">
+          <div className="flex items-center">
+            <CheckCircle className="h-4 w-4 mr-2 text-gray-500" />
+            <span>Dieses Interview wurde am {statusDetails?.ended_at ? new Date(statusDetails.ended_at).toLocaleTimeString('de-DE') : '---'} beendet.</span>
           </div>
+          {localUrl && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleOpenExternal}
+            >
+              Aufzeichnung ansehen
+              <ExternalLink className="ml-2 h-3 w-3" />
+            </Button>
+          )}
         </div>
       )}
       
-      {/* Loading overlay */}
-      {isLoading && localUrl && !isDraft && !isClosed && !isInitializing && (
-        <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mb-4"></div>
-            <p className="text-muted-foreground">Interview wird geladen...</p>
-          </div>
+      {/* Loading overlay - thinner and non-blocking */}
+      {isLoading && localUrl && !isDraft && !isClosed && (
+        <div className="absolute top-0 left-0 right-0 bg-background/80 py-3 flex items-center justify-center z-10 border-b">
+          <div className="animate-spin h-4 w-4 border-2 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mr-2"></div>
+          <p className="text-sm">Interview wird geladen...</p>
         </div>
       )}
       
@@ -455,6 +581,7 @@ export function EmbeddedInterview({
       <div className="flex-1 bg-background">
         {localUrl && !isDraft && (
           <iframe
+            ref={iframeRef}
             id="interview-iframe"
             src={localUrl}
             className="w-full h-full border-0"
