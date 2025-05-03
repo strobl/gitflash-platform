@@ -63,6 +63,39 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_feedback: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          interview_id: string
+          score: number
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          interview_id: string
+          score: number
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          interview_id?: string
+          score?: number
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interview_sessions: {
         Row: {
           conversation_id: string | null
@@ -119,16 +152,19 @@ export type Database = {
       profiles: {
         Row: {
           id: string
+          location: string | null
           name: string
           role: string
         }
         Insert: {
           id: string
+          location?: string | null
           name: string
           role: string
         }
         Update: {
           id?: string
+          location?: string | null
           name?: string
           role?: string
         }

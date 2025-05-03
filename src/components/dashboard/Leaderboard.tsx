@@ -60,16 +60,17 @@ export function Leaderboard({
         // Fetch leaderboard data
         const { data, error } = await supabase
           .from('profiles')
-          .select(`
-            id,
-            name,
-            role,
-            location
-          `)
+          .select('id, name, role, location')
           .eq('role', 'user') // Only talent users
           .order('name');
         
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
+        
+        if (!data) {
+          throw new Error('No profile data returned');
+        }
         
         // For demonstration purposes, generate random scores
         // In a real application, this would come from actual interview data
@@ -91,6 +92,9 @@ export function Leaderboard({
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
         toast.error('Fehler beim Laden des Leaderboards');
+        // Initialize with empty array on error
+        setEntries([]);
+        setFilteredEntries([]);
       } finally {
         setIsLoading(false);
       }
