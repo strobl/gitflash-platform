@@ -10,7 +10,7 @@ export const formSchema = z.object({
   participant_left_timeout: z.coerce.number().int().min(10).max(300).default(30),
   participant_absent_timeout: z.coerce.number().int().min(60).max(600).default(300),
   replica_id: z.string().default('r9d30b0e55ac'),
-  persona_id: z.string().default('p5317866'),
+  persona_id: z.string().default('p32c3fd65c8c'),
   custom_greeting: z.string().optional(),
 });
 

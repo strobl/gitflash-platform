@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.8.0';
 
@@ -160,9 +159,8 @@ serve(async (req) => {
     console.log(`Using participant name: ${participantName}`);
 
     // Extract values from conversationData with the CORRECT fallbacks
-    // Using the correct persona_id value from the curl example
-    const replicaId = conversationData.replica_id || "r9d30b0e55ac";
-    const personaId = conversationData.persona_id || "pe13ed370726";  // CHANGED from p5317866 to pe13ed370726 as shown in the curl example
+    const replicaId = conversationData.replica_id || "r9d30b0e55ac";  // Standard replica_id
+    const personaId = conversationData.persona_id || "p32c3fd65c8c";  // Standard persona_id
     const conversationContext = conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.";
     
     console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);

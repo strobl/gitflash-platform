@@ -111,8 +111,8 @@ serve(async (req) => {
 
     // Extract values from request - using proper defaults that match the form defaults
     // instead of hardcoded values that might not match
-    const replicaId = requestData.replica_id || "r9d30b0e55ac"; // Updated default
-    const personaId = requestData.persona_id || "p5317866"; // Updated default
+    const replicaId = requestData.replica_id || "r9d30b0e55ac"; // Standard replica_id
+    const personaId = requestData.persona_id || "p32c3fd65c8c"; // Standard persona_id
     const conversationContext = requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.";
     const customGreeting = "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.";
 
