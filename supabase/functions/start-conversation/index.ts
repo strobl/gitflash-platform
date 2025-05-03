@@ -148,7 +148,7 @@ serve(async (req) => {
       );
     }
 
-    // Get the user's profile data to auto-fill the participant name
+    // Get the user's profile data to store participant name locally
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('name')
@@ -163,13 +163,13 @@ serve(async (req) => {
     const participantName = profileData?.name || 'Kandidat';
     console.log(`Using participant name: ${participantName}`);
 
-    // Construct request body exactly as in the curl example, but adding participant information
+    // Construct request body for Tavus API - removed participant_name
     const tavusRequestBody = {
       replica_id: conversationData.replica_id || DEFAULT_REPLICA_ID,
       conversation_name: conversationData.conversation_name || "Test Interview",
       persona_id: conversationData.persona_id || DEFAULT_PERSONA_ID,
-      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.",
-      participant_name: participantName
+      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt."
+      // participant_name removed as per Tavus API requirements
     };
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
@@ -269,7 +269,7 @@ serve(async (req) => {
             conversation_id: conversationId || 'unknown',
             conversation_url: conversationUrl,
             status: 'active',
-            participant_name: participantName
+            participant_name: participantName  // Still store the participant name in our database
           })
           .eq('id', requestData.session_id)
           .select();
