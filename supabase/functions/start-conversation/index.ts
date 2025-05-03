@@ -168,23 +168,23 @@ serve(async (req) => {
     console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);
     console.log(`Using conversation context: ${conversationContext.substring(0, 100)}...`);
 
-    // Construct request body for Tavus API
+    // Construct request body for Tavus API - using the CORRECT parameters based on the curl example
     const tavusRequestBody = {
       replica_id: replicaId,
       conversation_name: conversationData.conversation_name || "Test Interview",
       persona_id: personaId,
-      conversation_context: conversationContext
+      conversational_context: conversationContext  // Using conversational_context instead of conversation_context!
     };
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));
     
     try {
-      // FIXED: Using the correct API endpoint URL and authentication method
-      const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
+      // Using tavusapi.com endpoint as shown in the curl example with x-api-key authentication
+      const tavusResponse = await fetch('https://tavusapi.com/v2/conversations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${TAVUS_API_KEY}`,
+          'x-api-key': TAVUS_API_KEY,  // Using x-api-key header as in the curl example
         },
         body: JSON.stringify(tavusRequestBody),
       });
@@ -331,4 +331,3 @@ serve(async (req) => {
     );
   }
 });
-
