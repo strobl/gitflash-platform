@@ -109,9 +109,10 @@ serve(async (req) => {
       );
     }
 
-    // Extract values from request with fallbacks
-    const replicaId = requestData.replica_id || "r9fa0878977a";
-    const personaId = requestData.persona_id || "pe13ed370726";
+    // Extract values from request - using proper defaults that match the form defaults
+    // instead of hardcoded values that might not match
+    const replicaId = requestData.replica_id || "r9d30b0e55ac"; // Updated default
+    const personaId = requestData.persona_id || "p5317866"; // Updated default
     const conversationContext = requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.";
     const customGreeting = "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.";
 
@@ -128,7 +129,6 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         conversation_name: requestData.conversation_name,
-        // Use provided values or fallbacks
         replica_id: replicaId,
         persona_id: personaId,
         custom_greeting: customGreeting,
@@ -188,7 +188,7 @@ serve(async (req) => {
           conversation_url: responseData.conversation_url,
           created_by: userId, // Use the authenticated user ID from the JWT
           status: responseData.status || 'active',
-          // Use provided values or fallbacks
+          // Use provided values, ensuring they're saved exactly as provided
           persona_id: personaId,
           replica_id: replicaId,
           custom_greeting: customGreeting,

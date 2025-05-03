@@ -9,8 +9,8 @@ export const formSchema = z.object({
   max_call_duration: z.coerce.number().int().min(60).max(3600).default(600),
   participant_left_timeout: z.coerce.number().int().min(10).max(300).default(30),
   participant_absent_timeout: z.coerce.number().int().min(60).max(600).default(300),
-  replica_id: z.string().optional(),
-  persona_id: z.string().optional(),
+  replica_id: z.string().default('r9d30b0e55ac'),
+  persona_id: z.string().default('p5317866'),
   custom_greeting: z.string().optional(),
 });
 

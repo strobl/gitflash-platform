@@ -39,8 +39,8 @@ export function InterviewForm() {
       max_call_duration: 600,
       participant_left_timeout: 30,
       participant_absent_timeout: 300,
-      replica_id: "r9fa0878977a",  // Default replica_id
-      persona_id: "pe13ed370726",  // Default persona_id
+      replica_id: "r9d30b0e55ac",  // Corrected replica_id
+      persona_id: "p5317866",  // Corrected persona_id
     },
   });
 
