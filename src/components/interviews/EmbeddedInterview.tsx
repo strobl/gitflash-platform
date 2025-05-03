@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Expand, Minimize, ExternalLink, RefreshCcw, Play } from 'lucide-react';
+import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { updateInterviewSessionStatus } from '@/services/tavusService';
 
 interface EmbeddedInterviewProps {
   conversationUrl: string | null;
@@ -11,6 +12,7 @@ interface EmbeddedInterviewProps {
   status?: string;
   sessionId?: string;
   onStartInterview?: () => Promise<string>;
+  onSessionStatusChange?: (status: string) => void;
 }
 
 export function EmbeddedInterview({ 
@@ -19,18 +21,27 @@ export function EmbeddedInterview({
   interviewId, 
   status,
   sessionId,
-  onStartInterview 
+  onStartInterview,
+  onSessionStatusChange
 }: EmbeddedInterviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(conversationUrl);
+  const [sessionStatus, setSessionStatus] = useState<string | undefined>(status);
   
   const isDraft = !sessionId || status === 'pending' || !conversationUrl || conversationUrl === 'pending';
+  const isActive = sessionStatus === 'active';
+  const isClosed = sessionStatus === 'ended';
   
   useEffect(() => {
     setLocalUrl(conversationUrl);
   }, [conversationUrl]);
+  
+  useEffect(() => {
+    setSessionStatus(status);
+  }, [status]);
   
   useEffect(() => {
     // Reset loading state when URL changes
@@ -84,12 +95,37 @@ export function EmbeddedInterview({
       setIsStarting(true);
       const newUrl = await onStartInterview();
       setLocalUrl(newUrl);
+      setSessionStatus('active');
       toast.success("Interview erfolgreich gestartet!");
     } catch (error) {
       console.error("Failed to start interview:", error);
       toast.error("Fehler beim Starten des Interviews");
     } finally {
       setIsStarting(false);
+    }
+  };
+  
+  const handleCloseSession = async () => {
+    if (!sessionId) {
+      toast.error("Keine aktive Sitzung vorhanden");
+      return;
+    }
+    
+    try {
+      setIsClosing(true);
+      await updateInterviewSessionStatus(sessionId, 'ended');
+      setSessionStatus('ended');
+      
+      if (onSessionStatusChange) {
+        onSessionStatusChange('ended');
+      }
+      
+      toast.success("Interview-Sitzung erfolgreich beendet");
+    } catch (error) {
+      console.error("Failed to close interview session:", error);
+      toast.error("Fehler beim Beenden der Interview-Sitzung");
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -99,15 +135,37 @@ export function EmbeddedInterview({
     }`}>
       {/* Controls header */}
       <div className="bg-muted p-2 flex items-center justify-between border-b">
-        <h3 className="font-medium text-sm">Interview Interface</h3>
+        <div className="flex items-center">
+          <h3 className="font-medium text-sm">Interview Interface</h3>
+          {sessionStatus && (
+            <div className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+              isActive ? 'bg-green-100 text-green-800' : 
+              isClosed ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              {isActive ? 'Aktiv' : isClosed ? 'Beendet' : 'Ausstehend'}
+            </div>
+          )}
+        </div>
         <div className="flex space-x-2">
+          {isActive && !isClosed && sessionId && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleCloseSession} 
+              title="Interview beenden"
+              className="h-7 w-7"
+              disabled={isClosing || isDraft}
+            >
+              <CheckCircle size={14} />
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="icon" 
             onClick={handleRefresh} 
             title="Refresh"
             className="h-7 w-7"
-            disabled={!localUrl || isLoading || isDraft}
+            disabled={!localUrl || isLoading || isDraft || isClosed}
           >
             <RefreshCcw size={14} />
           </Button>
@@ -167,8 +225,28 @@ export function EmbeddedInterview({
         </div>
       )}
       
+      {/* Closed interview notification */}
+      {isClosed && (
+        <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
+          <div className="flex flex-col items-center text-center max-w-md mx-auto p-6">
+            <div className="bg-gray-100 h-16 w-16 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Interview beendet</h3>
+            <p className="text-muted-foreground mb-4">
+              Diese Interview-Sitzung wurde abgeschlossen und ist jetzt im schreibgeschützten Modus.
+            </p>
+            {sessionId && (
+              <div className="text-sm text-muted-foreground">
+                Sitzungs-ID: {sessionId}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Loading overlay */}
-      {isLoading && localUrl && !isDraft && (
+      {isLoading && localUrl && !isDraft && !isClosed && (
         <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
           <div className="flex flex-col items-center">
             <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mb-4"></div>

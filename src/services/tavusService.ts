@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -193,6 +192,40 @@ export async function startConversation(interviewId: string): Promise<any> {
   } catch (err) {
     console.error('Failed to start conversation with Tavus API:', err);
     throw err;
+  }
+}
+
+// Neue Funktion zum Aktualisieren des Status einer Interview-Session
+export async function updateInterviewSessionStatus(sessionId: string, status: string): Promise<any> {
+  try {
+    console.log(`Updating interview session ${sessionId} status to ${status}`);
+    
+    // Get the current user's ID from the session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      console.error('No authenticated user found');
+      throw new Error('Sie müssen angemeldet sein, um diese Aktion durchzuführen');
+    }
+    
+    // Update the session status
+    const { data, error } = await supabase
+      .from('interview_sessions')
+      .update({ status })
+      .eq('id', sessionId)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('Error updating interview session status:', error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Failed to update interview session status:', error);
+    throw error;
   }
 }
 

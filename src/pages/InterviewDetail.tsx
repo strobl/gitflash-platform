@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -160,6 +159,19 @@ export default function InterviewDetail() {
     setActiveTab('interview');
   };
 
+  const handleSessionStatusChange = async (status: string) => {
+    if (!currentSession) return;
+    
+    // Update the local state
+    setCurrentSession({
+      ...currentSession,
+      status
+    });
+    
+    // Refresh the sessions list to reflect the status change
+    await fetchInterviewSessions();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -192,6 +204,7 @@ export default function InterviewDetail() {
   }
 
   const hasActiveSession = currentSession && currentSession.status === 'active' && currentSession.conversation_url;
+  const hasClosedSession = currentSession && currentSession.status === 'ended' && currentSession.conversation_url;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -272,7 +285,7 @@ export default function InterviewDetail() {
           <div className="mb-6">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="interview" disabled={!hasActiveSession && !id}>
+              <TabsTrigger value="interview" disabled={!hasActiveSession && !hasClosedSession && !id}>
                 Interview
               </TabsTrigger>
               <TabsTrigger value="sessions">Sitzungen ({sessions.length})</TabsTrigger>
@@ -347,18 +360,26 @@ export default function InterviewDetail() {
           </TabsContent>
           
           <TabsContent value="interview">
-            {hasActiveSession ? (
+            {hasActiveSession || hasClosedSession ? (
               <>
                 <div className="mb-4">
-                  <h2 className="text-lg font-medium mb-1">Aktive Interview-Sitzung</h2>
-                  <p className="text-muted-foreground text-sm">
-                    Sitzung gestartet am {new Date(currentSession.created_at).toLocaleDateString('de-DE', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                  <h2 className="text-lg font-medium mb-1">
+                    {currentSession.status === 'ended' ? 'Beendete Interview-Sitzung' : 'Aktive Interview-Sitzung'}
+                  </h2>
+                  <p className="text-muted-foreground text-sm flex items-center gap-2">
+                    <span>
+                      Sitzung gestartet am {new Date(currentSession.created_at).toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                    <Badge variant={currentSession.status === 'ended' ? 'outline' : 'secondary'}>
+                      {currentSession.status === 'active' ? 'Aktiv' : 
+                       currentSession.status === 'ended' ? 'Beendet' : currentSession.status}
+                    </Badge>
                   </p>
                 </div>
                 
@@ -367,6 +388,7 @@ export default function InterviewDetail() {
                   interviewId={id}
                   sessionId={currentSession.id}
                   status={currentSession.status}
+                  onSessionStatusChange={handleSessionStatusChange}
                 />
                 
                 <div className="mt-4 text-center">
@@ -447,6 +469,7 @@ export default function InterviewDetail() {
                   <div className="space-y-4">
                     {sessions.map((session) => {
                       const isActive = session.status === 'active' && session.conversation_url;
+                      const isClosed = session.status === 'ended';
                       
                       return (
                         <div 
@@ -457,12 +480,15 @@ export default function InterviewDetail() {
                         >
                           <div className="flex items-center">
                             <div className={`rounded-full h-8 w-8 flex items-center justify-center mr-4 ${
-                              isActive ? 'bg-green-100' : 'bg-gray-100'
+                              isActive ? 'bg-green-100' : 
+                              isClosed ? 'bg-gray-100' : 'bg-yellow-100'
                             }`}>
                               {isActive ? (
                                 <CheckCircle2 className="h-5 w-5 text-green-600" />
+                              ) : isClosed ? (
+                                <CheckCircle2 className="h-5 w-5 text-gray-500" />
                               ) : (
-                                <Clock className="h-5 w-5 text-gray-500" />
+                                <Clock className="h-5 w-5 text-yellow-500" />
                               )}
                             </div>
                             <div>
@@ -476,13 +502,14 @@ export default function InterviewDetail() {
                               <p className="text-sm text-muted-foreground">
                                 {new Date(session.created_at).toLocaleTimeString('de-DE')} • 
                                 {session.participant_name ? ` Teilnehmer: ${session.participant_name} • ` : ' '}
-                                Status: {isActive ? 'Aktiv' : session.status}
+                                Status: {isActive ? 'Aktiv' : 
+                                       isClosed ? 'Beendet' : session.status}
                               </p>
                             </div>
                           </div>
                           
                           <div>
-                            {isActive && (
+                            {(isActive || isClosed) && (
                               <Button 
                                 size="sm" 
                                 onClick={() => handleSelectSession(session)}
