@@ -156,12 +156,13 @@ serve(async (req) => {
       // Continue even if we can't get the profile, just without the participant name
     }
 
-    const participantName = profileData?.name || 'Kandidat';
+    const participantName = profileData?.name || 'GitFlash';
     console.log(`Using participant name: ${participantName}`);
 
-    // Extract values from conversationData with fallbacks
-    const replicaId = conversationData.replica_id || "r9fa0878977a";
-    const personaId = conversationData.persona_id || "pe13ed370726";
+    // Extract values from conversationData with the CORRECT fallbacks
+    // Make sure we use r9d30b0e55ac and p5317866 as default values instead of the old incorrect values
+    const replicaId = conversationData.replica_id || "r9d30b0e55ac";
+    const personaId = conversationData.persona_id || "p5317866";
     const conversationContext = conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.";
     
     console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);
