@@ -1,12 +1,9 @@
 
 import * as z from 'zod';
 
-// Define the form schema with validations
+// Define the form schema with simplified validations
 export const formSchema = z.object({
   conversation_name: z.string().min(3, 'Name must be at least 3 characters'),
-  replica_id: z.string().optional(),
-  persona_id: z.string().optional(),
-  custom_greeting: z.string().optional(),
   conversation_context: z.string().optional(),
   language: z.string().default('de'),
   max_call_duration: z.coerce.number().int().min(60).max(3600).default(600),

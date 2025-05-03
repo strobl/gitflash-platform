@@ -119,10 +119,12 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         conversation_name: requestData.conversation_name,
-        replica_id: requestData.replica_id || undefined,
-        persona_id: requestData.persona_id || undefined,
-        custom_greeting: requestData.custom_greeting || undefined,
-        conversation_context: requestData.conversation_context || undefined,
+        // Use default values for replica_id and persona_id
+        replica_id: "r9fa0878977a",
+        persona_id: "pe13ed370726",
+        // Use default greeting
+        custom_greeting: "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.",
+        conversation_context: requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.",
         language: requestData.language || 'de',
         max_call_duration: parseInt(requestData.max_call_duration) || 600,
         participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
@@ -178,10 +180,11 @@ serve(async (req) => {
           conversation_url: responseData.conversation_url,
           created_by: userId, // Use the authenticated user ID from the JWT
           status: responseData.status || 'active',
-          persona_id: requestData.persona_id || null,
-          replica_id: requestData.replica_id || null,
-          custom_greeting: requestData.custom_greeting || null,
-          conversation_context: requestData.conversation_context || null,
+          // Use default values
+          persona_id: "pe13ed370726",
+          replica_id: "r9fa0878977a",
+          custom_greeting: "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.",
+          conversation_context: requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.",
           language: requestData.language || 'de',
           max_call_duration: parseInt(requestData.max_call_duration) || 600,
           participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,

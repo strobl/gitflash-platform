@@ -12,7 +12,7 @@ export type Database = {
       conversations: {
         Row: {
           conversation_context: string | null
-          conversation_id: string
+          conversation_id: string | null
           conversation_name: string
           conversation_url: string
           created_at: string
@@ -29,7 +29,7 @@ export type Database = {
         }
         Insert: {
           conversation_context?: string | null
-          conversation_id: string
+          conversation_id?: string | null
           conversation_name: string
           conversation_url: string
           created_at?: string
@@ -46,7 +46,7 @@ export type Database = {
         }
         Update: {
           conversation_context?: string | null
-          conversation_id?: string
+          conversation_id?: string | null
           conversation_name?: string
           conversation_url?: string
           created_at?: string

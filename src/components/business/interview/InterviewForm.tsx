@@ -34,9 +34,6 @@ export function InterviewForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       conversation_name: '',
-      replica_id: '',
-      persona_id: '',
-      custom_greeting: 'Willkommen zum Interview. Bitte stellen Sie sich kurz vor.',
       conversation_context: 'Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.',
       language: 'de',
       max_call_duration: 600,
@@ -53,12 +50,9 @@ export function InterviewForm() {
     try {
       console.log('Submitting interview with data:', data);
       
-      // Daten in der Datenbank speichern
+      // Create the interview with simplified data
       const result = await createConversation({
         conversation_name: data.conversation_name,
-        replica_id: data.replica_id || undefined,
-        persona_id: data.persona_id || undefined,
-        custom_greeting: data.custom_greeting,
         conversation_context: data.conversation_context,
         language: data.language,
         max_call_duration: data.max_call_duration,
