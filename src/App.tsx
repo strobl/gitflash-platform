@@ -14,6 +14,7 @@ import Interviews from "./pages/Interviews";
 import TalentInterviews from "./pages/TalentInterviews";
 import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/interviews/explore" element={<TalentInterviews />} />
             <Route path="/interviews/create" element={<CreateInterview />} />
             <Route path="/interviews/:id" element={<InterviewDetail />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -19,6 +19,7 @@ export type Database = {
           created_by: string
           custom_greeting: string | null
           id: string
+          is_public: boolean
           language: string | null
           max_call_duration: number | null
           participant_absent_timeout: number | null
@@ -36,6 +37,7 @@ export type Database = {
           created_by: string
           custom_greeting?: string | null
           id?: string
+          is_public?: boolean
           language?: string | null
           max_call_duration?: number | null
           participant_absent_timeout?: number | null
@@ -53,6 +55,7 @@ export type Database = {
           created_by?: string
           custom_greeting?: string | null
           id?: string
+          is_public?: boolean
           language?: string | null
           max_call_duration?: number | null
           participant_absent_timeout?: number | null

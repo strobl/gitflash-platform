@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -16,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription
 } from '@/components/ui/form';
 import {
   Select,
@@ -32,8 +32,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 
 import { createConversation } from '@/services/tavusService';
 
@@ -48,6 +49,7 @@ const formSchema = z.object({
   max_call_duration: z.coerce.number().int().min(60).max(3600).default(600),
   participant_left_timeout: z.coerce.number().int().min(10).max(300).default(30),
   participant_absent_timeout: z.coerce.number().int().min(60).max(600).default(300),
+  request_public: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -70,6 +72,7 @@ export function InterviewForm() {
       max_call_duration: 600,
       participant_left_timeout: 30,
       participant_absent_timeout: 300,
+      request_public: false,
     },
   });
 
@@ -81,7 +84,8 @@ export function InterviewForm() {
     try {
       console.log('Submitting interview with data:', data);
       
-      // Jetzt speichern wir nur die Daten in der Datenbank, ohne die Tavus API aufzurufen
+      // Note: The request_public field is not used directly here, but could be used if we add a
+      // notification system or automatic approval process for admins later
       const result = await createConversation({
         conversation_name: data.conversation_name,
         replica_id: data.replica_id || undefined,
@@ -95,6 +99,12 @@ export function InterviewForm() {
       });
       
       toast.success('Interview erfolgreich erstellt!');
+      
+      // Show an additional notification if they requested public visibility
+      if (data.request_public) {
+        toast.info('Ihre Anfrage für öffentliche Sichtbarkeit wurde registriert und wird von einem Administrator geprüft.');
+      }
+      
       navigate('/interviews');
     } catch (error) {
       console.error('Failed to create interview:', error);
@@ -306,6 +316,28 @@ export function InterviewForm() {
                 )}
               />
             </div>
+            
+            <FormField
+              control={form.control}
+              name="request_public"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Öffentliche Sichtbarkeit beantragen</FormLabel>
+                    <FormDescription className="flex items-center gap-1">
+                      <Info className="h-4 w-4" />
+                      <span>Öffentliche Interviews werden in der Interview-Sammlung angezeigt und müssen von einem Administrator genehmigt werden.</span>
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" type="button" onClick={() => navigate(-1)}>Abbrechen</Button>

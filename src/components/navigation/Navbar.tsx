@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building, User, LogOut } from 'lucide-react';
+import { Building, User, LogOut, Shield } from 'lucide-react';
 
 export function Navbar() {
   const { user, profile, logout, isAuthenticated } = useAuth();
@@ -52,6 +52,16 @@ export function Navbar() {
                   </Link>
                 </>
               )}
+              {profile?.role === 'admin' && (
+                <>
+                  <Link to="/admin" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Admin
+                  </Link>
+                  <Link to="/interviews" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Interviews
+                  </Link>
+                </>
+              )}
             </>
           )}
           {!isAuthenticated && (
@@ -69,6 +79,8 @@ export function Navbar() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                     {profile?.role === 'user' ? (
                       <User size={18} />
+                    ) : profile?.role === 'admin' ? (
+                      <Shield size={18} />
                     ) : (
                       <Building size={18} />
                     )}
@@ -78,6 +90,11 @@ export function Navbar() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   {profile?.name || 'Mein Konto'}
+                  {profile?.role === 'admin' && (
+                    <span className="ml-2 text-xs bg-gitflash-primary text-white px-2 py-0.5 rounded-full">
+                      Admin
+                    </span>
+                  )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -97,6 +114,16 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
                   </DropdownMenuItem>
+                )}
+                {profile?.role === 'admin' && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">

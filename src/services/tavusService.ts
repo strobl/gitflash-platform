@@ -232,12 +232,11 @@ export async function updateInterviewSessionStatus(sessionId: string, status: st
 // Neue Funktion: Öffentliche Interviews für Talente abrufen
 export async function listPublicInterviews(): Promise<any[]> {
   try {
-    // Hole alle Interviews, die als öffentlich markiert sind
-    // In einer realen Anwendung würde hier eine spezifische Abfrage nach öffentlichen Interviews erfolgen
-    // Für diesen Prototyp holen wir alle verfügbaren Interviews
+    // Only fetch interviews marked as public
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
+      .eq('is_public', true)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -248,6 +247,98 @@ export async function listPublicInterviews(): Promise<any[]> {
     return data || [];
   } catch (error) {
     console.error('Failed to fetch public interviews:', error);
+    throw error;
+  }
+}
+
+// New function: For admins to toggle interview visibility
+export async function toggleInterviewVisibility(id: string, isPublic: boolean): Promise<any> {
+  try {
+    // Get the current user's profile to check if they are an admin
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      throw new Error('Sie müssen angemeldet sein, um diese Aktion durchzuführen');
+    }
+    
+    // Check if the user is an admin
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    if (profileError || !profileData) {
+      console.error('Error fetching user profile:', profileError);
+      throw new Error('Fehler beim Abrufen des Benutzerprofils');
+    }
+    
+    if (profileData.role !== 'admin') {
+      throw new Error('Nur Administratoren können die Sichtbarkeit von Interviews ändern');
+    }
+    
+    // Update the interview visibility
+    const { data, error } = await supabase
+      .from('conversations')
+      .update({ is_public: isPublic })
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('Error updating interview visibility:', error);
+      throw new Error('Fehler beim Aktualisieren der Interview-Sichtbarkeit');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Failed to update interview visibility:', error);
+    throw error;
+  }
+}
+
+// New function: For admins to list all interviews
+export async function listAllInterviews(): Promise<any[]> {
+  try {
+    // Get the current user's profile to check if they are an admin
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    if (!userId) {
+      throw new Error('Sie müssen angemeldet sein, um alle Interviews anzuzeigen');
+    }
+    
+    // Check if the user is an admin
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    if (profileError || !profileData) {
+      console.error('Error fetching user profile:', profileError);
+      throw new Error('Fehler beim Abrufen des Benutzerprofils');
+    }
+    
+    if (profileData.role !== 'admin') {
+      throw new Error('Nur Administratoren können alle Interviews sehen');
+    }
+    
+    // Fetch all interviews regardless of who created them
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('*, profiles:created_by(name)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all interviews:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch all interviews:', error);
     throw error;
   }
 }

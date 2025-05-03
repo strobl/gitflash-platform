@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ import { toast } from 'sonner';
 interface UserProfile {
   id: string;
   name: string;
-  role: 'user' | 'business';
+  role: 'user' | 'business' | 'admin';
   // Add other profile fields as needed
 }
 
@@ -15,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: 'user' | 'business') => Promise<void>;
+  register: (name: string, email: string, password: string, role: 'user' | 'business' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -49,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userProfile: UserProfile = {
           id: data.id,
           name: data.name,
-          role: data.role as 'user' | 'business',
+          role: data.role as 'user' | 'business' | 'admin',
         };
         return userProfile;
       }
@@ -129,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register new user
-  const register = async (name: string, email: string, password: string, role: 'user' | 'business') => {
+  const register = async (name: string, email: string, password: string, role: 'user' | 'business' | 'admin') => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
