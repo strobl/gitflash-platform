@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userProfile: UserProfile = {
           id: data.id,
           name: data.name,
-          role: data.role as 'user' | 'business' | 'admin',
+          role: data.role as 'user' | 'business' | 'operator',
         };
         return userProfile;
       }
