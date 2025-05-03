@@ -60,6 +60,9 @@ export function Navbar() {
                   <Link to="/interviews" className="text-foreground hover:text-gitflash-primary transition-colors">
                     Interviews
                   </Link>
+                  <Link to="/interviews/create" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Interview erstellen
+                  </Link>
                 </>
               )}
             </>
@@ -111,9 +114,14 @@ export function Navbar() {
                   </>
                 )}
                 {profile?.role === 'business' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 {profile?.role === 'operator' && (
                   <>
@@ -122,6 +130,9 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
                     </DropdownMenuItem>
                   </>
                 )}

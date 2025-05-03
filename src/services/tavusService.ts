@@ -26,7 +26,7 @@ export async function createConversation(data: ConversationData): Promise<any> {
       throw new Error('Sie müssen angemeldet sein, um ein Interview zu erstellen');
     }
     
-    // Verify that the user has the 'business' role
+    // Verify that the user has the 'business' or 'operator' role
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -38,8 +38,9 @@ export async function createConversation(data: ConversationData): Promise<any> {
       throw new Error('Fehler beim Abrufen des Benutzerprofils');
     }
     
-    if (profileData.role !== 'business') {
-      throw new Error('Nur Unternehmen können Interviews erstellen');
+    // Modified to allow both business and operator roles to create interviews
+    if (profileData.role !== 'business' && profileData.role !== 'operator') {
+      throw new Error('Nur Unternehmen und Administratoren können Interviews erstellen');
     }
     
     // Insert directly into the database with status "pending" 
@@ -325,18 +326,48 @@ export async function listAllInterviews(): Promise<any[]> {
       throw new Error('Nur Administratoren können alle Interviews sehen');
     }
     
-    // Fetch all interviews regardless of who created them
-    const { data, error } = await supabase
+    // Modified approach: First fetch all conversations
+    const { data: conversations, error: conversationsError } = await supabase
       .from('conversations')
-      .select('*, profiles:created_by(name)')
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching all interviews:', error);
-      throw error;
+    if (conversationsError) {
+      console.error('Error fetching all interviews:', conversationsError);
+      throw conversationsError;
     }
 
-    return data || [];
+    if (!conversations || conversations.length === 0) {
+      return [];
+    }
+
+    // Extract all unique creator IDs
+    const creatorIds = [...new Set(conversations.map(conv => conv.created_by))];
+    
+    // Fetch all relevant profiles in a single query
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', creatorIds);
+
+    if (profilesError) {
+      console.error('Error fetching creator profiles:', profilesError);
+      // Continue with just the conversations data if profiles fetch fails
+    }
+
+    // Create a map of profiles for easy lookup
+    const profilesMap = (profiles || []).reduce((map, profile) => {
+      map[profile.id] = profile;
+      return map;
+    }, {} as Record<string, { id: string, name: string }>);
+
+    // Combine conversations with their creator profiles
+    const combinedData = conversations.map(conversation => ({
+      ...conversation,
+      profiles: profilesMap[conversation.created_by] || { name: 'Unbekannt' }
+    }));
+
+    return combinedData;
   } catch (error) {
     console.error('Failed to fetch all interviews:', error);
     throw error;

@@ -15,8 +15,8 @@ export default function CreateInterview() {
     if (!isAuthenticated) {
       toast.error('Sie müssen angemeldet sein, um ein Interview zu erstellen.');
       navigate('/login');
-    } else if (profile?.role !== 'business') {
-      toast.error('Nur Unternehmen können Interviews erstellen.');
+    } else if (profile?.role !== 'business' && profile?.role !== 'operator') {
+      toast.error('Nur Unternehmen und Administratoren können Interviews erstellen.');
       navigate('/dashboard');
     }
   }, [isAuthenticated, profile, navigate]);
@@ -26,8 +26,8 @@ export default function CreateInterview() {
     return null;
   }
   
-  // Redirect to dashboard if not a business user
-  if (profile?.role !== 'business') {
+  // Redirect to dashboard if not a business user or operator
+  if (profile?.role !== 'business' && profile?.role !== 'operator') {
     return null;
   }
   
