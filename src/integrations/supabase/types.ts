@@ -14,7 +14,7 @@ export type Database = {
           conversation_context: string | null
           conversation_id: string | null
           conversation_name: string
-          conversation_url: string
+          conversation_url: string | null
           created_at: string
           created_by: string
           custom_greeting: string | null
@@ -31,7 +31,7 @@ export type Database = {
           conversation_context?: string | null
           conversation_id?: string | null
           conversation_name: string
-          conversation_url: string
+          conversation_url?: string | null
           created_at?: string
           created_by: string
           custom_greeting?: string | null
@@ -48,7 +48,7 @@ export type Database = {
           conversation_context?: string | null
           conversation_id?: string | null
           conversation_name?: string
-          conversation_url?: string
+          conversation_url?: string | null
           created_at?: string
           created_by?: string
           custom_greeting?: string | null
