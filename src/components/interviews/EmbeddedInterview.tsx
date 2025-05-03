@@ -1,14 +1,16 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle } from 'lucide-react';
+import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateInterviewSessionStatus } from '@/services/tavusService';
+import { updateInterviewSessionStatus, getConversationStatus } from '@/services/tavusService';
+import { Progress } from '@/components/ui/progress';
 
 interface EmbeddedInterviewProps {
   conversationUrl: string | null;
   onFullscreenOpen?: () => void;
   interviewId?: string;
+  conversationId?: string;
   status?: string;
   sessionId?: string;
   onStartInterview?: () => Promise<string>;
@@ -19,6 +21,7 @@ export function EmbeddedInterview({
   conversationUrl, 
   onFullscreenOpen, 
   interviewId, 
+  conversationId,
   status,
   sessionId,
   onStartInterview,
@@ -28,12 +31,23 @@ export function EmbeddedInterview({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(conversationUrl);
   const [sessionStatus, setSessionStatus] = useState<string | undefined>(status);
+  const [statusDetails, setStatusDetails] = useState<any>(null);
+  const [pollCount, setPollCount] = useState(0);
+  const [pollingProgress, setPollingProgress] = useState(0);
+  const pollingIntervalRef = useRef<number | null>(null);
+  const pollingTimeoutRef = useRef<number | null>(null);
   
   const isDraft = !sessionId || status === 'pending' || !conversationUrl || conversationUrl === 'pending';
   const isActive = sessionStatus === 'active';
   const isClosed = sessionStatus === 'ended';
+  const isWaiting = sessionStatus === 'waiting';
+  
+  // Status polling interval in milliseconds
+  const POLLING_INTERVAL = 10000; // 10 seconds
+  const MAX_POLL_COUNT = 30; // Stop polling after 30 attempts (5 minutes)
   
   useEffect(() => {
     setLocalUrl(conversationUrl);
@@ -56,6 +70,101 @@ export function EmbeddedInterview({
       return () => clearTimeout(timer);
     }
   }, [localUrl]);
+
+  // Poll for status updates when active
+  useEffect(() => {
+    if (sessionId && conversationId && isActive && !isClosed) {
+      startStatusPolling();
+    } else if (isClosed || !isActive) {
+      stopStatusPolling();
+    }
+    
+    return () => {
+      stopStatusPolling();
+    };
+  }, [sessionId, conversationId, isActive, isClosed]);
+  
+  const startStatusPolling = () => {
+    if (isPolling || !sessionId || !conversationId) return;
+    
+    setIsPolling(true);
+    setPollCount(0);
+    console.log('Starting status polling for session:', sessionId);
+    
+    // Immediately fetch status once
+    fetchConversationStatus();
+    
+    // Set up interval for polling
+    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+    pollingIntervalRef.current = setInterval(() => {
+      setPollingProgress(0);
+      fetchConversationStatus();
+      setPollCount(prevCount => {
+        const newCount = prevCount + 1;
+        if (newCount >= MAX_POLL_COUNT) {
+          stopStatusPolling();
+        }
+        return newCount;
+      });
+    }, POLLING_INTERVAL) as unknown as number;
+    
+    // Progress animation
+    if (pollingTimeoutRef.current) clearInterval(pollingTimeoutRef.current);
+    pollingTimeoutRef.current = setInterval(() => {
+      setPollingProgress(prev => {
+        const nextProgress = prev + (100 / (POLLING_INTERVAL / 1000));
+        return Math.min(nextProgress, 100);
+      });
+    }, 1000) as unknown as number;
+  };
+  
+  const stopStatusPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    
+    if (pollingTimeoutRef.current) {
+      clearInterval(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+    
+    setIsPolling(false);
+    setPollingProgress(0);
+  };
+  
+  const fetchConversationStatus = async () => {
+    if (!sessionId || !conversationId) return;
+    
+    try {
+      const statusData = await getConversationStatus(conversationId, sessionId);
+      console.log('Status update received:', statusData);
+      
+      setStatusDetails(statusData);
+      
+      // Update local status if changed
+      if (statusData.status !== sessionStatus) {
+        setSessionStatus(statusData.status);
+        
+        // Notify parent component about status change
+        if (onSessionStatusChange) {
+          onSessionStatusChange(statusData.status);
+        }
+        
+        // Automatically stop polling when status is 'ended'
+        if (statusData.status === 'ended') {
+          stopStatusPolling();
+          toast.info('Die Interview-Sitzung wurde beendet');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch conversation status:', error);
+      // Don't show toast on every poll error to avoid spamming
+      if (pollCount === 0 || pollCount % 5 === 0) {
+        toast.error('Status-Update fehlgeschlagen');
+      }
+    }
+  };
   
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -83,6 +192,11 @@ export function EmbeddedInterview({
         iframe.src = refreshUrl.toString();
       }
     }
+    
+    // Also refresh status if we have a session ID
+    if (sessionId && conversationId) {
+      fetchConversationStatus();
+    }
   };
 
   const handleStartInterview = async () => {
@@ -97,6 +211,9 @@ export function EmbeddedInterview({
       setLocalUrl(newUrl);
       setSessionStatus('active');
       toast.success("Interview erfolgreich gestartet!");
+      
+      // Start polling for status updates
+      startStatusPolling();
     } catch (error) {
       console.error("Failed to start interview:", error);
       toast.error("Fehler beim Starten des Interviews");
@@ -120,6 +237,7 @@ export function EmbeddedInterview({
         onSessionStatusChange('ended');
       }
       
+      stopStatusPolling();
       toast.success("Interview-Sitzung erfolgreich beendet");
     } catch (error) {
       console.error("Failed to close interview session:", error);
@@ -140,13 +258,22 @@ export function EmbeddedInterview({
           {sessionStatus && (
             <div className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
               isActive ? 'bg-green-100 text-green-800' : 
+              isWaiting ? 'bg-yellow-100 text-yellow-800' :
               isClosed ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
             }`}>
-              {isActive ? 'Aktiv' : isClosed ? 'Beendet' : 'Ausstehend'}
+              {isActive ? 'Aktiv' : 
+               isWaiting ? 'Wartet' :
+               isClosed ? 'Beendet' : 'Ausstehend'}
             </div>
           )}
         </div>
         <div className="flex space-x-2">
+          {isPolling && (
+            <div className="flex items-center mr-2">
+              <Clock size={14} className="animate-pulse text-muted-foreground mr-1" />
+              <span className="text-xs text-muted-foreground">Status wird aktualisiert</span>
+            </div>
+          )}
           {isActive && !isClosed && sessionId && (
             <Button 
               variant="outline" 
@@ -192,6 +319,28 @@ export function EmbeddedInterview({
         </div>
       </div>
       
+      {/* Status polling progress bar */}
+      {isPolling && (
+        <div className="px-3 py-1 bg-background">
+          <Progress value={pollingProgress} className="h-1" />
+        </div>
+      )}
+      
+      {/* Status details - shown when available */}
+      {statusDetails && !isDraft && (
+        <div className="bg-muted/30 px-3 py-1 text-xs flex flex-wrap gap-2 border-b">
+          {statusDetails.participant_joined_at && (
+            <span>Teilnehmer beigetreten: {new Date(statusDetails.participant_joined_at).toLocaleTimeString('de-DE')}</span>
+          )}
+          {statusDetails.duration !== null && (
+            <span>Dauer: {statusDetails.duration}s</span>
+          )}
+          {statusDetails.tavus_status && (
+            <span>Tavus Status: {statusDetails.tavus_status}</span>
+          )}
+        </div>
+      )}
+      
       {/* Start interview UI */}
       {isDraft && onStartInterview && (
         <div className="absolute inset-0 bg-background/95 flex items-center justify-center z-10">
@@ -225,6 +374,38 @@ export function EmbeddedInterview({
         </div>
       )}
       
+      {/* Waiting UI when interview is created but participant hasn't joined */}
+      {isWaiting && !isDraft && !isClosed && (
+        <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
+          <div className="flex flex-col items-center text-center max-w-md mx-auto p-6">
+            <div className="bg-yellow-100 h-16 w-16 rounded-full flex items-center justify-center mb-4">
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Warte auf Teilnehmer</h3>
+            <p className="text-muted-foreground mb-6">
+              Das Interview wurde erstellt, aber der Teilnehmer ist noch nicht beigetreten.
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={handleOpenExternal} 
+                className="flex items-center"
+              >
+                In neuem Tab öffnen
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={handleRefresh} 
+                variant="secondary"
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Aktualisieren
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Closed interview notification */}
       {isClosed && (
         <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
@@ -236,17 +417,32 @@ export function EmbeddedInterview({
             <p className="text-muted-foreground mb-4">
               Diese Interview-Sitzung wurde abgeschlossen und ist jetzt im schreibgeschützten Modus.
             </p>
+            {statusDetails && statusDetails.duration !== null && (
+              <div className="text-sm text-muted-foreground mb-2">
+                Dauer: {statusDetails.duration} Sekunden
+              </div>
+            )}
             {sessionId && (
               <div className="text-sm text-muted-foreground">
                 Sitzungs-ID: {sessionId}
               </div>
+            )}
+            {localUrl && (
+              <Button 
+                variant="outline" 
+                onClick={handleOpenExternal}
+                className="mt-4"
+              >
+                Aufgezeichnetes Interview öffnen
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
             )}
           </div>
         </div>
       )}
       
       {/* Loading overlay */}
-      {isLoading && localUrl && !isDraft && !isClosed && (
+      {isLoading && localUrl && !isDraft && !isClosed && !isWaiting && (
         <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
           <div className="flex flex-col items-center">
             <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mb-4"></div>

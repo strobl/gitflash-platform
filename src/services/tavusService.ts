@@ -358,3 +358,48 @@ export async function getInterviewSession(sessionId: string): Promise<any> {
     throw error;
   }
 }
+
+// New function to get the real-time status of a conversation from Tavus API
+export async function getConversationStatus(conversationId: string, sessionId: string): Promise<any> {
+  try {
+    console.log(`Fetching status for conversation: ${conversationId}, session: ${sessionId}`);
+    
+    // Get the current auth token
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      throw new Error('Sie müssen angemeldet sein, um den Gesprächsstatus abzurufen');
+    }
+    
+    // Call the edge function to get the conversation status
+    const { data, error } = await supabase.functions.invoke(
+      'get-conversation-status',
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          session_id: sessionId
+        }),
+      }
+    );
+    
+    if (error) {
+      console.error('Error fetching conversation status:', error);
+      throw new Error(`Fehler beim Abrufen des Gesprächsstatus: ${error.message}`);
+    }
+    
+    if (!data) {
+      console.error('No data returned from get-conversation-status edge function');
+      throw new Error('Keine Daten vom Server erhalten');
+    }
+    
+    console.log('Conversation status:', data);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch conversation status:', error);
+    throw error;
+  }
+}

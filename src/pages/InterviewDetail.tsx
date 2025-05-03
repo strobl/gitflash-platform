@@ -72,7 +72,7 @@ export default function InterviewDetail() {
       setSessions(data || []);
       
       // Set the current session to the most recent active one if available
-      const activeSession = data.find(s => s.status === 'active' && s.conversation_url);
+      const activeSession = data.find(s => (s.status === 'active' || s.status === 'waiting') && s.conversation_url);
       if (activeSession) {
         setCurrentSession(activeSession);
         setActiveTab('interview');
@@ -203,7 +203,7 @@ export default function InterviewDetail() {
     );
   }
 
-  const hasActiveSession = currentSession && currentSession.status === 'active' && currentSession.conversation_url;
+  const hasActiveSession = currentSession && (currentSession.status === 'active' || currentSession.status === 'waiting') && currentSession.conversation_url;
   const hasClosedSession = currentSession && currentSession.status === 'ended' && currentSession.conversation_url;
 
   return (
@@ -364,7 +364,9 @@ export default function InterviewDetail() {
               <>
                 <div className="mb-4">
                   <h2 className="text-lg font-medium mb-1">
-                    {currentSession.status === 'ended' ? 'Beendete Interview-Sitzung' : 'Aktive Interview-Sitzung'}
+                    {currentSession.status === 'ended' ? 'Beendete Interview-Sitzung' : 
+                     currentSession.status === 'waiting' ? 'Wartende Interview-Sitzung' : 
+                     'Aktive Interview-Sitzung'}
                   </h2>
                   <p className="text-muted-foreground text-sm flex items-center gap-2">
                     <span>
@@ -376,8 +378,10 @@ export default function InterviewDetail() {
                         minute: '2-digit'
                       })}
                     </span>
-                    <Badge variant={currentSession.status === 'ended' ? 'outline' : 'secondary'}>
+                    <Badge variant={currentSession.status === 'ended' ? 'outline' : 
+                                    currentSession.status === 'waiting' ? 'secondary' : 'default'}>
                       {currentSession.status === 'active' ? 'Aktiv' : 
+                       currentSession.status === 'waiting' ? 'Wartet auf Teilnehmer' :
                        currentSession.status === 'ended' ? 'Beendet' : currentSession.status}
                     </Badge>
                   </p>
@@ -386,6 +390,7 @@ export default function InterviewDetail() {
                 <EmbeddedInterview 
                   conversationUrl={currentSession.conversation_url} 
                   interviewId={id}
+                  conversationId={currentSession.conversation_id}
                   sessionId={currentSession.id}
                   status={currentSession.status}
                   onSessionStatusChange={handleSessionStatusChange}
@@ -469,6 +474,7 @@ export default function InterviewDetail() {
                   <div className="space-y-4">
                     {sessions.map((session) => {
                       const isActive = session.status === 'active' && session.conversation_url;
+                      const isWaiting = session.status === 'waiting' && session.conversation_url;
                       const isClosed = session.status === 'ended';
                       
                       return (
@@ -481,10 +487,13 @@ export default function InterviewDetail() {
                           <div className="flex items-center">
                             <div className={`rounded-full h-8 w-8 flex items-center justify-center mr-4 ${
                               isActive ? 'bg-green-100' : 
+                              isWaiting ? 'bg-yellow-100' :
                               isClosed ? 'bg-gray-100' : 'bg-yellow-100'
                             }`}>
                               {isActive ? (
                                 <CheckCircle2 className="h-5 w-5 text-green-600" />
+                              ) : isWaiting ? (
+                                <Clock className="h-5 w-5 text-yellow-500" />
                               ) : isClosed ? (
                                 <CheckCircle2 className="h-5 w-5 text-gray-500" />
                               ) : (
@@ -502,14 +511,17 @@ export default function InterviewDetail() {
                               <p className="text-sm text-muted-foreground">
                                 {new Date(session.created_at).toLocaleTimeString('de-DE')} • 
                                 {session.participant_name ? ` Teilnehmer: ${session.participant_name} • ` : ' '}
-                                Status: {isActive ? 'Aktiv' : 
-                                       isClosed ? 'Beendet' : session.status}
+                                Status: {
+                                  isActive ? 'Aktiv' : 
+                                  isWaiting ? 'Wartet auf Teilnehmer' :
+                                  isClosed ? 'Beendet' : session.status
+                                }
                               </p>
                             </div>
                           </div>
                           
                           <div>
-                            {(isActive || isClosed) && (
+                            {(isActive || isClosed || isWaiting) && session.conversation_url && (
                               <Button 
                                 size="sm" 
                                 onClick={() => handleSelectSession(session)}
