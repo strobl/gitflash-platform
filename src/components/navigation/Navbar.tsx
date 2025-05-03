@@ -33,9 +33,14 @@ export function Navbar() {
                 Dashboard
               </Link>
               {profile?.role === 'user' && (
-                <Link to="/profile" className="text-foreground hover:text-gitflash-primary transition-colors">
-                  Mein Profil
-                </Link>
+                <>
+                  <Link to="/profile" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Mein Profil
+                  </Link>
+                  <Link to="/interviews/explore" className="text-foreground hover:text-gitflash-primary transition-colors">
+                    Interviews erkunden
+                  </Link>
+                </>
               )}
               {profile?.role === 'business' && (
                 <>
@@ -48,6 +53,11 @@ export function Navbar() {
                 </>
               )}
             </>
+          )}
+          {!isAuthenticated && (
+            <Link to="/interviews/explore" className="text-foreground hover:text-gitflash-primary transition-colors">
+              Interviews erkunden
+            </Link>
           )}
         </nav>
         
@@ -74,9 +84,14 @@ export function Navbar() {
                   <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
                 {profile?.role === 'user' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/interviews/explore" className="cursor-pointer">Interviews erkunden</Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 {profile?.role === 'business' && (
                   <DropdownMenuItem asChild>
@@ -91,9 +106,14 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary">
-              <Link to="/login">Anmelden</Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" asChild className="hidden sm:flex">
+                <Link to="/interviews/explore">Interviews erkunden</Link>
+              </Button>
+              <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary">
+                <Link to="/login">Anmelden</Link>
+              </Button>
+            </div>
           )}
         </div>
       </div>

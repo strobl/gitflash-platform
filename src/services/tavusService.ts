@@ -229,6 +229,29 @@ export async function updateInterviewSessionStatus(sessionId: string, status: st
   }
 }
 
+// Neue Funktion: Öffentliche Interviews für Talente abrufen
+export async function listPublicInterviews(): Promise<any[]> {
+  try {
+    // Hole alle Interviews, die als öffentlich markiert sind
+    // In einer realen Anwendung würde hier eine spezifische Abfrage nach öffentlichen Interviews erfolgen
+    // Für diesen Prototyp holen wir alle verfügbaren Interviews
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching public interviews:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch public interviews:', error);
+    throw error;
+  }
+}
+
 export async function listConversations(): Promise<any[]> {
   try {
     // Get the current user's ID from the session
