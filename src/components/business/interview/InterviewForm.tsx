@@ -39,6 +39,8 @@ export function InterviewForm() {
       max_call_duration: 600,
       participant_left_timeout: 30,
       participant_absent_timeout: 300,
+      replica_id: "r9fa0878977a",  // Default replica_id
+      persona_id: "pe13ed370726",  // Default persona_id
     },
   });
 
@@ -50,14 +52,16 @@ export function InterviewForm() {
     try {
       console.log('Submitting interview with data:', data);
       
-      // Create the interview with simplified data
+      // Create the interview with all form data
       const result = await createConversation({
         conversation_name: data.conversation_name,
         conversation_context: data.conversation_context,
         language: data.language,
         max_call_duration: data.max_call_duration,
         participant_left_timeout: data.participant_left_timeout,
-        participant_absent_timeout: data.participant_absent_timeout
+        participant_absent_timeout: data.participant_absent_timeout,
+        replica_id: data.replica_id,
+        persona_id: data.persona_id
       });
       
       toast.success('Interview erfolgreich erstellt!');

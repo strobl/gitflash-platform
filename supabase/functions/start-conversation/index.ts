@@ -12,10 +12,6 @@ const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
-// Standard Replica und Persona IDs
-const DEFAULT_REPLICA_ID = "r9fa0878977a";  // Luna
-const DEFAULT_PERSONA_ID = "pe13ed370726"; // AI Interviewer
-
 // Initialize Supabase client with service role for admin access
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -163,13 +159,20 @@ serve(async (req) => {
     const participantName = profileData?.name || 'Kandidat';
     console.log(`Using participant name: ${participantName}`);
 
-    // Construct request body for Tavus API - removed participant_name
+    // Extract values from conversationData with fallbacks
+    const replicaId = conversationData.replica_id || "r9fa0878977a";
+    const personaId = conversationData.persona_id || "pe13ed370726";
+    const conversationContext = conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt.";
+    
+    console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);
+    console.log(`Using conversation context: ${conversationContext.substring(0, 100)}...`);
+
+    // Construct request body for Tavus API
     const tavusRequestBody = {
-      replica_id: conversationData.replica_id || DEFAULT_REPLICA_ID,
+      replica_id: replicaId,
       conversation_name: conversationData.conversation_name || "Test Interview",
-      persona_id: conversationData.persona_id || DEFAULT_PERSONA_ID,
-      conversational_context: conversationData.conversation_context || "Du bist ein KI-Interviewer, der ein professionelles Vorstellungsgespräch führt."
-      // participant_name removed as per Tavus API requirements
+      persona_id: personaId,
+      conversational_context: conversationContext
     };
     
     console.log('Tavus API request body:', JSON.stringify(tavusRequestBody));

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -49,8 +50,8 @@ export async function createConversation(data: ConversationData): Promise<any> {
         conversation_name: data.conversation_name,
         created_by: userId,
         status: 'pending',
-        replica_id: data.replica_id || "r9fa0878977a",  // Standard-Replica-ID
-        persona_id: data.persona_id || "pe13ed370726",  // Standard-Persona-ID
+        replica_id: data.replica_id || "r9fa0878977a",  // Use provided replica_id or default
+        persona_id: data.persona_id || "pe13ed370726",  // Use provided persona_id or default
         custom_greeting: data.custom_greeting || "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.",
         conversation_context: data.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.",
         language: data.language || 'de',

@@ -109,6 +109,15 @@ serve(async (req) => {
       );
     }
 
+    // Extract values from request with fallbacks
+    const replicaId = requestData.replica_id || "r9fa0878977a";
+    const personaId = requestData.persona_id || "pe13ed370726";
+    const conversationContext = requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.";
+    const customGreeting = "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.";
+
+    console.log(`Using replica_id: ${replicaId}, persona_id: ${personaId}`);
+    console.log(`Conversation context: ${conversationContext.substring(0, 100)}...`);
+
     // Call Tavus API to create a conversation
     console.log('Calling Tavus API...');
     const tavusResponse = await fetch('https://api.tavus.io/v2/conversations', {
@@ -119,12 +128,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         conversation_name: requestData.conversation_name,
-        // Use default values for replica_id and persona_id
-        replica_id: "r9fa0878977a",
-        persona_id: "pe13ed370726",
-        // Use default greeting
-        custom_greeting: "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.",
-        conversation_context: requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.",
+        // Use provided values or fallbacks
+        replica_id: replicaId,
+        persona_id: personaId,
+        custom_greeting: customGreeting,
+        conversation_context: conversationContext,
         language: requestData.language || 'de',
         max_call_duration: parseInt(requestData.max_call_duration) || 600,
         participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
@@ -180,11 +188,11 @@ serve(async (req) => {
           conversation_url: responseData.conversation_url,
           created_by: userId, // Use the authenticated user ID from the JWT
           status: responseData.status || 'active',
-          // Use default values
-          persona_id: "pe13ed370726",
-          replica_id: "r9fa0878977a",
-          custom_greeting: "Willkommen zum Interview. Bitte stellen Sie sich kurz vor.",
-          conversation_context: requestData.conversation_context || "Du bist ein freundlicher Interviewer für eine Stelle in der Baubranche. Stelle relevante Fragen zum Hintergrund, zur Erfahrung und zu den Fähigkeiten des Kandidaten.",
+          // Use provided values or fallbacks
+          persona_id: personaId,
+          replica_id: replicaId,
+          custom_greeting: customGreeting,
+          conversation_context: conversationContext,
           language: requestData.language || 'de',
           max_call_duration: parseInt(requestData.max_call_duration) || 600,
           participant_left_timeout: parseInt(requestData.participant_left_timeout) || 30,
