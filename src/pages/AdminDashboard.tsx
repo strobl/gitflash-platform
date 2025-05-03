@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Search, Filter } from 'lucide-react';
@@ -60,8 +59,8 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Redirect if not an admin
-    if (profile?.role !== 'admin') {
+    // Redirect if not an operator
+    if (profile?.role !== 'operator') {
       toast.error('Nur Administratoren können auf diese Seite zugreifen.');
       navigate('/dashboard');
       return;
@@ -152,8 +151,8 @@ export default function AdminDashboard() {
     setCurrentPage(pageNumber);
   };
 
-  // If not authenticated or not an admin user, don't render anything
-  if (!isAuthenticated || profile?.role !== 'admin') {
+  // If not authenticated or not an operator user, don't render anything
+  if (!isAuthenticated || profile?.role !== 'operator') {
     return null;
   }
 

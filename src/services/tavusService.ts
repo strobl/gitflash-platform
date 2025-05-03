@@ -251,10 +251,10 @@ export async function listPublicInterviews(): Promise<any[]> {
   }
 }
 
-// New function: For admins to toggle interview visibility
+// New function: For operators to toggle interview visibility
 export async function toggleInterviewVisibility(id: string, isPublic: boolean): Promise<any> {
   try {
-    // Get the current user's profile to check if they are an admin
+    // Get the current user's profile to check if they are an operator
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData?.session?.user?.id;
     
@@ -262,7 +262,7 @@ export async function toggleInterviewVisibility(id: string, isPublic: boolean): 
       throw new Error('Sie müssen angemeldet sein, um diese Aktion durchzuführen');
     }
     
-    // Check if the user is an admin
+    // Check if the user is an operator
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -274,7 +274,7 @@ export async function toggleInterviewVisibility(id: string, isPublic: boolean): 
       throw new Error('Fehler beim Abrufen des Benutzerprofils');
     }
     
-    if (profileData.role !== 'admin') {
+    if (profileData.role !== 'operator') {
       throw new Error('Nur Administratoren können die Sichtbarkeit von Interviews ändern');
     }
     
@@ -298,10 +298,10 @@ export async function toggleInterviewVisibility(id: string, isPublic: boolean): 
   }
 }
 
-// New function: For admins to list all interviews
+// New function: For operators to list all interviews
 export async function listAllInterviews(): Promise<any[]> {
   try {
-    // Get the current user's profile to check if they are an admin
+    // Get the current user's profile to check if they are an operator
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData?.session?.user?.id;
     
@@ -309,7 +309,7 @@ export async function listAllInterviews(): Promise<any[]> {
       throw new Error('Sie müssen angemeldet sein, um alle Interviews anzuzeigen');
     }
     
-    // Check if the user is an admin
+    // Check if the user is an operator
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -321,7 +321,7 @@ export async function listAllInterviews(): Promise<any[]> {
       throw new Error('Fehler beim Abrufen des Benutzerprofils');
     }
     
-    if (profileData.role !== 'admin') {
+    if (profileData.role !== 'operator') {
       throw new Error('Nur Administratoren können alle Interviews sehen');
     }
     

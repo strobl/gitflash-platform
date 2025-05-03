@@ -52,7 +52,7 @@ export function Navbar() {
                   </Link>
                 </>
               )}
-              {profile?.role === 'admin' && (
+              {profile?.role === 'operator' && (
                 <>
                   <Link to="/admin" className="text-foreground hover:text-gitflash-primary transition-colors">
                     Admin
@@ -79,7 +79,7 @@ export function Navbar() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                     {profile?.role === 'user' ? (
                       <User size={18} />
-                    ) : profile?.role === 'admin' ? (
+                    ) : profile?.role === 'operator' ? (
                       <Shield size={18} />
                     ) : (
                       <Building size={18} />
@@ -90,7 +90,7 @@ export function Navbar() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   {profile?.name || 'Mein Konto'}
-                  {profile?.role === 'admin' && (
+                  {profile?.role === 'operator' && (
                     <span className="ml-2 text-xs bg-gitflash-primary text-white px-2 py-0.5 rounded-full">
                       Admin
                     </span>
@@ -115,7 +115,7 @@ export function Navbar() {
                     <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
                   </DropdownMenuItem>
                 )}
-                {profile?.role === 'admin' && (
+                {profile?.role === 'operator' && (
                   <>
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="cursor-pointer">Admin Dashboard</Link>
