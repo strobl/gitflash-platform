@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle, Clock } from 'lucide-react';
+import { Expand, Minimize, ExternalLink, RefreshCcw, Play, CheckCircle, Clock, Video, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateInterviewSessionStatus, getConversationStatus } from '@/services/tavusService';
+import { updateInterviewSessionStatus, getConversationStatus, getConversationRecording } from '@/services/tavusService';
 import { Progress } from '@/components/ui/progress';
 
 interface EmbeddedInterviewProps {
@@ -38,6 +38,8 @@ export function EmbeddedInterview({
   const [pollingProgress, setPollingProgress] = useState(0);
   const [isAutoJoinAttempted, setIsAutoJoinAttempted] = useState(false);
   const [autoJoinSuccess, setAutoJoinSuccess] = useState(false);
+  const [recordingData, setRecordingData] = useState<any>(null);
+  const [isLoadingRecording, setIsLoadingRecording] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const pollingIntervalRef = useRef<number | null>(null);
   const pollingTimeoutRef = useRef<number | null>(null);
@@ -104,6 +106,18 @@ export function EmbeddedInterview({
       stopStatusPolling();
     };
   }, [sessionId, conversationId, isActive, isClosed, isInitializing]);
+  
+  // Automatically check for recording when session is ended
+  useEffect(() => {
+    if (sessionId && conversationId && isClosed && !recordingData && !isLoadingRecording) {
+      // Wait a bit before checking for the recording
+      const recordingTimer = setTimeout(() => {
+        fetchRecording();
+      }, 1000);
+      
+      return () => clearTimeout(recordingTimer);
+    }
+  }, [sessionId, conversationId, isClosed, recordingData, isLoadingRecording]);
   
   const attemptAutoJoin = () => {
     if (!iframeRef.current || isAutoJoinAttempted) return;
@@ -316,6 +330,26 @@ export function EmbeddedInterview({
     }
   };
   
+  const fetchRecording = async () => {
+    if (!sessionId || !conversationId) return;
+    
+    try {
+      setIsLoadingRecording(true);
+      console.log(`Fetching recording for conversation: ${conversationId}, session: ${sessionId}`);
+      
+      const recordingData = await getConversationRecording(conversationId, sessionId);
+      setRecordingData(recordingData);
+      
+      console.log('Recording data:', recordingData);
+      
+    } catch (error) {
+      console.error('Error fetching recording:', error);
+      // Don't show toast to avoid spamming the user
+    } finally {
+      setIsLoadingRecording(false);
+    }
+  };
+  
   const handleIframeLoad = () => {
     setIsLoading(false);
     
@@ -356,6 +390,11 @@ export function EmbeddedInterview({
     // Also refresh status if we have a session ID
     if (sessionId && conversationId) {
       fetchConversationStatus();
+    }
+    
+    // Also refresh recording if session is closed
+    if (sessionId && conversationId && isClosed) {
+      fetchRecording();
     }
   };
 
@@ -408,6 +447,121 @@ export function EmbeddedInterview({
     }
   };
 
+  const renderRecordingSection = () => {
+    if (!sessionId || !conversationId || !isClosed) return null;
+    
+    if (isLoadingRecording) {
+      return (
+        <div className="p-4 text-center">
+          <div className="animate-spin h-6 w-6 border-2 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Aufnahme wird geprüft...</p>
+        </div>
+      );
+    }
+    
+    if (recordingData && recordingData.status === 'ready' && recordingData.recording_url) {
+      return (
+        <div className="py-4">
+          <h3 className="text-lg font-medium mb-3 flex items-center">
+            <Video className="mr-2 h-5 w-5" />
+            Interview-Aufnahme
+          </h3>
+          <div className="relative aspect-video w-full bg-black rounded-md overflow-hidden">
+            <video
+              src={recordingData.recording_url}
+              controls
+              className="w-full h-full"
+              poster="/placeholder.svg"
+            >
+              Ihr Browser unterstützt keine Video-Wiedergabe.
+            </video>
+          </div>
+          <div className="mt-2 flex justify-between">
+            <p className="text-sm text-muted-foreground">
+              Die Aufnahme steht zum Ansehen bereit.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(recordingData.recording_url, '_blank')}
+            >
+              In neuem Tab öffnen
+              <ExternalLink className="ml-2 h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    if (recordingData && recordingData.status === 'processing') {
+      return (
+        <div className="p-4 border rounded-md bg-yellow-50 text-yellow-800">
+          <h3 className="text-md font-medium mb-1 flex items-center">
+            <Clock className="mr-2 h-5 w-5" />
+            Aufnahme wird verarbeitet
+          </h3>
+          <p className="text-sm">
+            Die Aufnahme des Interviews wird noch verarbeitet. 
+            Bitte versuchen Sie es später erneut.
+          </p>
+          <div className="mt-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fetchRecording}
+              className="bg-white"
+            >
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Status aktualisieren
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    if (recordingData && (recordingData.status === 'error' || recordingData.status === 'failed')) {
+      return (
+        <div className="p-4 border rounded-md bg-red-50 text-red-800">
+          <h3 className="text-md font-medium mb-1">Aufnahme nicht verfügbar</h3>
+          <p className="text-sm">
+            Leider konnte die Aufnahme des Interviews nicht abgerufen werden. 
+            Dies kann verschiedene Ursachen haben:
+          </p>
+          <ul className="text-sm list-disc pl-5 mt-2 mb-3">
+            <li>Die Aufnahme wurde nicht erstellt, da das Interview zu kurz war</li>
+            <li>Ein technischer Fehler ist aufgetreten</li>
+            <li>Die Verbindung zur Tavus-API ist unterbrochen</li>
+          </ul>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fetchRecording}
+            className="bg-white"
+          >
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Erneut versuchen
+          </Button>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="p-4 border border-dashed rounded-md text-center">
+        <Button 
+          variant="outline" 
+          onClick={fetchRecording}
+          className="flex items-center gap-2"
+        >
+          <Video className="h-4 w-4" />
+          Aufnahme abrufen
+        </Button>
+        <p className="text-xs text-muted-foreground mt-2">
+          Die Aufnahme steht möglicherweise erst einige Minuten nach dem Ende des Interviews zur Verfügung.
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className={`relative flex flex-col border rounded-md overflow-hidden ${
       isExpanded ? 'fixed inset-0 z-50 bg-background' : 'h-[600px]'
@@ -453,7 +607,7 @@ export function EmbeddedInterview({
             onClick={handleRefresh} 
             title="Refresh"
             className="h-7 w-7"
-            disabled={!localUrl || isLoading || isDraft || isClosed}
+            disabled={!localUrl || isLoading || isDraft || (isClosed && isLoadingRecording)}
           >
             <RefreshCcw size={14} />
           </Button>
@@ -562,7 +716,7 @@ export function EmbeddedInterview({
               size="sm"
               onClick={handleOpenExternal}
             >
-              Aufzeichnung ansehen
+              Original-Interview ansehen
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
           )}
@@ -577,17 +731,26 @@ export function EmbeddedInterview({
         </div>
       )}
       
-      {/* Iframe container */}
-      <div className="flex-1 bg-background">
-        {localUrl && !isDraft && (
-          <iframe
-            ref={iframeRef}
-            id="interview-iframe"
-            src={localUrl}
-            className="w-full h-full border-0"
-            allow="camera; microphone; fullscreen; display-capture; autoplay"
-            onLoad={handleIframeLoad}
-          ></iframe>
+      <div className="flex flex-1 flex-col">
+        {/* Iframe container */}
+        <div className={`flex-1 bg-background ${isClosed ? 'max-h-[400px]' : 'h-full'}`}>
+          {localUrl && !isDraft && (
+            <iframe
+              ref={iframeRef}
+              id="interview-iframe"
+              src={localUrl}
+              className="w-full h-full border-0"
+              allow="camera; microphone; fullscreen; display-capture; autoplay"
+              onLoad={handleIframeLoad}
+            ></iframe>
+          )}
+        </div>
+        
+        {/* Recording section */}
+        {isClosed && (
+          <div className="border-t p-4">
+            {renderRecordingSection()}
+          </div>
         )}
       </div>
     </div>

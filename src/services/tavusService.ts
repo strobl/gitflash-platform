@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -401,6 +400,87 @@ export async function getConversationStatus(conversationId: string, sessionId: s
     return data;
   } catch (error) {
     console.error('Failed to fetch conversation status:', error);
+    throw error;
+  }
+}
+
+// Neue Funktion zum Abrufen der Aufnahme einer Konversation
+export async function getConversationRecording(conversationId: string, sessionId: string): Promise<any> {
+  try {
+    console.log(`Fetching recording for conversation: ${conversationId}, session: ${sessionId}`);
+    
+    // Get the current auth token
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      throw new Error('Sie müssen angemeldet sein, um die Aufnahme abzurufen');
+    }
+    
+    // Call the edge function to get the recording
+    const { data, error } = await supabase.functions.invoke(
+      'get-conversation-recording',
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          session_id: sessionId
+        }),
+      }
+    );
+    
+    if (error) {
+      console.error('Error fetching conversation recording:', error);
+      throw new Error(`Fehler beim Abrufen der Aufnahme: ${error.message}`);
+    }
+    
+    if (!data) {
+      console.error('No data returned from get-conversation-recording edge function');
+      throw new Error('Keine Daten vom Server erhalten');
+    }
+    
+    console.log('Conversation recording data:', data);
+    
+    // Wenn der Status "processing" ist, informiere den Nutzer
+    if (data.status === 'processing') {
+      toast.info('Die Aufnahme wird noch verarbeitet. Bitte versuchen Sie es später erneut.');
+    } 
+    // Wenn der Status "error" oder "failed" ist, zeige eine Fehlermeldung an
+    else if (data.status === 'error' || data.status === 'failed') {
+      toast.error('Die Aufnahme konnte nicht abgerufen werden.');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch conversation recording:', error);
+    throw error;
+  }
+}
+
+// Neue Funktion zum Abrufen des Transkripts einer Konversation
+export async function getConversationTranscript(conversationId: string, sessionId: string): Promise<any> {
+  try {
+    // Get the current session from the database
+    const { data: sessionData, error: sessionError } = await supabase
+      .from('interview_sessions')
+      .select('transcript, transcript_status')
+      .eq('id', sessionId)
+      .eq('conversation_id', conversationId)
+      .single();
+    
+    if (sessionError) {
+      console.error('Error fetching session transcript:', sessionError);
+      throw new Error('Fehler beim Abrufen des Transkripts');
+    }
+    
+    return {
+      transcript: sessionData?.transcript || null,
+      status: sessionData?.transcript_status || 'pending'
+    };
+  } catch (error) {
+    console.error('Failed to fetch conversation transcript:', error);
     throw error;
   }
 }

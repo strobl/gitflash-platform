@@ -72,7 +72,11 @@ export type Database = {
           id: string
           interview_id: string
           participant_name: string | null
+          recording_status: string | null
+          recording_url: string | null
           status: string
+          transcript: string | null
+          transcript_status: string | null
         }
         Insert: {
           conversation_id?: string | null
@@ -82,7 +86,11 @@ export type Database = {
           id?: string
           interview_id: string
           participant_name?: string | null
+          recording_status?: string | null
+          recording_url?: string | null
           status?: string
+          transcript?: string | null
+          transcript_status?: string | null
         }
         Update: {
           conversation_id?: string | null
@@ -92,7 +100,11 @@ export type Database = {
           id?: string
           interview_id?: string
           participant_name?: string | null
+          recording_status?: string | null
+          recording_url?: string | null
           status?: string
+          transcript?: string | null
+          transcript_status?: string | null
         }
         Relationships: [
           {

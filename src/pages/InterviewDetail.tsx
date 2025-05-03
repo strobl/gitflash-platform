@@ -1,7 +1,8 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw, PlusCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw, PlusCircle, Clock, CheckCircle2, Video, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getConversation, startConversation, getInterviewSessions } from '@/services/tavusService';
+import { getConversation, startConversation, getInterviewSessions, getConversationRecording } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -76,6 +77,17 @@ export default function InterviewDetail() {
       if (activeSession) {
         setCurrentSession(activeSession);
         setActiveTab('interview');
+      } else {
+        // Wenn keine aktive Session existiert, prüfe, ob es eine beendete Session mit Aufnahme gibt
+        const closedSessionWithRecording = data.find(s => 
+          s.status === 'ended' && s.conversation_url && 
+          (s.recording_status === 'ready' || s.recording_status === 'processing')
+        );
+        
+        if (closedSessionWithRecording) {
+          setCurrentSession(closedSessionWithRecording);
+          setActiveTab('interview');
+        }
       }
     } catch (error) {
       console.error('Error fetching interview sessions:', error);
@@ -205,6 +217,7 @@ export default function InterviewDetail() {
 
   const hasActiveSession = currentSession && (currentSession.status === 'active' || currentSession.status === 'waiting') && currentSession.conversation_url;
   const hasClosedSession = currentSession && currentSession.status === 'ended' && currentSession.conversation_url;
+  const hasRecording = currentSession && currentSession.recording_url && currentSession.recording_status === 'ready';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -287,6 +300,7 @@ export default function InterviewDetail() {
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="interview" disabled={!hasActiveSession && !hasClosedSession && !id}>
                 Interview
+                {hasRecording && <div className="ml-2 h-2 w-2 rounded-full bg-green-500"></div>}
               </TabsTrigger>
               <TabsTrigger value="sessions">Sitzungen ({sessions.length})</TabsTrigger>
             </TabsList>
@@ -368,23 +382,41 @@ export default function InterviewDetail() {
                      currentSession.status === 'waiting' ? 'Interview wird initialisiert' : 
                      'Aktive Interview-Sitzung'}
                   </h2>
-                  <p className="text-muted-foreground text-sm flex items-center gap-2">
-                    <span>
-                      Sitzung gestartet am {new Date(currentSession.created_at).toLocaleDateString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <p className="text-muted-foreground text-sm flex items-center">
+                      <span>
+                        Sitzung gestartet am {new Date(currentSession.created_at).toLocaleDateString('de-DE', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </p>
+                    
                     <Badge variant={currentSession.status === 'ended' ? 'outline' : 
                                     currentSession.status === 'waiting' ? 'secondary' : 'default'}>
                       {currentSession.status === 'active' ? 'Aktiv' : 
                        currentSession.status === 'waiting' ? 'Initialisierung' :
                        currentSession.status === 'ended' ? 'Beendet' : currentSession.status}
                     </Badge>
-                  </p>
+                    
+                    {currentSession.recording_status && (
+                      <Badge variant={
+                        currentSession.recording_status === 'ready' ? 'success' :
+                        currentSession.recording_status === 'processing' ? 'secondary' :
+                        currentSession.recording_status === 'error' || currentSession.recording_status === 'failed' ? 'destructive' :
+                        'outline'
+                      }>
+                        <Video className="h-3 w-3 mr-1" />
+                        {currentSession.recording_status === 'ready' ? 'Aufnahme verfügbar' :
+                         currentSession.recording_status === 'processing' ? 'Aufnahme wird verarbeitet' :
+                         currentSession.recording_status === 'error' || currentSession.recording_status === 'failed' ? 'Aufnahme fehlgeschlagen' :
+                         'Keine Aufnahme'}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 
                 <EmbeddedInterview 
@@ -395,16 +427,6 @@ export default function InterviewDetail() {
                   status={currentSession.status}
                   onSessionStatusChange={handleSessionStatusChange}
                 />
-                
-                <div className="mt-4 text-center">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => window.open(currentSession.conversation_url, '_blank')}
-                  >
-                    In neuem Tab öffnen
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
               </>
             ) : (
               <div className="text-center py-12 border rounded-lg">
@@ -476,6 +498,7 @@ export default function InterviewDetail() {
                       const isActive = session.status === 'active' && session.conversation_url;
                       const isInitializing = session.status === 'waiting' && session.conversation_url;
                       const isClosed = session.status === 'ended';
+                      const hasRecording = session.recording_status === 'ready' && session.recording_url;
                       
                       return (
                         <div 
@@ -508,19 +531,44 @@ export default function InterviewDetail() {
                                   year: 'numeric'
                                 })}
                               </p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(session.created_at).toLocaleTimeString('de-DE')} • 
-                                {session.participant_name ? ` Teilnehmer: ${session.participant_name} • ` : ' '}
-                                Status: {
+                              <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
+                                <span>{new Date(session.created_at).toLocaleTimeString('de-DE')}</span>
+                                {session.participant_name && <span>• Teilnehmer: {session.participant_name}</span>}
+                                <span>• Status: {
                                   isActive ? 'Aktiv' : 
                                   isInitializing ? 'Initialisierung' :
                                   isClosed ? 'Beendet' : session.status
-                                }
-                              </p>
+                                }</span>
+                                
+                                {/* Zeige Recording Status an */}
+                                {session.recording_status && session.recording_status !== 'pending' && (
+                                  <span className={`inline-flex items-center ${
+                                    session.recording_status === 'ready' ? 'text-green-600' :
+                                    session.recording_status === 'processing' ? 'text-yellow-600' :
+                                    'text-red-600'
+                                  }`}>
+                                    <Video className="h-3 w-3 mr-1" />
+                                    {session.recording_status === 'ready' ? 'Aufnahme verfügbar' :
+                                     session.recording_status === 'processing' ? 'Wird verarbeitet' :
+                                     'Aufnahme fehlgeschlagen'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           
-                          <div>
+                          <div className="flex gap-2">
+                            {hasRecording && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => window.open(session.recording_url, '_blank')}
+                              >
+                                <Video className="h-4 w-4 mr-2" />
+                                Aufnahme
+                              </Button>
+                            )}
+                            
                             {(isActive || isClosed || isInitializing) && session.conversation_url && (
                               <Button 
                                 size="sm" 
