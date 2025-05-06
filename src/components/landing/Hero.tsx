@@ -15,7 +15,7 @@ export const Hero: React.FC = () => {
             </div>
           </button>
           <Link to="/employers" className="flex items-center gap-[5px] text-xs text-[#546679] justify-center mt-3 hover:text-opacity-80 transition-colors">
-            <span className="text-[#546679] self-stretch my-auto">Experten finden</span>
+            <span className="text-[#546679] self-stretch my-auto">Leistungsträger finden</span>
             <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/98a264c6e0855df4bfe9b7f203c4ab03932fb830?placeholderIfAbsent=true" className="aspect-[1] object-contain w-4 self-stretch shrink-0 my-auto" alt="Arrow right" />
           </Link>
         </div>
