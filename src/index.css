@@ -155,10 +155,10 @@
   transform-origin: bottom left;
 }
 
-/* New hero link underline style with exact text width */
+/* Optimized hero link underline style with exact text width */
 .hero-link-underline {
   position: relative;
-  display: inline-block;
+  display: inline-flex;  /* Changed to inline-flex */
 }
 
 .hero-link-underline:after {
@@ -167,7 +167,7 @@
   width: 100%;
   transform: scaleX(0);
   height: 2px;
-  bottom: 0;
+  bottom: -2px;  /* Adjusted position slightly below the text */
   left: 0;
   background-color: #0A2540;
   transform-origin: bottom right;
