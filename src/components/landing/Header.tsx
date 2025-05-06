@@ -3,12 +3,15 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { X, Menu } from "lucide-react";
+
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+  
   return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-0">
       <div className="flex items-center gap-2">
         <Link to="/">
@@ -18,9 +21,9 @@ export const Header: React.FC = () => {
 
       {/* Desktop Navigation */}
       {!isMobile && <div className="hidden md:flex items-center gap-6">
-          <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600 hero-link-underline">Interviews</Link>
-          <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600 hero-link-underline">Jobs</Link>
-          <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600 hero-link-underline">Für Arbeitgeber</Link>
+          <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600">Interviews</Link>
+          <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600">Jobs</Link>
+          <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600">Für Arbeitgeber</Link>
           <Link to="/interviews/explore">
             <button className="bg-[rgba(10,37,64,1)] flex min-h-10 items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-110 whitespace-nowrap ml-4">
               Leistungsträger finden
@@ -34,9 +37,9 @@ export const Header: React.FC = () => {
 
       {menuOpen && isMobile && <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
-            <Link to="/interviewsdesign" className="py-3 text-[#0A2540] font-medium border-b border-gray-100 hero-link-underline">Interviews</Link>
-            <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100 hero-link-underline">Jobs</Link>
-            <Link to="/employers" className="py-3 text-[#0A2540] font-medium hero-link-underline">Für Arbeitgeber</Link>
+            <Link to="/interviewsdesign" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Interviews</Link>
+            <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Jobs</Link>
+            <Link to="/employers" className="py-3 text-[#0A2540] font-medium">Für Arbeitgeber</Link>
           </div>
         </div>}
     </header>;
