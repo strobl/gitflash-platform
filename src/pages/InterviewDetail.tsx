@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw, PlusCircle, Clock, CheckCircle2, Video, FileText } from 'lucide-react';
+import { ExternalLink, ChevronLeft, Play, AlertTriangle, RefreshCcw, PlusCircle, Clock, CheckCircle2, Video, FileText, LogIn } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -57,15 +57,18 @@ export default function InterviewDetail() {
   const [activeTab, setActiveTab] = useState('details');
   const [interviewCategory, setInterviewCategory] = useState('general');
 
-  const isTalent = profile?.role === 'user' || !isAuthenticated;
+  const isTalent = profile?.role === 'user' || !profile; // Änderung: Auch anonyme Nutzer als Talent behandeln
   const isBusiness = profile?.role === 'business';
 
   useEffect(() => {
     if (id) {
       fetchInterviewDetails();
-      fetchInterviewSessions();
+      // Sessions nur laden, wenn der Benutzer eingeloggt ist
+      if (isAuthenticated) {
+        fetchInterviewSessions();
+      }
     }
-  }, [id]);
+  }, [id, isAuthenticated]);
 
   async function fetchInterviewDetails() {
     if (!id) return;
@@ -131,13 +134,23 @@ export default function InterviewDetail() {
 
   const handleRefresh = () => {
     fetchInterviewDetails();
-    fetchInterviewSessions();
+    if (isAuthenticated) {
+      fetchInterviewSessions();
+    }
     toast.info('Daten werden aktualisiert...');
   };
 
-  // Funktion zum Starten eines Interviews über die Tavus API
+  // Funktion zum Starten eines Interviews mit Login-Überprüfung
   const handleStartInterview = async () => {
     if (!id) return;
+    
+    // Prüfen, ob der Benutzer eingeloggt ist
+    if (!isAuthenticated) {
+      // Wenn nicht eingeloggt, zur Login-Seite weiterleiten
+      const currentPath = `/interviews/${id}`;
+      navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
+      return;
+    }
     
     setIsStarting(true);
     setErrorMessage(null);
@@ -331,13 +344,13 @@ export default function InterviewDetail() {
           <div className="mb-6">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="details">Details</TabsTrigger>
-              {(!isTalent || hasActiveSession || hasClosedSession) && (
+              {(isAuthenticated && (hasActiveSession || hasClosedSession)) && (
                 <TabsTrigger value="interview" disabled={!hasActiveSession && !hasClosedSession && !id}>
                   Interview
                   {hasRecording && <div className="ml-2 h-2 w-2 rounded-full bg-green-500"></div>}
                 </TabsTrigger>
               )}
-              {!isTalent && (
+              {!isTalent && isAuthenticated && (
                 <TabsTrigger value="sessions">Sitzungen ({sessions.length})</TabsTrigger>
               )}
             </TabsList>
@@ -356,7 +369,7 @@ export default function InterviewDetail() {
                       <p className="whitespace-pre-line">{interview.conversation_context || 'Keine Kontextinformationen verfügbar.'}</p>
                     </div>
                     
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-8 flex flex-col items-center">
                       <Button 
                         onClick={handleStartInterview} 
                         className="bg-gitflash-accent hover:bg-gitflash-accent/90 text-lg py-6 px-8"
@@ -368,13 +381,24 @@ export default function InterviewDetail() {
                             <div className="animate-spin h-4 w-4 border-2 border-white/20 border-t-white rounded-full mr-2"></div>
                             Wird gestartet...
                           </>
-                        ) : (
+                        ) : isAuthenticated ? (
                           <>
                             <Play className="mr-2 h-5 w-5" />
                             Interview jetzt starten
                           </>
+                        ) : (
+                          <>
+                            <LogIn className="mr-2 h-5 w-5" />
+                            Anmelden und Interview starten
+                          </>
                         )}
                       </Button>
+                      
+                      {!isAuthenticated && (
+                        <p className="text-sm text-muted-foreground mt-3">
+                          Zum Starten des Interviews ist ein Login erforderlich.
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

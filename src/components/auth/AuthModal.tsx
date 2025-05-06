@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 type AuthMode = 'login' | 'register';
 type UserRole = 'user' | 'business';
 
-export function AuthModal() {
+interface AuthModalProps {
+  redirectUrl?: string;
+}
+
+export function AuthModal({ redirectUrl = '/dashboard' }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,6 +41,7 @@ export function AuthModal() {
     try {
       if (mode === 'login') {
         await login(email, password);
+        // Redirect wird von Login.tsx gehandhabt
       } else {
         if (!name.trim()) {
           setError('Bitte geben Sie einen Namen ein');

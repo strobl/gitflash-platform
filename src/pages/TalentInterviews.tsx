@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -204,8 +203,8 @@ export default function TalentInterviews() {
                         </CardDescription>
                       </CardContent>
                       <CardFooter>
-                        <Button className="w-full">
-                          Interview starten
+                        <Button className="w-full bg-gitflash-accent hover:bg-gitflash-accent/90">
+                          Details anzeigen
                         </Button>
                       </CardFooter>
                     </Card>

@@ -230,10 +230,10 @@ export async function updateInterviewSessionStatus(sessionId: string, status: st
   }
 }
 
-// Neue Funktion: Öffentliche Interviews für Talente abrufen
+// Neue Funktion: Öffentliche Interviews für alle sichtbar machen
 export async function listPublicInterviews(): Promise<any[]> {
   try {
-    // Only fetch interviews marked as public
+    // Fetch interviews marked as public without requiring authentication
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
@@ -404,18 +404,10 @@ export async function listConversations(): Promise<any[]> {
   }
 }
 
+// Aktualisierte Funktion: Einzelnes Interview abrufen, auch für nicht eingeloggte Nutzer
 export async function getConversation(id: string): Promise<any> {
   try {
-    // Get the current user's ID from the session
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData?.session?.user?.id;
-    
-    if (!userId) {
-      console.error('No authenticated user found');
-      throw new Error('Sie müssen angemeldet sein, um dieses Interview anzuzeigen');
-    }
-
-    // Fetch the conversation and verify it belongs to the current user
+    // Fetch the conversation directly without authentication check
     const { data, error } = await supabase
       .from('conversations')
       .select('*')
@@ -428,7 +420,7 @@ export async function getConversation(id: string): Promise<any> {
     }
 
     if (!data) {
-      throw new Error('Interview nicht gefunden oder keine Berechtigung');
+      throw new Error('Interview nicht gefunden');
     }
 
     return data;
