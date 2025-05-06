@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -254,13 +253,22 @@ export function Navbar() {
               </>
             )}
             {!isAuthenticated && (
-              <Link 
-                to="/interviews/explore" 
-                className="block py-2 text-gitflash-text hover:text-gitflash-primary"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Interviews erkunden
-              </Link>
+              <>
+                <Link 
+                  to="/interviews/explore" 
+                  className="block py-2 text-gitflash-text hover:text-gitflash-primary"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Interviews erkunden
+                </Link>
+                <Link 
+                  to="/login" 
+                  className="block py-2 text-gitflash-text hover:text-gitflash-primary"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Anmelden
+                </Link>
+              </>
             )}
           </nav>
         </div>

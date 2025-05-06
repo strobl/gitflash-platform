@@ -77,8 +77,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => 
   };
 
   return (
-    <div className="max-w-none flex justify-center items-center min-h-screen bg-[#E7E9EC] mx-auto max-md:max-w-[991px] max-md:p-5 max-sm:max-w-screen-sm max-sm:p-4">
-      <div className="flex flex-col items-center w-[400px] bg-[#E7E9EC] px-4 py-[40px] rounded-xl max-md:w-full max-md:px-4 max-md:py-20 max-sm:px-4 max-sm:py-[40px]">
+    <div className="w-full min-h-screen flex justify-center items-center py-8">
+      <div className="flex flex-col items-center w-[400px] px-4 py-[40px] max-md:w-full max-md:px-4 max-md:py-20 max-sm:px-4 max-sm:py-[40px]">
         <div className="flex flex-col items-center w-full bg-white px-6 py-8 rounded-xl max-md:px-4 max-md:py-6 max-sm:p-4 shadow-sm">
           <LoginLogo />
           

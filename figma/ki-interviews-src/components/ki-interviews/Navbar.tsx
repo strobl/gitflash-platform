@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Menu, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Navbar: React.FC = () => {
   const isMobile = useIsMobile();
@@ -44,9 +45,12 @@ export const Navbar: React.FC = () => {
         <Button 
           size={isMobile ? "sm" : "default"} 
           className="bg-gradient-to-br from-[#0A2540] to-[#3B5166] text-white hover:from-[#0A2540] hover:to-[#546679] transition-all duration-300"
+          asChild
         >
-          <User size={isMobile ? 14 : 16} className="mr-1" />
-          {isMobile ? "Login" : "Sign in"}
+          <Link to="/login">
+            <User size={isMobile ? 14 : 16} className="mr-1" />
+            {isMobile ? "Login" : "Sign in"}
+          </Link>
         </Button>
       </div>
     </div>

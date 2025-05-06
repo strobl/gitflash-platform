@@ -14,7 +14,7 @@ export default function Login() {
   }
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen w-full flex flex-col bg-[#E7E9EC]">
       <LoginForm redirectUrl={redirectTo} />
     </div>
   );

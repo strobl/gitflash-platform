@@ -5,6 +5,7 @@ import { X, Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -15,15 +16,20 @@ export const Header: React.FC = () => {
     logout,
     isAuthenticated
   } = useAuth();
+  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+  
   const getInitials = () => {
     if (!profile?.name) return "U";
     return profile.name.split(" ").map(n => n[0]).join("").toUpperCase();
   };
+  
   const isInterviewsActive = location.pathname.includes("/interviews") || location.pathname === "/interviewsdesign";
-  return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px] border-b border-gray-200">
+  
+  return (
+    <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px] border-b border-gray-200">
       <div className="flex items-center gap-2">
         <Link to="/">
           <img src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg" className="h-5 md:h-6 w-auto object-contain" alt="GitFlash logo" />
@@ -40,7 +46,8 @@ export const Header: React.FC = () => {
           </Link>
           <Link to="/employers" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Unternehmen</Link>
 
-          {isAuthenticated ? <div className="flex items-center gap-4">
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
               <Link to="/interviews/explore">
                 <button className="bg-white border border-[#0A2540] text-[#0A2540] flex min-h-10 items-center justify-center px-4 py-[10px] rounded-[100px] hover:bg-gray-50 transition-all duration-300 text-sm whitespace-nowrap">
                   Meine Interviews
@@ -91,18 +98,22 @@ export const Header: React.FC = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div> : <Link to="/interviews/explore">
+            </div>
+          ) : (
+            <Link to="/login">
               <button className="bg-[#0A2540] flex min-h-10 items-center text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-sm whitespace-nowrap ml-4">
                 Log In
               </button>
-            </Link>}
+            </Link>
+          )}
         </div>}
 
       <button onClick={toggleMenu} className="md:hidden" aria-label="Menu">
         {menuOpen ? <X className="h-6 w-6 text-[#0A2540]" /> : <Menu className="h-6 w-6 text-[#0A2540]" />}
       </button>
 
-      {menuOpen && isMobile && <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
+      {menuOpen && isMobile && (
+        <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
             <Link to="/interviewsdesign" className={`py-3 text-sm font-medium border-b border-gray-100 ${isInterviewsActive ? "text-gitflash-primary" : "text-[#0A2540]"} hover:text-opacity-90`} onClick={() => setMenuOpen(false)}>
               KI Interviews
@@ -113,17 +124,18 @@ export const Header: React.FC = () => {
             <Link to="/employers" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
               Für Arbeitgeber
             </Link>
-            {isAuthenticated && <Link to="/interviews/explore" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
+            {isAuthenticated ? (
+              <Link to="/interviews/explore" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
                 Meine Interviews
-              </Link>}
-            {isAuthenticated && <button onClick={() => {
-          logout();
-          setMenuOpen(false);
-        }} className="py-3 text-sm text-red-500 font-medium mt-2 text-left flex items-center">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Abmelden</span>
-              </button>}
+              </Link>
+            ) : (
+              <Link to="/login" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
+                Log In
+              </Link>
+            )}
           </div>
-        </div>}
-    </header>;
+        </div>
+      )}
+    </header>
+  );
 };
