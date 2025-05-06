@@ -17,11 +17,17 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center py-12 px-4 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center py-12 px-4 bg-gitflash-background">
         <div className="max-w-lg w-full">
           <AuthModal redirectUrl={redirectTo} />
         </div>
       </div>
+      
+      <footer className="bg-gitflash-primary text-white py-6">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; {new Date().getFullYear()} GitFlash. Alle Rechte vorbehalten.</p>
+        </div>
+      </footer>
     </div>
   );
 }

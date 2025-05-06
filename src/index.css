@@ -14,10 +14,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 199 89% 48%;
+    --primary: 210 64% 15%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 199 89% 39%;
+    --secondary: 210 16% 40%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;
@@ -31,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --ring: 210 64% 15%;
 
     --radius: 0.5rem;
 
@@ -55,10 +55,10 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 199 89% 48%;
+    --primary: 210 64% 15%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 199 89% 39%;
+    --secondary: 210 16% 40%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
@@ -97,9 +97,49 @@
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, #0EA5E9 0%, #0284c7 50%, #1A1F2C 100%);
+  background: linear-gradient(135deg, #0A2540 0%, #546679 100%);
 }
 
 .card-gradient {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(2, 132, 199, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(10, 37, 64, 0.05) 0%, rgba(84, 102, 121, 0.1) 100%);
+}
+
+.full-width-section {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+.hover-lift {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.link-underline {
+  position: relative;
+}
+
+.link-underline:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #0A2540;
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.link-underline:hover:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }
