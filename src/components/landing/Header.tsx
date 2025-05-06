@@ -20,7 +20,6 @@ export const Header: React.FC = () => {
             src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg"
             className="h-5 md:h-6 w-auto object-contain"
             alt="GitFlash logo"
-            style={{ imageRendering: "optimizeQuality" }}
           />
         </Link>
       </div>

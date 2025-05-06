@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 export const Hero: React.FC = () => {
-  return <section className="w-full max-w-lg px-4 sm:px-6 md:px-0 mt-10 md:mt-16 md:max-w-3xl mx-auto text-center">
+  return <section className="w-full max-w-lg px-4 sm:px-6 md:px-0 max-w-3xl mx-auto text-center">
       <div className="flex w-full flex-col items-center">
         <div className="flex w-full flex-col">
           <h1 className="text-[#0A2540] text-3xl md:text-4xl lg:text-5xl font-bold">GitFlash verbindet Sie mit erstklassigen Karrierechancen.</h1>
