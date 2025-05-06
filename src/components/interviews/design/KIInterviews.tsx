@@ -1,7 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { DesignNavbar } from "./DesignNavbar";
 import { Hero } from "./Hero";
 import { CategoryNav } from "./CategoryNav";
 import { InterviewList } from "./InterviewList";
@@ -38,7 +37,7 @@ const KIInterviews: React.FC<KIInterviewsProps> = ({
   const [activeCategory, setActiveCategory] = useState("all");
   const [filteredInterviews, setFilteredInterviews] = useState<Interview[]>(interviews);
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeCategory === "all") {
       setFilteredInterviews(interviews);
     } else {
@@ -48,9 +47,6 @@ const KIInterviews: React.FC<KIInterviewsProps> = ({
 
   return (
     <div className="bg-white w-full overflow-hidden mx-auto rounded-xl shadow-sm">
-      <header>
-        <DesignNavbar />
-      </header>
       <main className={`${isMobile ? 'px-4' : 'container mx-auto px-6'}`}>
         <Hero />
         <section className="w-full pb-8">
