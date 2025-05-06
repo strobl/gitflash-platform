@@ -12,7 +12,7 @@ export const Hero: React.FC = () => {
             <span className="text-white">KI Interview starten</span>
           </button>
           <Link to="/employers" className="flex items-center justify-center py-[11px] text-sm text-[#546679] hover:text-[#0A2540] whitespace-nowrap hero-link-underline px-0">
-            <span>Leistungsträger finden</span>
+            <span>Jobs anzeigen</span>
           </Link>
         </div>
       </div>
