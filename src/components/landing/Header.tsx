@@ -1,17 +1,13 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { X, Menu } from "lucide-react";
-
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
-  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
-  
   return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-0">
       <div className="flex items-center gap-2">
         <Link to="/">
@@ -21,7 +17,7 @@ export const Header: React.FC = () => {
 
       {/* Desktop Navigation */}
       {!isMobile && <div className="hidden md:flex items-center gap-6">
-          <Link to="/interviewsdesign" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Interviews</Link>
+          <Link to="/interviewsdesign" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">KI Interviews</Link>
           <Link to="/jobs" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Jobs</Link>
           <Link to="/employers" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Arbeitgeber</Link>
           <Link to="/interviews/explore">
