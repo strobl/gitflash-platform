@@ -154,3 +154,27 @@
   transform: scaleX(1);
   transform-origin: bottom left;
 }
+
+/* New hero link underline style with exact text width */
+.hero-link-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.hero-link-underline:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #0A2540;
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.hero-link-underline:hover:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}

@@ -47,8 +47,8 @@ export function SharedNavbar() {
             <img 
               src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg" 
               alt="GitFlash Logo" 
-              className="h-6 w-auto" 
-              style={{ imageRendering: 'high-quality' }}
+              className="h-5 md:h-6 w-auto" 
+              style={{ imageRendering: "optimizeQuality" }}
             />
           </Link>
           

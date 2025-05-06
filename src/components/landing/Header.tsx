@@ -18,13 +18,14 @@ export const Header: React.FC = () => {
         <Link to="/">
           <img
             src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg"
-            className="h-6 w-auto object-contain"
+            className="h-5 md:h-6 w-auto object-contain"
             alt="GitFlash logo"
-            style={{ imageRendering: 'high-quality' }}
+            style={{ imageRendering: "optimizeQuality" }}
           />
         </Link>
       </div>
 
+      {/* Desktop Navigation */}
       {!isMobile && (
         <div className="hidden md:flex items-center gap-6">
           <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600 link-underline">Interviews</Link>
