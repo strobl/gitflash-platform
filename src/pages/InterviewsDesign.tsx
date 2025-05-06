@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { listPublicInterviews } from '@/services/tavusService';
+import { Header } from '@/components/landing/Header';
 import KIInterviews from '@/components/interviews/design/KIInterviews';
-import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 
 // Interface for interviews with categories
 interface Interview {
@@ -101,7 +100,7 @@ export default function InterviewsDesign() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SharedNavbar />
+      <Header />
       <KIInterviews 
         interviews={interviews}
         isLoading={isLoading}
