@@ -16,7 +16,6 @@ import InterviewsDesign from "./pages/InterviewsDesign";
 import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
-import AuthPage from "./pages/AuthPage";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +29,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/auth" element={<AuthPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/interviews" element={<Interviews />} />
