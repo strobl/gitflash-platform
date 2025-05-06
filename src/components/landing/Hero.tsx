@@ -4,7 +4,7 @@ export const Hero: React.FC = () => {
   return <section className="w-full max-w-lg px-4 sm:px-6 md:px-0 max-w-3xl mx-auto text-center">
       <div className="flex w-full flex-col items-center">
         <div className="flex w-full flex-col">
-          <h1 className="text-[#0A2540] text-3xl md:text-4xl lg:text-5xl font-bold leading-snug">Nie wieder bewerben – Firmen finden Sie.</h1>
+          <h1 className="text-[#0A2540] text-3xl md:text-4xl lg:text-5xl font-bold leading-snug">Headhunting für alle – Firmen finden jetzt Sie.</h1>
           <p className="text-[#546679] text-sm md:text-base font-normal leading-[21px] mt-2.5 md:mt-4">Absolvieren Sie ein einziges KI-Interview und erreichen Sie direkt führende Unternehmen. Ihre Qualifikation spricht für sich – jetzt melden sich Unternehmen bei Ihnen.</p>
         </div>
         <div className="flex flex-row gap-4 justify-center mt-5 md:mt-8">
