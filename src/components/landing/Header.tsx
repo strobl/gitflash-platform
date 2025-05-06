@@ -8,7 +8,7 @@ export const Header: React.FC = () => {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
-  return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-0">
+  return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px]">
       <div className="flex items-center gap-2">
         <Link to="/">
           <img src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg" className="h-5 md:h-6 w-auto object-contain" alt="GitFlash logo" />
