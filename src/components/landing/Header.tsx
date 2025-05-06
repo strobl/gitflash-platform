@@ -21,9 +21,9 @@ export const Header: React.FC = () => {
 
       {/* Desktop Navigation */}
       {!isMobile && <div className="hidden md:flex items-center gap-6">
-          <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600">Interviews</Link>
-          <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600">Jobs</Link>
-          <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600">Für Arbeitgeber</Link>
+          <Link to="/interviewsdesign" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Interviews</Link>
+          <Link to="/jobs" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Jobs</Link>
+          <Link to="/employers" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Arbeitgeber</Link>
           <Link to="/interviews/explore">
             <button className="bg-[#0A2540] flex min-h-10 items-center text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-sm whitespace-nowrap ml-4">
               Leistungsträger finden
@@ -37,9 +37,9 @@ export const Header: React.FC = () => {
 
       {menuOpen && isMobile && <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
-            <Link to="/interviewsdesign" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Interviews</Link>
-            <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Jobs</Link>
-            <Link to="/employers" className="py-3 text-[#0A2540] font-medium">Für Arbeitgeber</Link>
+            <Link to="/interviewsdesign" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90">Interviews</Link>
+            <Link to="/jobs" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90">Jobs</Link>
+            <Link to="/employers" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Arbeitgeber</Link>
           </div>
         </div>}
     </header>;
