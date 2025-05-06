@@ -5,7 +5,7 @@ export const Hero: React.FC = () => {
       <div className="flex w-full flex-col items-center">
         <div className="flex w-full flex-col">
           <h1 className="text-[#0A2540] text-3xl md:text-4xl lg:text-5xl font-bold">GitFlash verbindet Sie mit erstklassigen Karrierechancen.</h1>
-          <p className="text-[#546679] text-sm md:text-base font-normal leading-[21px] mt-2.5 md:mt-4">Schließen Sie sich tausenden Akademikern an, die mit GitFlash mit nur einer einzigen Bewerbung Anfragen von Unternehmen erhalten.</p>
+          <p className="text-[#546679] text-sm md:text-base font-normal leading-[21px] mt-2.5 md:mt-4">Schließen Sie sich tausenden Leistungsträgern an, die mit nur einer einzigen Bewerbung Anfragen von Unternehmen erhalten.</p>
         </div>
         <div className="w-auto font-medium mt-5 md:mt-8">
           <button className="bg-[rgba(10,37,64,1)] flex min-h-10 w-full flex-col overflow-hidden items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-colors whitespace-nowrap">
