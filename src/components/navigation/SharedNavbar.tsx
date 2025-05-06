@@ -47,7 +47,8 @@ export function SharedNavbar() {
             <img 
               src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg" 
               alt="GitFlash Logo" 
-              className="h-8" 
+              className="h-6 w-auto" 
+              style={{ imageRendering: 'high-quality' }}
             />
           </Link>
           
@@ -83,7 +84,7 @@ export function SharedNavbar() {
           <div className="flex items-center">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <Button asChild variant="outline" className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white">
+                <Button asChild variant="outline" className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white hover:brightness-105 transition-all duration-300">
                   <Link to="/interviews/explore">Meine Interviews</Link>
                 </Button>
                 <DropdownMenu>
@@ -140,10 +141,10 @@ export function SharedNavbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Button variant="outline" asChild className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white">
+                <Button variant="outline" asChild className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white hover:brightness-105 transition-all duration-300">
                   <Link to="/interviews/explore">Finde Experten</Link>
                 </Button>
-                <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary text-white">
+                <Button asChild className="bg-gitflash-primary hover:bg-gitflash-primary hover:brightness-105 transition-all duration-300 text-white">
                   <Link to="/login">Anmelden</Link>
                 </Button>
               </div>
