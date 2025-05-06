@@ -30,7 +30,7 @@ const Index: React.FC = () => {
               <img 
                 src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//image%20(4).webp"
                 alt="GitFlash banner"
-                className="w-full object-cover h-[220px] md:h-[500px] rounded-lg"
+                className="w-full object-cover h-[220px] md:h-[500px]"
               />
             </div>
           </div>
