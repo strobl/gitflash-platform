@@ -9,7 +9,7 @@ export const Hero: React.FC = () => {
           <p className="text-[#546679] text-sm md:text-base font-normal leading-[21px] mt-2.5 md:mt-4">Schließen Sie sich tausenden Leistungsträgern an, die mit nur einer einzigen Bewerbung Anfragen von Unternehmen erhalten.</p>
         </div>
         <div className="flex flex-row gap-4 justify-center mt-5 md:mt-8">
-          <button className="bg-[rgba(10,37,64,1)] flex min-h-10 items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 whitespace-nowrap">
+          <button className="bg-[#0A2540] flex min-h-10 items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 whitespace-nowrap">
             <span className="text-white">Jetzt bewerben</span>
           </button>
           <Link to="/employers" className="flex items-center justify-center py-[11px] text-sm text-[#546679] hover:text-[#0A2540] whitespace-nowrap hero-link-underline px-0">

@@ -25,7 +25,7 @@ export const Header: React.FC = () => {
           <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600">Jobs</Link>
           <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600">Für Arbeitgeber</Link>
           <Link to="/interviews/explore">
-            <button className="bg-[rgba(10,37,64,1)] flex min-h-10 items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-110 whitespace-nowrap ml-4">
+            <button className="bg-[#0A2540] flex min-h-10 items-center text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-sm whitespace-nowrap ml-4">
               Leistungsträger finden
             </button>
           </Link>
