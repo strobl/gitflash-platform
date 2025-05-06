@@ -1,47 +1,50 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/landing/Header";
+import { Hero } from "@/components/landing/Hero";
+import { JobListings } from "@/components/landing/JobListings";
+import { VideoCallSection } from "@/components/landing/VideoCallSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { EmployerFeatures } from "@/components/landing/EmployerFeatures";
+import { CallToAction } from "@/components/landing/CallToAction";
+import { Footer } from "@/components/landing/Footer";
 
 const Index: React.FC = () => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold">GitFlash</div>
-          <nav>
-            <ul className="flex gap-6">
-              <li><Link to="/" className="hover:underline">Home</Link></li>
-              <li><Link to="/login" className="hover:underline">Login</Link></li>
-              <li><Link to="/auth" className="hover:underline">Neues Login</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl font-bold mb-6">Willkommen bei GitFlash</h1>
-            <p className="text-xl mb-8">Der Talent-Marktplatz für die Baubranche mit KI-gestütztem Interview-Prozess</p>
-            
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button asChild size="lg">
-                <Link to="/auth">Zum neuen Login</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link to="/login">Zum Standard Login</Link>
-              </Button>
+    <div className="w-full flex flex-col">
+      <div className="bg-white overflow-hidden w-full">
+        <div className="w-full">
+          <div className="bg-white flex w-full flex-col overflow-hidden items-center">
+            <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
+              <Header />
+              {/* Added more vertical spacing between navbar and hero section */}
+              <div className="pt-16 md:pt-28 lg:pt-32">
+                <Hero />
+              </div>
             </div>
           </div>
+          
+          {/* Added margin between hero and banner image */}
+          <div className="w-full mt-16 md:mt-28 lg:mt-32">
+            <div className="px-3 md:px-6">
+              <img 
+                src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//image%20(4).webp"
+                alt="GitFlash banner"
+                className="w-full object-cover h-[220px] md:h-[500px]"
+              />
+            </div>
+          </div>
+          
+          <JobListings />
+          <VideoCallSection />
+          <StatsSection />
+          <EmployerFeatures />
+          <CallToAction />
+          <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
+            <Footer />
+          </div>
         </div>
-      </main>
-      
-      <footer className="bg-gray-100 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; {new Date().getFullYear()} GitFlash. Alle Rechte vorbehalten.</p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };
