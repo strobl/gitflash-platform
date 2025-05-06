@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,7 +55,7 @@ export function SharedNavbar() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               to="/interviewsdesign" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors ${
+              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
               }`}
             >
@@ -64,7 +63,7 @@ export function SharedNavbar() {
             </Link>
             <Link 
               to="/talents" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors ${
+              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
               }`}
             >
@@ -72,7 +71,7 @@ export function SharedNavbar() {
             </Link>
             <Link 
               to="/businesses" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors ${
+              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/business') ? 'text-gitflash-primary font-medium' : ''
               }`}
             >
@@ -174,7 +173,7 @@ export function SharedNavbar() {
           <nav className="px-4 pt-2 pb-4 space-y-2">
             <Link 
               to="/interviewsdesign" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary ${
+              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -183,7 +182,7 @@ export function SharedNavbar() {
             </Link>
             <Link 
               to="/talents" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary ${
+              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -192,7 +191,7 @@ export function SharedNavbar() {
             </Link>
             <Link 
               to="/businesses" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary ${
+              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/business') ? 'text-gitflash-primary font-medium' : ''
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -202,7 +201,7 @@ export function SharedNavbar() {
             {isAuthenticated && (
               <Link 
                 to="/interviews/explore" 
-                className="block py-2 text-gitflash-text hover:text-gitflash-primary"
+                className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Meine Interviews

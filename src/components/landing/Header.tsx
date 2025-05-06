@@ -14,7 +14,7 @@ export const Header: React.FC = () => {
 
   return (
     <div className="w-full">
-      <header className="border-b-[color:var(--dark-dark\_6,#E7E9EC)] flex w-full items-center justify-between bg-white px-4 sm:px-6 md:px-8 py-2.5">
+      <header className="flex w-full items-center justify-between bg-white px-4 sm:px-6 md:px-8 py-2.5">
         <div className="flex items-center gap-2">
           <Link to="/">
             <img
@@ -27,9 +27,9 @@ export const Header: React.FC = () => {
 
         {!isMobile && (
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600">Interviews</Link>
-            <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600">Jobs</Link>
-            <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600">Für Arbeitgeber</Link>
+            <Link to="/interviewsdesign" className="text-[#0A2540] font-medium hover:text-gray-600 link-underline">Interviews</Link>
+            <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600 link-underline">Jobs</Link>
+            <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600 link-underline">Für Arbeitgeber</Link>
             <Link to="/interviews/explore">
               <button className="bg-[rgba(10,37,64,1)] flex min-h-10 items-center text-sm text-white justify-center px-5 py-[11px] rounded-[100px] hover:bg-opacity-90 transition-colors whitespace-nowrap ml-4">
                 Leistungsträger finden
@@ -47,15 +47,12 @@ export const Header: React.FC = () => {
         </button>
       </header>
 
-      {/* Full width horizontal line */}
-      <div className="w-full h-px bg-gray-200"></div>
-
       {menuOpen && isMobile && (
         <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
-            <Link to="/interviewsdesign" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Interviews</Link>
-            <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Jobs</Link>
-            <Link to="/employers" className="py-3 text-[#0A2540] font-medium">Für Arbeitgeber</Link>
+            <Link to="/interviewsdesign" className="py-3 text-[#0A2540] font-medium border-b border-gray-100 link-underline">Interviews</Link>
+            <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100 link-underline">Jobs</Link>
+            <Link to="/employers" className="py-3 text-[#0A2540] font-medium link-underline">Für Arbeitgeber</Link>
           </div>
         </div>
       )}
