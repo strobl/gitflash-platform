@@ -17,6 +17,7 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { EmbeddedInterview } from '@/components/interviews/EmbeddedInterview';
+import { CustomVideoInterview } from '@/components/interviews/custom/CustomVideoInterview';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -510,7 +511,6 @@ export default function InterviewDetail() {
           </TabsContent>
           
           <TabsContent value="interview">
-            {/* Keep existing interview tab content */}
             {hasActiveSession || hasClosedSession ? (
               <>
                 <div className="mb-4">
@@ -556,7 +556,8 @@ export default function InterviewDetail() {
                   </div>
                 </div>
                 
-                <EmbeddedInterview 
+                {/* Replace EmbeddedInterview with CustomVideoInterview */}
+                <CustomVideoInterview 
                   conversationUrl={currentSession.conversation_url} 
                   interviewId={id}
                   conversationId={currentSession.conversation_id}
@@ -564,6 +565,20 @@ export default function InterviewDetail() {
                   status={currentSession.status}
                   onSessionStatusChange={handleSessionStatusChange}
                 />
+                
+                {/* Keep the recording section if present */}
+                {currentSession.status === 'ended' && currentSession.recording_status === 'ready' && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium mb-3">Aufzeichnung</h3>
+                    <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+                      <video 
+                        src={currentSession.recording_url}
+                        controls
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-12 border rounded-lg">
