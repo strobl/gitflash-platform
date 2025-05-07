@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -13,6 +14,45 @@ import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
 import { UebungDeviceSelector } from "@/components/uebung/UebungDeviceSelector";
 import { DailyVideo, DailyProvider } from "@daily-co/daily-react";
+import DailyIframe from '@daily-co/daily-js';
+import type { DailyCall } from '@daily-co/daily-js';
+
+// Create a singleton instance of the DailyCall object
+// This ensures we only have one instance throughout the application
+let dailyCallSingleton: DailyCall | null = null;
+
+// Function to get or create the singleton Daily call object
+const getDailyCallInstance = (): DailyCall => {
+  if (!dailyCallSingleton) {
+    console.log("Creating new Daily call singleton");
+    dailyCallSingleton = DailyIframe.createCallObject({
+      audioSource: true,
+      videoSource: true,
+    });
+    
+    // Add cleanup for when the app unmounts
+    window.addEventListener('beforeunload', () => {
+      if (dailyCallSingleton) {
+        console.log("Cleaning up Daily call singleton on window unload");
+        dailyCallSingleton.destroy().catch(console.error);
+        dailyCallSingleton = null;
+      }
+    });
+  } else {
+    console.log("Using existing Daily call singleton");
+  }
+  
+  return dailyCallSingleton;
+};
+
+// Function to properly destroy the singleton when needed
+const destroyDailyCallInstance = () => {
+  if (dailyCallSingleton) {
+    console.log("Destroying Daily call singleton");
+    dailyCallSingleton.destroy().catch(console.error);
+    dailyCallSingleton = null;
+  }
+};
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
@@ -55,28 +95,26 @@ const Uebung: React.FC = () => {
   const [similarInterviews, setSimilarInterviews] = useState([]);
   
   // Reference to Daily call object and state for DailyProvider
-  const callObjectRef = useRef(null);
-  const [dailyCallObject, setDailyCallObject] = useState(null);
+  const [dailyCallObject, setDailyCallObject] = useState<DailyCall | null>(null);
 
-  // Clean up function to properly destroy the call object
-  const cleanupCamera = () => {
-    console.log("Cleaning up camera resources");
-    if (callObjectRef.current) {
-      callObjectRef.current.destroy();
-      callObjectRef.current = null;
-      setDailyCallObject(null);
-      setLocalSessionId(null);
-    }
-  };
+  // Initialize the call object when the component mounts
+  useEffect(() => {
+    console.log("Component mounted, initializing camera resources");
+    
+    // Clean up function to run when component unmounts
+    return () => {
+      console.log("Component unmounted, cleaning up camera resources");
+      // We don't destroy the singleton here anymore - it will persist until explicitly destroyed
+      // This ensures device selection works consistently
+    };
+  }, []);
 
+  // Effect to fetch interview details
   useEffect(() => {
     // Initial fetch of interview details
     if (id) {
       fetchInterviewDetails();
     }
-    
-    // Clean up camera preview when component unmounts
-    return cleanupCamera;
   }, [id]);
 
   // Request and initialize camera
@@ -88,19 +126,8 @@ const Uebung: React.FC = () => {
       setCameraStatus("requesting");
       console.log("Requesting camera access");
       
-      // Clean up any existing call object first
-      cleanupCamera();
-      
-      // Initialize Daily call object for camera
-      const DailyIFrame = (await import('@daily-co/daily-js')).default;
-      console.log("Creating Daily call object");
-      
-      const callObject = DailyIFrame.createCallObject({
-        audioSource: true,
-        videoSource: true,
-      });
-      
-      callObjectRef.current = callObject;
+      // Get the singleton call object
+      const callObject = getDailyCallInstance();
       
       console.log("Starting camera");
       await callObject.startCamera();
@@ -215,11 +242,15 @@ const Uebung: React.FC = () => {
       setSessionStatus('active');
 
       // Clean up camera preview as the interview will take over
-      cleanupCamera();
+      // Important: We no longer destroy the singleton here, as it's needed by CustomVideoInterview
+      // Instead, we just reset our component state
+      setCameraStatus("unknown");
+      setLocalSessionId(null);
+      setDailyCallObject(null);
 
       // Return the conversation URL for the embedded interview component
       return result.url || result.conversation_url;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting interview:', error);
       
       // More specific error handling
@@ -227,6 +258,8 @@ const Uebung: React.FC = () => {
       
       // Check if there's a specific error message from the Tavus API
       if (error.message && error.message.includes('The user is out of conversational credits')) {
+        errorMessage = 'Keine Interview-Guthaben mehr verfügbar. Bitte kontaktiere den Support.';
+      } else if (error.status === 402) {
         errorMessage = 'Keine Interview-Guthaben mehr verfügbar. Bitte kontaktiere den Support.';
       }
       
@@ -241,7 +274,22 @@ const Uebung: React.FC = () => {
 
   const handleSessionStatusChange = (status: string) => {
     setSessionStatus(status);
+    
+    // If the session has ended, reset the camera state
+    if (status === 'ended') {
+      setCameraStatus("unknown");
+      setLocalSessionId(null);
+      setDailyCallObject(null);
+    }
   };
+
+  // Clean up resources when navigating away or component unmounts
+  useEffect(() => {
+    return () => {
+      // We don't destroy the singleton on normal unmount - only on explicit cleanup
+      console.log("Component unmounting");
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -363,13 +411,6 @@ const Uebung: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-              
-              {/* If camera is ready but we don't have device selector shown yet, render it here */}
-              {cameraStatus === "ready" && !dailyCallObject && (
-                <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-                  <p className="text-center text-gray-500">Geräteeigenschaften werden geladen...</p>
                 </div>
               )}
             </div>

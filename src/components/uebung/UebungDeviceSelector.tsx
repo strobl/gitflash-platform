@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Select, 
   SelectTrigger, 
@@ -8,6 +8,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useDevices } from "@daily-co/daily-react";
+import { toast } from "sonner";
 
 export const UebungDeviceSelector: React.FC = () => {
   // Get device information from Daily's hook
@@ -15,6 +16,75 @@ export const UebungDeviceSelector: React.FC = () => {
     cameras, microphones, speakers, 
     setCamera, setMicrophone, setSpeaker 
   } = useDevices();
+  
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+  const [selectedMicId, setSelectedMicId] = useState<string>('');
+  const [selectedSpeakerId, setSelectedSpeakerId] = useState<string>('');
+  
+  // Store selected devices and apply when they change
+  useEffect(() => {
+    if (cameras && cameras.length > 0) {
+      const selected = cameras.find(cam => cam.selected);
+      if (selected) {
+        setSelectedCameraId(selected.device.deviceId);
+      }
+    }
+  }, [cameras]);
+  
+  useEffect(() => {
+    if (microphones && microphones.length > 0) {
+      const selected = microphones.find(mic => mic.selected);
+      if (selected) {
+        setSelectedMicId(selected.device.deviceId);
+      }
+    }
+  }, [microphones]);
+  
+  useEffect(() => {
+    if (speakers && speakers.length > 0) {
+      const selected = speakers.find(spk => spk.selected);
+      if (selected) {
+        setSelectedSpeakerId(selected.device.deviceId);
+      }
+    }
+  }, [speakers]);
+  
+  // Custom handlers with error handling and feedback
+  const handleCameraChange = (deviceId: string) => {
+    try {
+      console.log("Changing camera to:", deviceId);
+      setCamera(deviceId);
+      setSelectedCameraId(deviceId);
+      toast.success('Kamera erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing camera:", err);
+      toast.error('Fehler beim Ändern der Kamera');
+    }
+  };
+  
+  const handleMicChange = (deviceId: string) => {
+    try {
+      console.log("Changing microphone to:", deviceId);
+      setMicrophone(deviceId);
+      setSelectedMicId(deviceId);
+      toast.success('Mikrofon erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing microphone:", err);
+      toast.error('Fehler beim Ändern des Mikrofons');
+    }
+  };
+  
+  const handleSpeakerChange = (deviceId: string) => {
+    try {
+      console.log("Changing speaker to:", deviceId);
+      setSpeaker(deviceId);
+      setSelectedSpeakerId(deviceId);
+      toast.success('Lautsprecher erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing speaker:", err);
+      toast.error('Fehler beim Ändern des Lautsprechers');
+    }
+  };
   
   return (
     <div className="bg-white rounded-xl shadow-sm border p-6">
@@ -29,8 +99,8 @@ export const UebungDeviceSelector: React.FC = () => {
             Kamera
           </label>
           <Select 
-            value={cameras?.find(cam => cam.selected)?.device?.deviceId || ''}
-            onValueChange={(deviceId) => setCamera(deviceId)}
+            value={selectedCameraId}
+            onValueChange={handleCameraChange}
             disabled={!cameras || cameras.length === 0}
           >
             <SelectTrigger id="camera-select" className="w-full">
@@ -58,8 +128,8 @@ export const UebungDeviceSelector: React.FC = () => {
             Mikrofon
           </label>
           <Select 
-            value={microphones?.find(mic => mic.selected)?.device?.deviceId || ''}
-            onValueChange={(deviceId) => setMicrophone(deviceId)}
+            value={selectedMicId}
+            onValueChange={handleMicChange}
             disabled={!microphones || microphones.length === 0}
           >
             <SelectTrigger id="microphone-select" className="w-full">
@@ -87,8 +157,8 @@ export const UebungDeviceSelector: React.FC = () => {
             Lautsprecher
           </label>
           <Select 
-            value={speakers?.find(spk => spk.selected)?.device?.deviceId || ''}
-            onValueChange={(deviceId) => setSpeaker(deviceId)}
+            value={selectedSpeakerId}
+            onValueChange={handleSpeakerChange}
             disabled={!speakers || speakers.length === 0}
           >
             <SelectTrigger id="speaker-select" className="w-full">
