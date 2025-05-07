@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useCamera } from "@/context/CameraContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import EmailInput from "./EmailInput";
@@ -15,10 +16,15 @@ import LoginLogo from "./LoginLogo";
 
 interface LoginFormProps {
   redirectUrl?: string;
+  shouldActivateCamera?: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ 
+  redirectUrl = "/dashboard",
+  shouldActivateCamera = false
+}) => {
   const { login, register, isLoading } = useAuth();
+  const { activateCamera, interviewRedirectId, isAutoActivationEnabled } = useCamera();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -58,6 +64,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => 
         }
         
         await login(email, password);
+        
+        // Check if we should activate the camera before redirecting
+        const shouldAutoActivate = (
+          isAutoActivationEnabled && 
+          (redirectUrl.includes('/uebung/') || shouldActivateCamera) && 
+          interviewRedirectId
+        );
+        
+        if (shouldAutoActivate) {
+          console.log("Login successful, activating camera before redirect to:", redirectUrl);
+          activateCamera();
+        }
+        
+        console.log("Login successful, redirecting to:", redirectUrl);
         navigate(redirectUrl);
       }
     } catch (error: any) {

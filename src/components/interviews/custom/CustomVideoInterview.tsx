@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
   DailyProvider,
@@ -8,10 +7,10 @@ import {
   useDailyEvent,
   useParticipantIds,
   useLocalSessionId,
-  DailyVideo
+  DailyVideo,
+  DailyAudio
 } from '@daily-co/daily-react';
-import DailyIframe from '@daily-co/daily-js';
-import type { DailyCall } from '@daily-co/daily-js';
+import type { DailyCall, DailyEventObject } from '@daily-co/daily-js';
 import { Button } from '@/components/ui/button';
 import { updateInterviewSessionStatus } from '@/services/tavusService';
 import { 
@@ -24,7 +23,10 @@ import {
   RefreshCcw,
   Settings,
   ChevronDown,
-  Camera
+  Camera,
+  Volume2,
+  VolumeX,
+  AlertCircle
 } from 'lucide-react';
 import {
   Select,
@@ -43,6 +45,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getDailyCallInstance, setAudioOutputDevice, testAudioOutput } from '@/utils/dailyCallSingleton';
 
 interface CustomVideoInterviewProps {
   conversationUrl: string | null;
@@ -53,27 +57,6 @@ interface CustomVideoInterviewProps {
   onStartInterview?: () => Promise<string>;
   onSessionStatusChange?: (status: string) => void;
 }
-
-// Create a singleton instance of the DailyCall object
-// This ensures we only have one instance throughout the application
-let dailyCallSingleton: DailyCall | null = null;
-
-// Function to get or create the singleton Daily call object
-const getDailyCallInstance = (): DailyCall => {
-  if (!dailyCallSingleton) {
-    dailyCallSingleton = DailyIframe.createCallObject();
-    
-    // Add cleanup for when the app unmounts
-    window.addEventListener('beforeunload', () => {
-      if (dailyCallSingleton) {
-        dailyCallSingleton.destroy().catch(console.error);
-        dailyCallSingleton = null;
-      }
-    });
-  }
-  
-  return dailyCallSingleton;
-};
 
 // Main wrapper component that creates the Daily call object and provides it via context
 export function CustomVideoInterview({ 
@@ -93,16 +76,27 @@ export function CustomVideoInterview({
   // Initialize the Daily call object when the component mounts
   useEffect(() => {
     if (!callObject) {
-      // Use the singleton pattern to get the Daily call instance
+      // Use the shared singleton pattern to get the Daily call instance
       const daily = getDailyCallInstance();
       setCallObject(daily);
+
+      // Log device info for debugging
+      daily.enumerateDevices()
+        .then(devices => {
+          console.log("Available devices:", devices);
+        })
+        .catch(error => console.error("Error enumerating devices:", error));
     }
     
-    // No need for cleanup here as we're managing the singleton elsewhere
     return () => {
       // Only leave the call if we're in one, but don't destroy the object
       if (callObject && localUrl) {
-        callObject.leave().catch(console.error);
+        console.log("Leaving call but keeping singleton alive");
+        try {
+          callObject.leave();
+        } catch (error) {
+          console.error("Error leaving call:", error);
+        }
       }
     };
   }, [callObject, localUrl]);
@@ -133,22 +127,6 @@ export function CustomVideoInterview({
       setLocalUrl(newUrl);
       setSessionStatus('active');
       toast.success("Interview erfolgreich gestartet!");
-      
-      // Instead of recreating the call object, just join with the new URL
-      if (callObject) {
-        // Make sure we're not in a call first
-        if (callObject.participants().local) {
-          try {
-            await callObject.leave();
-          } catch (error) {
-            console.error("Failed to leave previous call:", error);
-          }
-        }
-        
-        // Fix: We can't directly modify properties.url, we need to leave and rejoin
-        // We'll store the URL in our state and use it when joining
-      }
-      
     } catch (error) {
       console.error("Failed to start interview:", error);
       toast.error("Fehler beim Starten des Interviews");
@@ -250,6 +228,10 @@ const VideoCallUI = ({
   const [isClosing, setIsClosing] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+  const [hasAudioOutput, setHasAudioOutput] = useState<boolean>(true);
+  const [isAudioOutputTesting, setIsAudioOutputTesting] = useState(false);
+  const [audioPlaybackFailed, setAudioPlaybackFailed] = useState(false);
+  const [remoteAudioActivity, setRemoteAudioActivity] = useState(false);
   
   // Listen for join-meeting events
   useDailyEvent(
@@ -258,7 +240,28 @@ const VideoCallUI = ({
       console.log('Successfully joined the meeting');
       setIsJoined(true);
       setIsJoining(false);
-    }, [])
+      
+      // Check initial audio/video state
+      if (callObject) {
+        const audioEnabled = callObject.localAudio();
+        const videoEnabled = callObject.localVideo();
+        console.log("Initial device states - Audio:", audioEnabled, "Video:", videoEnabled);
+        
+        // Set our state to match the actual device state
+        setIsAudioMuted(!audioEnabled);
+        setIsVideoMuted(!videoEnabled);
+        
+        // Try to ensure audio is unmuted
+        if (!audioEnabled) {
+          console.log("Trying to enable audio on join...");
+          try {
+            callObject.setLocalAudio(true);
+          } catch (e) {
+            console.error("Failed to enable audio:", e);
+          }
+        }
+      }
+    }, [callObject])
   );
   
   // Listen for errors
@@ -285,20 +288,108 @@ const VideoCallUI = ({
     }, [])
   );
   
-  // Track local participant's audio and video state
+  // Track local participant's audio and video state using standard event names
   useDailyEvent(
-    'local-audio-changed' as any,
-    useCallback((ev: any) => {
-      setIsAudioMuted(!ev?.on);
+    'track-started',
+    useCallback((ev: DailyEventObject) => {
+      if (ev.track.kind === 'audio') {
+        console.log("Audio track started");
+        setIsAudioMuted(false);
+      } else if (ev.track.kind === 'video') {
+        console.log("Video track started");
+        setIsVideoMuted(false);
+      }
     }, [])
   );
   
   useDailyEvent(
-    'local-video-changed' as any,
-    useCallback((ev: any) => {
-      setIsVideoMuted(!ev?.on);
+    'track-stopped',
+    useCallback((ev: DailyEventObject) => {
+      if (ev.track.kind === 'audio') {
+        console.log("Audio track stopped");
+        setIsAudioMuted(true);
+      } else if (ev.track.kind === 'video') {
+        console.log("Video track stopped");
+        setIsVideoMuted(true);
+      }
     }, [])
   );
+  
+  // Listen for device changes
+  useDailyEvent(
+    'available-devices-updated',
+    useCallback((ev: any) => {
+      console.log("Available devices updated:", ev);
+      if (ev && ev.devices) {
+        setHasAudioOutput(true);
+        toast.success("Audioausgabegerät erfolgreich erkannt");
+      }
+    }, [])
+  );
+  
+  // Monitor remote audio activity
+  useDailyEvent(
+    'active-speaker-change',
+    useCallback((ev: any) => {
+      if (ev && ev.activeSpeaker && !ev.activeSpeaker.local) {
+        console.log("Remote participant is speaking:", ev.activeSpeaker);
+        setRemoteAudioActivity(true);
+        // Reset after a few seconds
+        setTimeout(() => setRemoteAudioActivity(false), 3000);
+      }
+    }, [])
+  );
+  
+  // This event is triggered when the remote participant's audio state changes
+  useDailyEvent(
+    'participant-updated',
+    useCallback((ev: any) => {
+      if (ev?.participant?.user_id !== 'local') {
+        console.log("Remote participant update:", 
+          ev.participant.session_id, 
+          "Audio:", ev.participant.audio, 
+          "Video:", ev.participant.video);
+      }
+    }, [])
+  );
+  
+  // Handle audio playback failures
+  const handleAudioPlayFailed = useCallback(() => {
+    console.error("Audio playback failed - likely due to browser autoplay policy");
+    setAudioPlaybackFailed(true);
+    toast.error("Audio-Wiedergabe wurde blockiert", {
+      description: "Klicken Sie auf 'Audio aktivieren', um den Ton zu starten",
+      duration: 10000
+    });
+  }, []);
+  
+  // Function to manually activate audio after autoplay failure
+  const activateAudio = async () => {
+    if (!callObject) return;
+    
+    try {
+      console.log("Manually activating audio playback...");
+      
+      // Get all video and audio elements in the call
+      const elements = document.querySelectorAll('audio, video');
+      
+      // Try to play each element - FIX: Cast to HTMLMediaElement
+      for (const element of Array.from(elements)) {
+        try {
+          // Cast the element to HTMLMediaElement to access play() method
+          await (element as HTMLMediaElement).play();
+        } catch (err) {
+          console.error("Failed to play element:", element, err);
+        }
+      }
+      
+      setAudioPlaybackFailed(false);
+      toast.success("Audio erfolgreich aktiviert");
+    } catch (err) {
+      console.error("Error activating audio:", err);
+      toast.error("Fehler beim Aktivieren des Tons");
+    }
+  };
   
   // Effect to check device permissions on component mount
   useEffect(() => {
@@ -325,11 +416,32 @@ const VideoCallUI = ({
         try {
           setIsJoining(true);
           
-          // Start camera first
-          await callObject.startCamera();
+          // Start camera first with explicit audio enabled using correct properties
+          await callObject.startCamera({
+            // Use the supported properties for startCamera
+            audioSource: true,
+            videoSource: true
+          });
+          
+          console.log("Camera/mic started, joining with URL:", conversationUrl);
           
           // Then join the meeting
-          await callObject.join({ url: conversationUrl });
+          await callObject.join({ 
+            url: conversationUrl,
+            // Don't specify audio/video here as they're already started
+          });
+          
+          // Add a short delay and then check audio status
+          setTimeout(() => {
+            if (callObject && !callObject.localAudio()) {
+              console.log("Audio still not enabled after join, trying again");
+              try {
+                callObject.setLocalAudio(true);
+              } catch (e) {
+                console.error("Failed to enable audio on retry:", e);
+              }
+            }
+          }, 1000);
           
         } catch (error) {
           console.error('Error joining call:', error);
@@ -343,7 +455,11 @@ const VideoCallUI = ({
     
     return () => {
       if (callObject && isJoined) {
-        callObject.leave().catch(console.error);
+        try {
+          callObject.leave();
+        } catch (error) {
+          console.error("Error leaving call:", error);
+        }
       }
     };
   }, [callObject, isJoined, isJoining, conversationUrl, isClosed]);
@@ -374,18 +490,76 @@ const VideoCallUI = ({
     }
   };
   
-  const toggleAudio = () => {
+  // FIX: Corrected toggle functions to properly synchronize state with device state
+  const toggleAudio = async () => {
     if (!callObject) return;
-    callObject.setLocalAudio(!isAudioMuted);
+    
+    try {
+      // Get the current state - if muted, we want to unmute (true), and vice versa
+      const newAudioEnabled = isAudioMuted;
+      console.log(`Setting audio to: ${newAudioEnabled ? "enabled" : "disabled"}`);
+      
+      // Set the device state first
+      await callObject.setLocalAudio(newAudioEnabled);
+      
+      // Then update our UI state to match
+      setIsAudioMuted(!newAudioEnabled);
+      
+      if (newAudioEnabled) {
+        toast.success("Mikrofon aktiviert");
+      } else {
+        toast.success("Mikrofon deaktiviert");
+      }
+    } catch (error) {
+      console.error("Error toggling audio:", error);
+      toast.error("Fehler beim Ändern des Audiostatus");
+    }
   };
   
-  const toggleVideo = () => {
+  // FIX: Corrected toggle functions to properly synchronize state with device state
+  const toggleVideo = async () => {
     if (!callObject) return;
-    callObject.setLocalVideo(!isVideoMuted);
+    
+    try {
+      // Get the current state - if muted, we want to unmute (true), and vice versa
+      const newVideoEnabled = isVideoMuted;
+      console.log(`Setting video to: ${newVideoEnabled ? "enabled" : "disabled"}`);
+      
+      // Set the device state first
+      await callObject.setLocalVideo(newVideoEnabled);
+      
+      // Then update our UI state to match
+      setIsVideoMuted(!newVideoEnabled);
+      
+      if (newVideoEnabled) {
+        toast.success("Kamera aktiviert");
+      } else {
+        toast.success("Kamera deaktiviert");
+      }
+    } catch (error) {
+      console.error("Error toggling video:", error);
+      toast.error("Fehler beim Ändern des Videostatus");
+    }
+  };
+  
+  // Handle audio output testing
+  const handleTestAudioOutput = async () => {
+    setIsAudioOutputTesting(true);
+    try {
+      await testAudioOutput();
+      toast.success("Audiotest wird abgespielt");
+    } catch (error) {
+      console.error("Error testing audio output:", error);
+      toast.error("Fehler beim Testen der Audioausgabe");
+      setHasAudioOutput(false);
+    } finally {
+      setTimeout(() => setIsAudioOutputTesting(false), 1500);
+    }
   };
   
   // If the call is closed/ended, show the ended state
   if (isClosed) {
+    // ... keep existing code (closed interview state)
     return (
       <div className="rounded-md border overflow-hidden flex flex-col">
         <div className="p-4 bg-muted/20 border-b flex items-center">
@@ -414,12 +588,39 @@ const VideoCallUI = ({
           <div className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">
             {isJoined ? 'Aktiv' : 'Verbinde...'}
           </div>
+          
+          {/* Audio activity indicator */}
+          {remoteAudioActivity && (
+            <div className="ml-2 flex items-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></div>
+              <span className="text-xs text-green-600">Audio aktiv</span>
+            </div>
+          )}
         </div>
-        <DeviceSettings />
+        <DeviceSettings onTestAudioOutput={handleTestAudioOutput} isAudioOutputTesting={isAudioOutputTesting} />
       </div>
       
       {/* Main video area */}
       <div className="bg-black flex flex-col relative">
+        {/* Audio playback failed alert */}
+        {audioPlaybackFailed && (
+          <Alert variant="destructive" className="m-4 top-0 left-0 right-0 absolute z-10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex flex-wrap items-center justify-between">
+              <span>Audio wird blockiert. Browser-Autoplay-Richtlinie verhindert die Audiowiedergabe.</span>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="mt-2 sm:mt-0" 
+                onClick={activateAudio}
+              >
+                <Volume2 className="mr-2 h-4 w-4" />
+                Audio aktivieren
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Remote video (AI) */}
         <div className="aspect-video w-full bg-black">
           {remoteParticipantIds.length > 0 ? (
@@ -443,6 +644,9 @@ const VideoCallUI = ({
             </div>
           )}
         </div>
+        
+        {/* Add DailyAudio component to handle remote audio separately */}
+        <DailyAudio onPlayFailed={handleAudioPlayFailed} />
         
         {/* Local video (user) - small overlay */}
         {localSessionId && (
@@ -471,6 +675,14 @@ const VideoCallUI = ({
             </div>
           </div>
         )}
+        
+        {/* Audio issue indicator */}
+        {!hasAudioOutput && isJoined && (
+          <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-md flex items-center">
+            <VolumeX className="h-4 w-4 mr-1" />
+            <span className="text-sm">Kein Ton? Klicken Sie auf Einstellungen</span>
+          </div>
+        )}
       </div>
       
       {/* Controls */}
@@ -491,6 +703,19 @@ const VideoCallUI = ({
             disabled={!isJoined}
           >
             {isVideoMuted ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+          </Button>
+          <Button 
+            variant="outline"
+            size="icon"
+            onClick={handleTestAudioOutput}
+            disabled={isAudioOutputTesting || !isJoined}
+            title="Audiotest abspielen"
+          >
+            {isAudioOutputTesting ? (
+              <div className="h-4 w-4 animate-pulse bg-blue-500 rounded-full"></div>
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
           </Button>
         </div>
         
@@ -513,14 +738,67 @@ const VideoCallUI = ({
 };
 
 // Device settings component (dropdown to select camera/mic)
-const DeviceSettings = () => {
+const DeviceSettings = ({ onTestAudioOutput, isAudioOutputTesting }: { 
+  onTestAudioOutput: () => Promise<void>;
+  isAudioOutputTesting: boolean;
+}) => {
   const deviceHook = useDevices();
   const { cameras, microphones, speakers, setCamera, setMicrophone, setSpeaker } = deviceHook;
+  const daily = useDaily();
   
-  // Extrahieren der deviceIds aus dem Hook-Ergebnis
+  // Extract selected deviceIds from the hook result
   const selectedCameraId = cameras.find(c => c.selected)?.device.deviceId || '';
   const selectedMicrophoneId = microphones.find(m => m.selected)?.device.deviceId || '';
   const selectedSpeakerId = speakers.find(s => s.selected)?.device.deviceId || '';
+  
+  // Enhanced device change handlers with better error handling
+  const handleCameraChange = async (deviceId: string) => {
+    try {
+      console.log("Changing camera to:", deviceId);
+      await setCamera(deviceId);
+      toast.success('Kamera erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing camera:", err);
+      toast.error('Fehler beim Ändern der Kamera');
+    }
+  };
+  
+  const handleMicChange = async (deviceId: string) => {
+    try {
+      console.log("Changing microphone to:", deviceId);
+      await setMicrophone(deviceId);
+      
+      // Force unmute after mic change
+      if (daily) {
+        try {
+          daily.setLocalAudio(true);
+        } catch (err) {
+          console.error("Error unmuting after mic change:", err);
+        }
+      }
+      
+      toast.success('Mikrofon erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing microphone:", err);
+      toast.error('Fehler beim Ändern des Mikrofons');
+    }
+  };
+  
+  const handleSpeakerChange = async (deviceId: string) => {
+    try {
+      console.log("Changing speaker to:", deviceId);
+      // First update Daily.co's internal state
+      await setSpeaker(deviceId);
+      
+      // Also use our utility to ensure the output device is set
+      await setAudioOutputDevice(deviceId);
+      
+      toast.success('Lautsprecher erfolgreich geändert');
+    } catch (err) {
+      console.error("Error changing speaker:", err);
+      toast.error('Fehler beim Ändern des Lautsprechers');
+    }
+  };
 
   return (
     <Sheet>
@@ -546,7 +824,7 @@ const DeviceSettings = () => {
             </label>
             <Select 
               value={selectedCameraId}
-              onValueChange={setCamera}
+              onValueChange={handleCameraChange}
             >
               <SelectTrigger id="camera">
                 <SelectValue placeholder="Kamera wählen" />
@@ -574,7 +852,7 @@ const DeviceSettings = () => {
             </label>
             <Select 
               value={selectedMicrophoneId}
-              onValueChange={setMicrophone}
+              onValueChange={handleMicChange}
             >
               <SelectTrigger id="microphone">
                 <SelectValue placeholder="Mikrofon wählen" />
@@ -602,7 +880,7 @@ const DeviceSettings = () => {
             </label>
             <Select 
               value={selectedSpeakerId}
-              onValueChange={setSpeaker}
+              onValueChange={handleSpeakerChange}
             >
               <SelectTrigger id="speaker">
                 <SelectValue placeholder="Lautsprecher wählen" />
@@ -621,6 +899,35 @@ const DeviceSettings = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            
+            <div className="mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full gap-2"
+                onClick={onTestAudioOutput}
+                disabled={isAudioOutputTesting}
+              >
+                {isAudioOutputTesting ? (
+                  <div className="h-3 w-3 animate-pulse bg-blue-500 rounded-full"></div>
+                ) : (
+                  <Volume2 className="h-3 w-3" />
+                )}
+                Audiotest abspielen
+              </Button>
+            </div>
+          </div>
+          
+          <div className="p-3 bg-blue-50 text-blue-800 rounded-md text-sm mt-4">
+            <p className="font-medium mb-1">Tipps bei Audioproblemen:</p>
+            <ul className="list-disc pl-4 space-y-1">
+              <li>Stellen Sie sicher, dass Ihr Mikrofon nicht stumm geschaltet ist</li>
+              <li>Prüfen Sie die Lautstärkeeinstellungen Ihres Browsers</li>
+              <li>Erlauben Sie der Seite den Zugriff auf Ihr Mikrofon und Ihre Lautsprecher</li>
+              <li>Versuchen Sie, einen anderen Lautsprecher auszuwählen</li>
+              <li>Drücken Sie auf "Audiotest abspielen" - wenn Sie einen Ton hören, ist die Ausgabe konfiguriert</li>
+              <li>Starten Sie Ihren Browser neu, falls Probleme bestehen bleiben</li>
+            </ul>
           </div>
         </div>
       </SheetContent>

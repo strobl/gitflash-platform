@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -95,7 +96,9 @@ export default function InterviewsDesign() {
   }
 
   const handleInterviewSelect = (id: string) => {
-    navigate(`/interviews/${id}`);
+    // Use window.location for a direct navigation instead of React Router
+    console.log(`Directly navigating to /uebung/${id}`);
+    window.location.href = `/uebung/${id}`;
   };
 
   return (
