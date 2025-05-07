@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -14,7 +13,7 @@ import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
 import { DailyVideo, DailyProvider } from "@daily-co/daily-react";
 import type { DailyCall } from '@daily-co/daily-js';
-import { getDailyCallInstance, destroyDailyCallInstance } from "@/utils/dailyCallSingleton";
+import { getDailyCallInstance, destroyDailyCallInstance, setAudioOutputDevice } from "@/utils/dailyCallSingleton";
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
@@ -109,6 +108,22 @@ const Uebung: React.FC = () => {
         setLocalSessionId(participants.local.session_id);
       } else {
         console.error("Could not get local participant", participants);
+      }
+      
+      // Set default audio output - this helps ensure audio will work when the interview starts
+      try {
+        // Get available output devices
+        const devices = await callObject.enumerateDevices();
+        const outputDevices = devices.devices.filter(d => d.kind === 'audiooutput');
+        
+        if (outputDevices.length > 0) {
+          // Use the first available output device (usually default)
+          const defaultOutputDevice = outputDevices[0].deviceId;
+          console.log("Setting default audio output to:", defaultOutputDevice);
+          await setAudioOutputDevice(defaultOutputDevice);
+        }
+      } catch (err) {
+        console.error("Error setting default audio output:", err);
       }
       
       toast.success('Kamera und Mikrofon erfolgreich aktiviert');

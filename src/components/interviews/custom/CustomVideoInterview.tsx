@@ -22,7 +22,9 @@ import {
   RefreshCcw,
   Settings,
   ChevronDown,
-  Camera
+  Camera,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import {
   Select,
@@ -41,7 +43,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getDailyCallInstance } from '@/utils/dailyCallSingleton';
+import { getDailyCallInstance, setAudioOutputDevice, testAudioOutput } from '@/utils/dailyCallSingleton';
 
 interface CustomVideoInterviewProps {
   conversationUrl: string | null;
@@ -80,7 +82,7 @@ export function CustomVideoInterview({
         .then(devices => {
           console.log("Available devices:", devices);
         })
-        .catch(console.error);
+        .catch(error => console.error("Error enumerating devices:", error));
     }
     
     return () => {
@@ -223,6 +225,8 @@ const VideoCallUI = ({
   const [isClosing, setIsClosing] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+  const [hasAudioOutput, setHasAudioOutput] = useState<boolean>(true);
+  const [isAudioOutputTesting, setIsAudioOutputTesting] = useState(false);
   
   // Listen for join-meeting events
   useDailyEvent(
@@ -297,6 +301,18 @@ const VideoCallUI = ({
       } else if (ev.track.kind === 'video') {
         console.log("Video track stopped");
         setIsVideoMuted(true);
+      }
+    }, [])
+  );
+  
+  // New event for audio output changes
+  useDailyEvent(
+    'output-devices-updated',
+    useCallback((ev: any) => {
+      console.log("Output devices updated:", ev);
+      if (ev && ev.outputDeviceId) {
+        setHasAudioOutput(true);
+        toast.success("Audioausgabegerät erfolgreich geändert");
       }
     }, [])
   );
@@ -453,6 +469,21 @@ const VideoCallUI = ({
     }
   };
   
+  // Handle audio output testing
+  const handleTestAudioOutput = async () => {
+    setIsAudioOutputTesting(true);
+    try {
+      await testAudioOutput();
+      toast.success("Audiotest wird abgespielt");
+    } catch (error) {
+      console.error("Error testing audio output:", error);
+      toast.error("Fehler beim Testen der Audioausgabe");
+      setHasAudioOutput(false);
+    } finally {
+      setTimeout(() => setIsAudioOutputTesting(false), 1500);
+    }
+  };
+  
   // If the call is closed/ended, show the ended state
   if (isClosed) {
     return (
@@ -484,7 +515,7 @@ const VideoCallUI = ({
             {isJoined ? 'Aktiv' : 'Verbinde...'}
           </div>
         </div>
-        <DeviceSettings />
+        <DeviceSettings onTestAudioOutput={handleTestAudioOutput} isAudioOutputTesting={isAudioOutputTesting} />
       </div>
       
       {/* Main video area */}
@@ -540,6 +571,14 @@ const VideoCallUI = ({
             </div>
           </div>
         )}
+        
+        {/* Audio issue indicator */}
+        {!hasAudioOutput && isJoined && (
+          <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-md flex items-center">
+            <VolumeX className="h-4 w-4 mr-1" />
+            <span className="text-sm">Kein Ton? Klicken Sie auf Einstellungen</span>
+          </div>
+        )}
       </div>
       
       {/* Controls */}
@@ -560,6 +599,19 @@ const VideoCallUI = ({
             disabled={!isJoined}
           >
             {isVideoMuted ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+          </Button>
+          <Button 
+            variant="outline"
+            size="icon"
+            onClick={handleTestAudioOutput}
+            disabled={isAudioOutputTesting || !isJoined}
+            title="Audiotest abspielen"
+          >
+            {isAudioOutputTesting ? (
+              <div className="h-4 w-4 animate-pulse bg-blue-500 rounded-full"></div>
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
           </Button>
         </div>
         
@@ -582,7 +634,10 @@ const VideoCallUI = ({
 };
 
 // Device settings component (dropdown to select camera/mic)
-const DeviceSettings = () => {
+const DeviceSettings = ({ onTestAudioOutput, isAudioOutputTesting }: { 
+  onTestAudioOutput: () => Promise<void>;
+  isAudioOutputTesting: boolean;
+}) => {
   const deviceHook = useDevices();
   const { cameras, microphones, speakers, setCamera, setMicrophone, setSpeaker } = deviceHook;
   const daily = useDaily();
@@ -628,7 +683,12 @@ const DeviceSettings = () => {
   const handleSpeakerChange = async (deviceId: string) => {
     try {
       console.log("Changing speaker to:", deviceId);
+      // First update Daily.co's internal state
       await setSpeaker(deviceId);
+      
+      // Also use our utility to ensure the output device is set
+      await setAudioOutputDevice(deviceId);
+      
       toast.success('Lautsprecher erfolgreich geändert');
     } catch (err) {
       console.error("Error changing speaker:", err);
@@ -735,6 +795,23 @@ const DeviceSettings = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            
+            <div className="mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full gap-2"
+                onClick={onTestAudioOutput}
+                disabled={isAudioOutputTesting}
+              >
+                {isAudioOutputTesting ? (
+                  <div className="h-3 w-3 animate-pulse bg-blue-500 rounded-full"></div>
+                ) : (
+                  <Volume2 className="h-3 w-3" />
+                )}
+                Audiotest abspielen
+              </Button>
+            </div>
           </div>
           
           <div className="p-3 bg-blue-50 text-blue-800 rounded-md text-sm mt-4">
@@ -743,6 +820,8 @@ const DeviceSettings = () => {
               <li>Stellen Sie sicher, dass Ihr Mikrofon nicht stumm geschaltet ist</li>
               <li>Prüfen Sie die Lautstärkeeinstellungen Ihres Browsers</li>
               <li>Erlauben Sie der Seite den Zugriff auf Ihr Mikrofon und Ihre Lautsprecher</li>
+              <li>Versuchen Sie, einen anderen Lautsprecher auszuwählen</li>
+              <li>Drücken Sie auf "Audiotest abspielen" - wenn Sie einen Ton hören, ist die Ausgabe konfiguriert</li>
               <li>Starten Sie Ihren Browser neu, falls Probleme bestehen bleiben</li>
             </ul>
           </div>

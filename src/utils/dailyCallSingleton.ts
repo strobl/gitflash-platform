@@ -5,6 +5,7 @@ import type { DailyCall } from '@daily-co/daily-js';
 // Create a singleton instance of the DailyCall object
 // This ensures we only have one instance throughout the application
 let dailyCallSingleton: DailyCall | null = null;
+let currentAudioOutputDeviceId: string | null = null;
 
 // Function to get or create the singleton Daily call object
 export const getDailyCallInstance = (): DailyCall => {
@@ -21,8 +22,7 @@ export const getDailyCallInstance = (): DailyCall => {
         userMediaAudioConstraints: {
           echoCancellation: true,
           noiseSuppression: true,
-        },
-        // Chrome video light fix - removed unsupported property
+        }
       }
     });
     
@@ -37,6 +37,16 @@ export const getDailyCallInstance = (): DailyCall => {
     
     dailyCallSingleton.on('joined-meeting', () => {
       console.log("Successfully joined meeting with audio/video capabilities");
+      
+      // Set audio output device if one was previously selected
+      if (currentAudioOutputDeviceId) {
+        try {
+          console.log(`Setting audio output device to ${currentAudioOutputDeviceId}`);
+          dailyCallSingleton?.setOutputDevice({ outputDeviceId: currentAudioOutputDeviceId });
+        } catch (error) {
+          console.error("Failed to set audio output device on join:", error);
+        }
+      }
     });
     
     dailyCallSingleton.on('error', (e) => {
@@ -48,6 +58,7 @@ export const getDailyCallInstance = (): DailyCall => {
       if (dailyCallSingleton) {
         console.log("Cleaning up Daily call singleton on window unload");
         try {
+          dailyCallSingleton.leave();
           dailyCallSingleton.destroy();
         } catch (error) {
           console.error("Error destroying Daily call:", error);
@@ -62,11 +73,64 @@ export const getDailyCallInstance = (): DailyCall => {
   return dailyCallSingleton;
 };
 
+// Function to set the audio output device
+export const setAudioOutputDevice = async (deviceId: string): Promise<void> => {
+  currentAudioOutputDeviceId = deviceId;
+  
+  if (dailyCallSingleton) {
+    try {
+      console.log(`Setting audio output device to ${deviceId}`);
+      await dailyCallSingleton.setOutputDevice({ outputDeviceId: deviceId });
+    } catch (error) {
+      console.error("Error setting audio output device:", error);
+      throw error;
+    }
+  } else {
+    console.log("Daily call singleton not available, device ID will be applied when created");
+  }
+};
+
+// Function to test audio output with a test sound
+export const testAudioOutput = async (): Promise<void> => {
+  if (!dailyCallSingleton) {
+    console.error("Cannot test audio - Daily call singleton not available");
+    throw new Error("Daily call singleton not available");
+  }
+  
+  try {
+    // Create and play a test tone
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 440; // A4 note
+    gainNode.gain.value = 0.1;
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.start();
+    
+    // Play for 1 second then stop
+    setTimeout(() => {
+      oscillator.stop();
+      audioContext.close();
+    }, 1000);
+    
+    return Promise.resolve();
+  } catch (error) {
+    console.error("Error testing audio output:", error);
+    throw error;
+  }
+};
+
 // Function to properly destroy the singleton when needed
 export const destroyDailyCallInstance = () => {
   if (dailyCallSingleton) {
     console.log("Destroying Daily call singleton");
     try {
+      dailyCallSingleton.leave();
       dailyCallSingleton.destroy();
     } catch (error) {
       console.error("Error destroying Daily call:", error);
