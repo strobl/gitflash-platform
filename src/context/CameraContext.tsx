@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getDailyCallInstance } from "@/utils/dailyCallSingleton";
 
 type CameraContextType = {
@@ -18,12 +18,51 @@ type CameraContextType = {
 
 const CameraContext = createContext<CameraContextType | undefined>(undefined);
 
+// Using localStorage to persist important flags between page navigations
+const getStoredValue = (key: string, defaultValue: any) => {
+  try {
+    const stored = localStorage.getItem(`camera_context_${key}`);
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch (error) {
+    console.error(`Error reading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
+const storeValue = (key: string, value: any) => {
+  try {
+    localStorage.setItem(`camera_context_${key}`, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error storing ${key} to localStorage:`, error);
+  }
+};
+
 export function CameraProvider({ children }: { children: ReactNode }) {
+  // Initialize state with values from localStorage if available
   const [shouldActivateCamera, setShouldActivateCamera] = useState(false);
   const [isInitiallyRequested, setInitiallyRequested] = useState(false);
-  const [interviewRedirectId, setInterviewRedirectId] = useState<string | null>(null);
-  const [isAutoActivationEnabled, setAutoActivationEnabled] = useState(false);
-  const [hasRedirectedFromLogin, setHasRedirectedFromLogin] = useState(false);
+  const [interviewRedirectId, setInterviewRedirectIdState] = useState<string | null>(
+    getStoredValue('interviewRedirectId', null)
+  );
+  const [isAutoActivationEnabled, setAutoActivationEnabledState] = useState(
+    getStoredValue('isAutoActivationEnabled', false)
+  );
+  const [hasRedirectedFromLogin, setHasRedirectedFromLoginState] = useState(
+    getStoredValue('hasRedirectedFromLogin', false)
+  );
+
+  // Use effect to persist values to localStorage
+  useEffect(() => {
+    storeValue('interviewRedirectId', interviewRedirectId);
+  }, [interviewRedirectId]);
+
+  useEffect(() => {
+    storeValue('isAutoActivationEnabled', isAutoActivationEnabled);
+  }, [isAutoActivationEnabled]);
+
+  useEffect(() => {
+    storeValue('hasRedirectedFromLogin', hasRedirectedFromLogin);
+  }, [hasRedirectedFromLogin]);
 
   const activateCamera = () => {
     console.log("CameraContext: Camera activation requested via context");
@@ -35,6 +74,31 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     setShouldActivateCamera(false);
   };
 
+  const setInterviewRedirectId = (id: string | null) => {
+    console.log("CameraContext: setInterviewRedirectId", id);
+    setInterviewRedirectIdState(id);
+  };
+
+  const setAutoActivationEnabled = (value: boolean) => {
+    console.log("CameraContext: setAutoActivationEnabled", value);
+    setAutoActivationEnabledState(value);
+  };
+
+  const setHasRedirectedFromLogin = (value: boolean) => {
+    console.log("CameraContext: setHasRedirectedFromLogin", value);
+    setHasRedirectedFromLoginState(value);
+  };
+
+  // Log current state for debugging
+  useEffect(() => {
+    console.log("CameraContext current state:", {
+      interviewRedirectId,
+      isAutoActivationEnabled,
+      hasRedirectedFromLogin,
+      shouldActivateCamera
+    });
+  }, [interviewRedirectId, isAutoActivationEnabled, hasRedirectedFromLogin, shouldActivateCamera]);
+
   return (
     <CameraContext.Provider
       value={{
@@ -44,20 +108,11 @@ export function CameraProvider({ children }: { children: ReactNode }) {
         isInitiallyRequested,
         setInitiallyRequested,
         interviewRedirectId,
-        setInterviewRedirectId: (id) => {
-          console.log("CameraContext: setInterviewRedirectId", id);
-          setInterviewRedirectId(id);
-        },
+        setInterviewRedirectId,
         isAutoActivationEnabled,
-        setAutoActivationEnabled: (value) => {
-          console.log("CameraContext: setAutoActivationEnabled", value);
-          setAutoActivationEnabled(value);
-        },
+        setAutoActivationEnabled,
         hasRedirectedFromLogin,
-        setHasRedirectedFromLogin: (value) => {
-          console.log("CameraContext: setHasRedirectedFromLogin", value);
-          setHasRedirectedFromLogin(value);
-        }
+        setHasRedirectedFromLogin
       }}
     >
       {children}

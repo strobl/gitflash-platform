@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
@@ -70,72 +71,128 @@ const Uebung: React.FC = () => {
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("unknown");
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
+  const [mountTrigger, setMountTrigger] = useState(0);
   
   // Reference to Daily call object and state for DailyProvider
   const [dailyCallObject, setDailyCallObject] = useState<DailyCall | null>(null);
 
+  // Log the state on component mount and params change for debugging
+  useEffect(() => {
+    console.log("Uebung: Component mounted or params changed", {
+      id,
+      interviewRedirectId,
+      isAutoActivationEnabled,
+      hasRedirectedFromLogin,
+      isAuthenticated,
+      location: location.pathname
+    });
+    
+    // Set mount trigger to force re-evaluation of camera effect
+    setMountTrigger(prev => prev + 1);
+  }, [id, location.pathname]);
+
   // Initialize the call object when the component mounts
   useEffect(() => {
-    console.log("Uebung: Component mounted, initializing camera resources");
+    console.log("Uebung: Initializing camera resources");
     
-    // Check if we're coming from the login page based on the interviewRedirectId
-    if (id && interviewRedirectId === id && isAutoActivationEnabled) {
-      console.log("Uebung: Detected we're coming back from login with interview ID:", id);
-      setHasRedirectedFromLogin(true);
+    // Check if we're coming from the login page with the right ID
+    if (id && interviewRedirectId === id && isAutoActivationEnabled && hasRedirectedFromLogin) {
+      console.log("Uebung: Detected post-login state with matching interview ID:", {
+        id,
+        interviewRedirectId,
+        hasRedirectedFromLogin,
+        isAutoActivationEnabled
+      });
     }
     
     // Clean up function to run when component unmounts
     return () => {
       console.log("Uebung: Component unmounted, cleaning up camera resources");
-      // We don't destroy the singleton here anymore - it will persist until explicitly destroyed
     };
-  }, [id, interviewRedirectId, isAutoActivationEnabled, setHasRedirectedFromLogin]);
+  }, [id, interviewRedirectId, isAutoActivationEnabled, hasRedirectedFromLogin]);
 
   // Effect to fetch interview details
   useEffect(() => {
     // Initial fetch of interview details
     if (id) {
       fetchInterviewDetails();
+      
       // Store the current interview ID in the context for potential redirects
-      setInterviewRedirectId(id);
+      // only if it's not already set to this ID
+      if (interviewRedirectId !== id) {
+        console.log(`Uebung: Updating interviewRedirectId from ${interviewRedirectId} to ${id}`);
+        setInterviewRedirectId(id);
+      }
     }
   }, [id, setInterviewRedirectId]);
   
-  // Auto-activate camera if redirected from login with auto-activation enabled
+  // Setup automatic camera activation with a delayed check to ensure authentication state is ready
   useEffect(() => {
-    if (isAuthenticated && id) {
-      console.log(`Uebung: Authentication check - ID: ${id}, redirectID: ${interviewRedirectId}, autoActivation: ${isAutoActivationEnabled}, hasRedirected: ${hasRedirectedFromLogin}`);
+    // Skip if no ID, not authenticated, or missing required flags
+    if (!id || !isAuthenticated) {
+      console.log("Uebung: Not ready for auto-activation check yet", {
+        id,
+        isAuthenticated
+      });
+      return;
+    }
+    
+    const checkForAutoActivation = () => {
+      console.log("Uebung: Checking for auto camera activation", {
+        id,
+        redirectId: interviewRedirectId,
+        autoActivation: isAutoActivationEnabled,
+        hasRedirected: hasRedirectedFromLogin,
+        cameraStatus
+      });
       
-      // Check if we should auto-activate camera
+      // Check if we should auto-activate camera (all conditions must be true)
       if (isAutoActivationEnabled && 
           id === interviewRedirectId && 
           hasRedirectedFromLogin && 
           cameraStatus === "unknown") {
+        
         console.log("Uebung: Auto-activating camera after login redirect");
         setInitiallyRequested(true);
         requestCameraAccess();
         
-        // Reset the auto-activation flag and redirect flag to prevent duplicate activations
+        // Reset the flags to prevent duplicate activations
         setAutoActivationEnabled(false);
         setHasRedirectedFromLogin(false);
         console.log("Uebung: Reset auto-activation and redirect flags");
       }
-    }
-  }, [isAuthenticated, id, interviewRedirectId, isAutoActivationEnabled, hasRedirectedFromLogin, cameraStatus, setInitiallyRequested, setAutoActivationEnabled, setHasRedirectedFromLogin]);
+    };
+    
+    // Delay the check slightly to ensure auth state and other context values are stable
+    const timer = setTimeout(checkForAutoActivation, 300);
+    
+    return () => clearTimeout(timer);
+  }, [
+    id, 
+    isAuthenticated, 
+    interviewRedirectId, 
+    isAutoActivationEnabled, 
+    hasRedirectedFromLogin, 
+    cameraStatus, 
+    mountTrigger
+  ]);
 
   // Request and initialize camera
-  const requestCameraAccess = async () => {
+  const requestCameraAccess = useCallback(async () => {
     // If camera is already active or being requested, do nothing
-    if (cameraStatus === "ready" || cameraStatus === "requesting") return;
+    if (cameraStatus === "ready" || cameraStatus === "requesting") {
+      console.log("Uebung: Camera is already active or being requested, skipping");
+      return;
+    }
     
     try {
+      console.log("Uebung: Requesting camera access");
       setCameraStatus("requesting");
-      console.log("Requesting camera access");
       
       // Get the singleton call object
       const callObject = getDailyCallInstance();
       
-      console.log("Starting camera");
+      console.log("Uebung: Starting camera");
       // Start camera with correct properties according to the Daily API types
       await callObject.startCamera({
         // These properties are supported by startCamera()
@@ -143,17 +200,17 @@ const Uebung: React.FC = () => {
         videoSource: true
       });
       
-      console.log("Camera started successfully");
+      console.log("Uebung: Camera started successfully");
       setDailyCallObject(callObject);
       setCameraStatus("ready");
       
       // Get local session ID for video preview
       const participants = callObject.participants();
       if (participants && participants.local) {
-        console.log("Setting local session ID:", participants.local.session_id);
+        console.log("Uebung: Setting local session ID:", participants.local.session_id);
         setLocalSessionId(participants.local.session_id);
       } else {
-        console.error("Could not get local participant", participants);
+        console.error("Uebung: Could not get local participant", participants);
       }
       
       // Set default audio output - this helps ensure audio will work when the interview starts
@@ -165,29 +222,29 @@ const Uebung: React.FC = () => {
         if (outputDevices.length > 0) {
           // Use the first available output device (usually default)
           const defaultOutputDevice = outputDevices[0].deviceId;
-          console.log("Setting default audio output to:", defaultOutputDevice);
+          console.log("Uebung: Setting default audio output to:", defaultOutputDevice);
           await setAudioOutputDevice(defaultOutputDevice);
         }
       } catch (err) {
-        console.error("Error setting default audio output:", err);
+        console.error("Uebung: Error setting default audio output:", err);
       }
       
       toast.success('Kamera und Mikrofon erfolgreich aktiviert');
     } catch (err) {
-      console.error("Error requesting camera/audio access:", err);
+      console.error("Uebung: Error requesting camera/audio access:", err);
       setCameraStatus("denied");
       toast.error('Fehler beim Aktivieren der Kamera oder des Mikrofons. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
     }
-  };
+  }, [cameraStatus]);
 
   async function fetchInterviewDetails() {
     if (!id) return;
     
     try {
       setIsLoading(true);
-      console.log(`Fetching interview with ID: ${id}`);
+      console.log(`Uebung: Fetching interview with ID: ${id}`);
       const data = await getConversation(id);
-      console.log("Interview data:", data);
+      console.log("Uebung: Interview data:", data);
       setInterview(data);
       
       // Kategorie bestimmen
@@ -227,7 +284,7 @@ const Uebung: React.FC = () => {
       setSimilarInterviews(mockSimilarInterviews);
       
     } catch (error) {
-      console.error('Error fetching interview details:', error);
+      console.error('Uebung: Error fetching interview details:', error);
       toast.error('Fehler beim Laden der Interview-Details');
     } finally {
       setIsLoading(false);
@@ -257,10 +314,10 @@ const Uebung: React.FC = () => {
     setIsStarting(true);
     
     try {
-      console.log("Starting interview with ID:", id);
+      console.log("Uebung: Starting interview with ID:", id);
       
       const result = await startConversation(id);
-      console.log("Interview start result:", result);
+      console.log("Uebung: Interview start result:", result);
       
       // Success message
       toast.success('Interview erfolgreich gestartet!');
@@ -279,7 +336,7 @@ const Uebung: React.FC = () => {
       // Return the conversation URL for the embedded interview component
       return result.url || result.conversation_url;
     } catch (error: any) {
-      console.error('Error starting interview:', error);
+      console.error('Uebung: Error starting interview:', error);
       
       // More specific error handling
       let errorMessage = 'Fehler beim Starten des Interviews. Bitte versuche es erneut.';
@@ -317,16 +374,12 @@ const Uebung: React.FC = () => {
   // Clean up resources when navigating away or component unmounts
   useEffect(() => {
     return () => {
-      // We don't destroy the singleton on normal unmount - only on explicit cleanup
       console.log("Uebung: Component unmounting");
       // Reset camera context when leaving this component
       deactivateCamera();
       setInitiallyRequested(false);
-      
-      // Explicitly reset redirect flags when unmounting
-      setHasRedirectedFromLogin(false);
     };
-  }, [deactivateCamera, setInitiallyRequested, setHasRedirectedFromLogin]);
+  }, [deactivateCamera, setInitiallyRequested]);
 
   if (isLoading) {
     return (
@@ -366,6 +419,16 @@ const Uebung: React.FC = () => {
   }
 
   const categoryInfo = CATEGORIES[interviewCategory] || CATEGORIES.general;
+
+  // Log current camera and authentication state
+  console.log("Uebung: Current state:", {
+    cameraStatus,
+    isAuthenticated,
+    interviewId: id,
+    interviewRedirectId,
+    hasRedirectedFromLogin,
+    isAutoActivationEnabled
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

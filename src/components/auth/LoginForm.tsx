@@ -24,7 +24,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
   shouldActivateCamera = false
 }) => {
   const { login, register, isLoading } = useAuth();
-  const { interviewRedirectId } = useCamera();
+  const { 
+    setInterviewRedirectId, 
+    setAutoActivationEnabled,
+    setHasRedirectedFromLogin
+  } = useCamera();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -63,18 +67,38 @@ const LoginForm: React.FC<LoginFormProps> = ({
           return;
         }
         
+        // Perform login
         await login(email, password);
+        toast.success("Login erfolgreich!");
         
-        // No camera activation here - just navigate to the redirectUrl
-        // The Uebung component will handle camera activation when it loads
-        console.log("LoginForm: Login successful, redirecting to:", redirectUrl);
+        console.log("LoginForm: Login successful");
+        console.log("LoginForm: Redirect URL is:", redirectUrl);
+        console.log("LoginForm: Should activate camera:", shouldActivateCamera);
         
-        // If we're going to an interview, log that information
-        if (redirectUrl.includes('/uebung/') && interviewRedirectId) {
-          console.log("LoginForm: Redirecting to interview:", interviewRedirectId);
+        // Check if we're redirecting to an interview
+        let interviewId = null;
+        if (redirectUrl.includes('/uebung/')) {
+          // Extract interview ID from redirectUrl
+          interviewId = redirectUrl.split('/uebung/')[1];
+          console.log("LoginForm: Extracted interview ID:", interviewId);
+          
+          // Set the interview ID in context for the receiving component
+          setInterviewRedirectId(interviewId);
+          
+          // Set camera activation flag based on URL parameter
+          setAutoActivationEnabled(shouldActivateCamera);
+          console.log("LoginForm: Set auto camera activation to:", shouldActivateCamera);
+          
+          // IMPORTANT: Set the hasRedirectedFromLogin flag BEFORE navigation
+          console.log("LoginForm: Setting hasRedirectedFromLogin = true BEFORE navigation");
+          setHasRedirectedFromLogin(true);
         }
         
-        navigate(redirectUrl);
+        // Short delay to ensure context state is updated before navigation
+        setTimeout(() => {
+          console.log("LoginForm: Navigating to:", redirectUrl);
+          navigate(redirectUrl);
+        }, 100);
       }
     } catch (error: any) {
       console.error("Auth error:", error);

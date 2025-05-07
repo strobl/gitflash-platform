@@ -9,21 +9,40 @@ export default function Login() {
   const { isAuthenticated } = useAuth();
   const { setInterviewRedirectId, setAutoActivationEnabled } = useCamera();
   const [searchParams] = useSearchParams();
+  
+  // Use toLowerCase to handle case variations in URL parameters
   const redirectTo = searchParams.get('redirect') || '/dashboard';
   const shouldActivateCamera = searchParams.get('activateCamera') === 'true';
   
-  console.log('Login: redirect =', redirectTo, ', activateCamera =', shouldActivateCamera);
+  // Log all parameters for debugging
+  console.log('Login: Parameters received:', {
+    redirect: redirectTo,
+    activateCamera: shouldActivateCamera,
+    isAuthenticated
+  });
   
-  // Extract interview ID from redirect URL and store camera activation preference immediately
-  if (redirectTo.includes('/uebung/')) {
-    const interviewId = redirectTo.split('/uebung/')[1];
-    console.log("Login: Storing interview ID from redirect URL:", interviewId);
-    setInterviewRedirectId(interviewId);
-    
-    // Set auto-activation flag based on URL parameter
-    console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
-    setAutoActivationEnabled(shouldActivateCamera);
-  }
+  useEffect(() => {
+    // Extract interview ID from redirect URL and store camera activation preference immediately
+    if (redirectTo.includes('/uebung/')) {
+      // Handle both uppercase and lowercase variations in the URL
+      const redirectLower = redirectTo.toLowerCase();
+      const parts = redirectLower.includes('/uebung/') 
+        ? redirectTo.split('/uebung/') 
+        : redirectTo.split('/Uebung/');
+      
+      if (parts.length > 1) {
+        const interviewId = parts[1];
+        console.log("Login: Storing interview ID from redirect URL:", interviewId);
+        setInterviewRedirectId(interviewId);
+        
+        // Set auto-activation flag based on URL parameter
+        console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
+        setAutoActivationEnabled(shouldActivateCamera);
+      } else {
+        console.error("Login: Failed to extract interview ID from URL:", redirectTo);
+      }
+    }
+  }, [redirectTo, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled]);
   
   // Redirect to specified path or dashboard if already authenticated
   if (isAuthenticated) {
