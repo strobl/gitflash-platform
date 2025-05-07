@@ -12,6 +12,7 @@ interface UebungStartSectionProps {
   isAuthenticated: boolean;
   cameraStatus: CameraStatus;
   onRequestCameraAccess: () => void;
+  interviewId: string; // Add interview ID prop to use in redirects
 }
 
 export const UebungStartSection: React.FC<UebungStartSectionProps> = ({ 
@@ -19,7 +20,8 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
   onStartInterview,
   isAuthenticated,
   cameraStatus,
-  onRequestCameraAccess
+  onRequestCameraAccess,
+  interviewId
 }) => {
   // Determine if the interview button should be disabled
   const isInterviewButtonDisabled = isStarting || !isAuthenticated || cameraStatus !== "ready";

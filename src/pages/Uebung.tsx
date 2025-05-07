@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -7,7 +6,6 @@ import { ChevronLeft, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
-import { useCamera } from "@/context/CameraContext";
 import { UebungHeader } from "@/components/uebung/UebungHeader";
 import { UebungStartSection, CameraStatus } from "@/components/uebung/UebungStartSection";
 import { UebungDescription } from "@/components/uebung/UebungDescription";
@@ -45,19 +43,6 @@ const Uebung: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const { 
-    shouldActivateCamera, 
-    activateCamera,
-    deactivateCamera, 
-    isInitiallyRequested, 
-    setInitiallyRequested,
-    interviewRedirectId,
-    setInterviewRedirectId,
-    isAutoActivationEnabled,
-    setAutoActivationEnabled,
-    hasRedirectedFromLogin,
-    setHasRedirectedFromLogin
-  } = useCamera();
   
   const [interview, setInterview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +56,6 @@ const Uebung: React.FC = () => {
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("unknown");
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
-  const [mountTrigger, setMountTrigger] = useState(0);
   
   // Reference to Daily call object and state for DailyProvider
   const [dailyCallObject, setDailyCallObject] = useState<DailyCall | null>(null);
@@ -80,102 +64,28 @@ const Uebung: React.FC = () => {
   useEffect(() => {
     console.log("Uebung: Component mounted or params changed", {
       id,
-      interviewRedirectId,
-      isAutoActivationEnabled,
-      hasRedirectedFromLogin,
       isAuthenticated,
       location: location.pathname
     });
-    
-    // Set mount trigger to force re-evaluation of camera effect
-    setMountTrigger(prev => prev + 1);
   }, [id, location.pathname]);
 
   // Initialize the call object when the component mounts
   useEffect(() => {
     console.log("Uebung: Initializing camera resources");
     
-    // Check if we're coming from the login page with the right ID
-    if (id && interviewRedirectId === id && isAutoActivationEnabled && hasRedirectedFromLogin) {
-      console.log("Uebung: Detected post-login state with matching interview ID:", {
-        id,
-        interviewRedirectId,
-        hasRedirectedFromLogin,
-        isAutoActivationEnabled
-      });
-    }
-    
     // Clean up function to run when component unmounts
     return () => {
       console.log("Uebung: Component unmounted, cleaning up camera resources");
     };
-  }, [id, interviewRedirectId, isAutoActivationEnabled, hasRedirectedFromLogin]);
+  }, [id]);
 
   // Effect to fetch interview details
   useEffect(() => {
     // Initial fetch of interview details
     if (id) {
       fetchInterviewDetails();
-      
-      // Store the current interview ID in the context for potential redirects
-      // only if it's not already set to this ID
-      if (interviewRedirectId !== id) {
-        console.log(`Uebung: Updating interviewRedirectId from ${interviewRedirectId} to ${id}`);
-        setInterviewRedirectId(id);
-      }
     }
-  }, [id, setInterviewRedirectId]);
-  
-  // Setup automatic camera activation with a delayed check to ensure authentication state is ready
-  useEffect(() => {
-    // Skip if no ID, not authenticated, or missing required flags
-    if (!id || !isAuthenticated) {
-      console.log("Uebung: Not ready for auto-activation check yet", {
-        id,
-        isAuthenticated
-      });
-      return;
-    }
-    
-    const checkForAutoActivation = () => {
-      console.log("Uebung: Checking for auto camera activation", {
-        id,
-        redirectId: interviewRedirectId,
-        autoActivation: isAutoActivationEnabled,
-        hasRedirected: hasRedirectedFromLogin,
-        cameraStatus
-      });
-      
-      // Check if we should auto-activate camera (all conditions must be true)
-      if (isAutoActivationEnabled && 
-          id === interviewRedirectId && 
-          hasRedirectedFromLogin && 
-          cameraStatus === "unknown") {
-        
-        console.log("Uebung: Auto-activating camera after login redirect");
-        setInitiallyRequested(true);
-        requestCameraAccess();
-        
-        // Reset the flags to prevent duplicate activations
-        setAutoActivationEnabled(false);
-        setHasRedirectedFromLogin(false);
-        console.log("Uebung: Reset auto-activation and redirect flags");
-      }
-    };
-    
-    // Delay the check slightly to ensure auth state and other context values are stable
-    const timer = setTimeout(checkForAutoActivation, 300);
-    
-    return () => clearTimeout(timer);
-  }, [
-    id, 
-    isAuthenticated, 
-    interviewRedirectId, 
-    isAutoActivationEnabled, 
-    hasRedirectedFromLogin, 
-    cameraStatus, 
-    mountTrigger
-  ]);
+  }, [id]);
 
   // Request and initialize camera
   const requestCameraAccess = useCallback(async () => {
@@ -296,11 +206,9 @@ const Uebung: React.FC = () => {
     
     // Check if the user is authenticated
     if (!isAuthenticated) {
-      // If not logged in, redirect to the login page with the current path as redirect parameter
-      // and a flag to activate the camera after login
-      const currentPath = `/uebung/${id}`;
-      console.log("Uebung: User not authenticated, redirecting to login with redirect parameter:", currentPath);
-      navigate(`/login?redirect=${encodeURIComponent(currentPath)}&activateCamera=true`);
+      // If not logged in, redirect to the Login2 page with the interview ID as parameter
+      console.log("Uebung: User not authenticated, redirecting to login2 with interview ID:", id);
+      navigate(`/login2?interviewId=${id}`);
       return;
     }
     
@@ -365,9 +273,6 @@ const Uebung: React.FC = () => {
       setCameraStatus("unknown");
       setLocalSessionId(null);
       setDailyCallObject(null);
-      
-      // Notify the camera context that we're no longer needing auto-activation
-      deactivateCamera();
     }
   };
 
@@ -375,11 +280,8 @@ const Uebung: React.FC = () => {
   useEffect(() => {
     return () => {
       console.log("Uebung: Component unmounting");
-      // Reset camera context when leaving this component
-      deactivateCamera();
-      setInitiallyRequested(false);
     };
-  }, [deactivateCamera, setInitiallyRequested]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -424,10 +326,7 @@ const Uebung: React.FC = () => {
   console.log("Uebung: Current state:", {
     cameraStatus,
     isAuthenticated,
-    interviewId: id,
-    interviewRedirectId,
-    hasRedirectedFromLogin,
-    isAutoActivationEnabled
+    interviewId: id
   });
 
   return (
@@ -531,6 +430,7 @@ const Uebung: React.FC = () => {
                 isAuthenticated={isAuthenticated}
                 cameraStatus={cameraStatus}
                 onRequestCameraAccess={requestCameraAccess}
+                interviewId={id || ""} // Pass interview ID for redirect
               />
             </div>
           </div>

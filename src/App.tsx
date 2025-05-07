@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Login2 from "./pages/Login2";
 import Profile from "./pages/Profile";
 import InterviewsDesign from "./pages/InterviewsDesign"; 
 import CreateInterview from "./pages/CreateInterview";
@@ -30,6 +31,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/login2" element={<Login2 />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/interviews" element={<InterviewsDesign />} />
