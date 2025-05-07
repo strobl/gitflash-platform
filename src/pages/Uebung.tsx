@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
@@ -17,7 +16,7 @@ import { DailyVideo, DailyProvider } from "@daily-co/daily-react";
 import type { DailyCall } from '@daily-co/daily-js';
 import { getDailyCallInstance, destroyDailyCallInstance, setAudioOutputDevice } from "@/utils/dailyCallSingleton";
 
-// Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
+// Helper function to assign a category based on interview name or context
 const getCategoryForInterview = (interview) => {
   if (!interview) return 'general';
   
@@ -49,14 +48,15 @@ const Uebung: React.FC = () => {
     deactivateCamera, 
     isInitiallyRequested, 
     setInitiallyRequested,
-    setInterviewRedirectId 
+    setInterviewRedirectId,
+    isAutoActivationEnabled
   } = useCamera();
   
   const [interview, setInterview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<string | undefined>(undefined);
-  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+  const [sessionId, setSessionId] = useState<string | undefined>(null);
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [interviewCategory, setInterviewCategory] = useState('general');
   
@@ -89,10 +89,10 @@ const Uebung: React.FC = () => {
     }
   }, [id, setInterviewRedirectId]);
   
-  // Auto-activate camera if coming back from login
+  // Auto-activate camera if coming back from login or if auto-activation is enabled
   useEffect(() => {
-    if (isAuthenticated && shouldActivateCamera && cameraStatus === "unknown" && !isInitiallyRequested) {
-      console.log("Auto-requesting camera access after login redirect");
+    if (isAuthenticated && shouldActivateCamera && cameraStatus === "unknown") {
+      console.log("Auto-requesting camera access after login redirect or by auto-activation");
       setInitiallyRequested(true);
       requestCameraAccess();
     }
@@ -215,9 +215,10 @@ const Uebung: React.FC = () => {
     // Check if the user is authenticated
     if (!isAuthenticated) {
       // If not logged in, redirect to the login page with the current path as redirect parameter
+      // and a flag to activate the camera after login
       const currentPath = `/uebung/${id}`;
       console.log("User not authenticated, redirecting to login with redirect parameter:", currentPath);
-      navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
+      navigate(`/login?redirect=${encodeURIComponent(currentPath)}&activateCamera=true`);
       return;
     }
     

@@ -10,6 +10,8 @@ type CameraContextType = {
   setInitiallyRequested: (value: boolean) => void;
   interviewRedirectId: string | null;
   setInterviewRedirectId: (id: string | null) => void;
+  isAutoActivationEnabled: boolean;
+  setAutoActivationEnabled: (value: boolean) => void;
 };
 
 const CameraContext = createContext<CameraContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const [shouldActivateCamera, setShouldActivateCamera] = useState(false);
   const [isInitiallyRequested, setInitiallyRequested] = useState(false);
   const [interviewRedirectId, setInterviewRedirectId] = useState<string | null>(null);
+  const [isAutoActivationEnabled, setAutoActivationEnabled] = useState(true);
 
   const activateCamera = () => {
     console.log("Camera activation requested via context");
@@ -38,7 +41,9 @@ export function CameraProvider({ children }: { children: ReactNode }) {
         isInitiallyRequested,
         setInitiallyRequested,
         interviewRedirectId,
-        setInterviewRedirectId
+        setInterviewRedirectId,
+        isAutoActivationEnabled,
+        setAutoActivationEnabled
       }}
     >
       {children}

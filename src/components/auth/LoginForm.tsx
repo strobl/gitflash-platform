@@ -16,11 +16,15 @@ import LoginLogo from "./LoginLogo";
 
 interface LoginFormProps {
   redirectUrl?: string;
+  shouldActivateCamera?: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ 
+  redirectUrl = "/dashboard",
+  shouldActivateCamera = false
+}) => {
   const { login, register, isLoading } = useAuth();
-  const { activateCamera, interviewRedirectId } = useCamera();
+  const { activateCamera, interviewRedirectId, isAutoActivationEnabled } = useCamera();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -61,8 +65,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => 
         
         await login(email, password);
         
-        // If we're redirecting back to an interview page, we should activate the camera
-        if (redirectUrl.includes('/uebung/') && interviewRedirectId) {
+        // Check if we should activate the camera before redirecting
+        const shouldAutoActivate = (
+          isAutoActivationEnabled && 
+          (redirectUrl.includes('/uebung/') || shouldActivateCamera) && 
+          interviewRedirectId
+        );
+        
+        if (shouldAutoActivate) {
           console.log("Login successful, activating camera before redirect to:", redirectUrl);
           activateCamera();
         }
