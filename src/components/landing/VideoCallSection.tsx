@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 
 export const VideoCallSection: React.FC = () => {
   return (
@@ -39,7 +40,7 @@ export const VideoCallSection: React.FC = () => {
         </div>
       </div>
       <div className="flex w-full flex-col md:flex-row items-center md:justify-center gap-4 text-sm font-medium text-right mt-6 md:mt-10">
-        <button className="bg-[rgba(10,37,64,1)] flex min-h-9 flex-col overflow-hidden items-center text-white justify-center px-[25px] py-[9px] rounded-[100px] hover:bg-opacity-90 transition-colors">
+        <Link to="/interviews" className="bg-[rgba(10,37,64,1)] flex min-h-9 flex-col overflow-hidden items-center text-white justify-center px-[25px] py-[9px] rounded-[100px] hover:bg-opacity-90 transition-colors">
           <div className="flex gap-[5px]">
             <span className="text-white">Video-Call starten</span>
             <img
@@ -48,15 +49,15 @@ export const VideoCallSection: React.FC = () => {
               alt="Arrow right"
             />
           </div>
-        </button>
-        <button className="flex gap-[5px] text-[#546679] justify-center mt-3 md:mt-0 hover:text-opacity-80 transition-colors">
+        </Link>
+        <Link to="/interviews" className="flex gap-[5px] text-[#546679] justify-center mt-3 md:mt-0 hover:text-opacity-80 transition-colors">
           <span className="text-[#546679]">Alle Interviews ansehen</span>
           <img
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/ceded77676628b362990e5e8bb2219515f969803?placeholderIfAbsent=true"
             className="aspect-[1] object-contain w-[18px] shrink-0"
             alt="Arrow right"
           />
-        </button>
+        </Link>
       </div>
     </section>
   );

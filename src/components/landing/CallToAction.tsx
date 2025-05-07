@@ -15,7 +15,7 @@ export const CallToAction: React.FC = () => {
         </p>
       </div>
       <div className="flex w-full flex-col md:flex-row items-center md:justify-center gap-4 text-sm md:text-base font-medium text-right justify-center mt-6 md:mt-10">
-        <button className="justify-center items-center flex min-h-9 md:min-h-10 flex-col overflow-hidden text-white bg-[#0A2540] px-[25px] md:px-8 py-[9px] md:py-3 rounded-[100px] hover:bg-opacity-90 transition-colors">
+        <Link to="/interviews" className="justify-center items-center flex min-h-9 md:min-h-10 flex-col overflow-hidden text-white bg-[#0A2540] px-[25px] md:px-8 py-[9px] md:py-3 rounded-[100px] hover:bg-opacity-90 transition-colors">
           <div className="flex gap-[5px]">
             <span className="text-white">Jetzt bewerben</span>
             <img
@@ -24,7 +24,7 @@ export const CallToAction: React.FC = () => {
               alt="Arrow right"
             />
           </div>
-        </button>
+        </Link>
         <Link
           to="/employers"
           className="flex gap-[5px] text-[#546679] justify-center mt-3 md:mt-0 hover:text-opacity-80 transition-colors"
