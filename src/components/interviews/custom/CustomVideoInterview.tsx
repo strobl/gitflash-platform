@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -10,7 +9,6 @@ import {
   useLocalSessionId,
   DailyVideo
 } from '@daily-co/daily-react';
-import DailyIframe from '@daily-co/daily-js';
 import type { DailyCall } from '@daily-co/daily-js';
 import { Button } from '@/components/ui/button';
 import { updateInterviewSessionStatus } from '@/services/tavusService';
@@ -43,6 +41,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getDailyCallInstance } from '@/utils/dailyCallSingleton';
 
 interface CustomVideoInterviewProps {
   conversationUrl: string | null;
@@ -53,27 +52,6 @@ interface CustomVideoInterviewProps {
   onStartInterview?: () => Promise<string>;
   onSessionStatusChange?: (status: string) => void;
 }
-
-// Create a singleton instance of the DailyCall object
-// This ensures we only have one instance throughout the application
-let dailyCallSingleton: DailyCall | null = null;
-
-// Function to get or create the singleton Daily call object
-const getDailyCallInstance = (): DailyCall => {
-  if (!dailyCallSingleton) {
-    dailyCallSingleton = DailyIframe.createCallObject();
-    
-    // Add cleanup for when the app unmounts
-    window.addEventListener('beforeunload', () => {
-      if (dailyCallSingleton) {
-        dailyCallSingleton.destroy().catch(console.error);
-        dailyCallSingleton = null;
-      }
-    });
-  }
-  
-  return dailyCallSingleton;
-};
 
 // Main wrapper component that creates the Daily call object and provides it via context
 export function CustomVideoInterview({ 
@@ -93,7 +71,7 @@ export function CustomVideoInterview({
   // Initialize the Daily call object when the component mounts
   useEffect(() => {
     if (!callObject) {
-      // Use the singleton pattern to get the Daily call instance
+      // Use the shared singleton pattern to get the Daily call instance
       const daily = getDailyCallInstance();
       setCallObject(daily);
     }

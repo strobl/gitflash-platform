@@ -14,45 +14,8 @@ import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
 import { UebungDeviceSelector } from "@/components/uebung/UebungDeviceSelector";
 import { DailyVideo, DailyProvider } from "@daily-co/daily-react";
-import DailyIframe from '@daily-co/daily-js';
 import type { DailyCall } from '@daily-co/daily-js';
-
-// Create a singleton instance of the DailyCall object
-// This ensures we only have one instance throughout the application
-let dailyCallSingleton: DailyCall | null = null;
-
-// Function to get or create the singleton Daily call object
-const getDailyCallInstance = (): DailyCall => {
-  if (!dailyCallSingleton) {
-    console.log("Creating new Daily call singleton");
-    dailyCallSingleton = DailyIframe.createCallObject({
-      audioSource: true,
-      videoSource: true,
-    });
-    
-    // Add cleanup for when the app unmounts
-    window.addEventListener('beforeunload', () => {
-      if (dailyCallSingleton) {
-        console.log("Cleaning up Daily call singleton on window unload");
-        dailyCallSingleton.destroy().catch(console.error);
-        dailyCallSingleton = null;
-      }
-    });
-  } else {
-    console.log("Using existing Daily call singleton");
-  }
-  
-  return dailyCallSingleton;
-};
-
-// Function to properly destroy the singleton when needed
-const destroyDailyCallInstance = () => {
-  if (dailyCallSingleton) {
-    console.log("Destroying Daily call singleton");
-    dailyCallSingleton.destroy().catch(console.error);
-    dailyCallSingleton = null;
-  }
-};
+import { getDailyCallInstance, destroyDailyCallInstance } from "@/utils/dailyCallSingleton";
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
