@@ -1,13 +1,13 @@
 
 import React from "react";
-import { SharedNavbar } from "@/components/navigation/SharedNavbar";
+import { Header } from "@/components/landing/Header";
 import { UebungContent } from "@/components/uebung/UebungContent";
 
 const Uebung: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <SharedNavbar />
-      <div className="flex-grow p-4">
+    <div className="min-h-screen bg-white flex flex-col">
+      <Header />
+      <div className="flex-grow">
         <UebungContent />
       </div>
     </div>
