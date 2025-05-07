@@ -7,14 +7,14 @@ interface UebungStartSectionProps {
   isStarting: boolean;
   onStartInterview: () => void;
   isAuthenticated: boolean;
-  hasDeviceAccess: boolean;
+  deviceAccessReady: boolean; // Changed from hasDeviceAccess for clarity
 }
 
 export const UebungStartSection: React.FC<UebungStartSectionProps> = ({ 
   isStarting, 
   onStartInterview,
   isAuthenticated,
-  hasDeviceAccess
+  deviceAccessReady
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border p-8 mb-8">
@@ -36,7 +36,7 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
         <Button 
           onClick={onStartInterview} 
           className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-8 py-[11px] h-auto text-lg rounded-[100px] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isStarting || !isAuthenticated || !hasDeviceAccess}
+          disabled={isStarting || !isAuthenticated || !deviceAccessReady}
         >
           {isStarting ? (
             <>
@@ -57,7 +57,7 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
           </p>
         )}
         
-        {!hasDeviceAccess && isAuthenticated && (
+        {!deviceAccessReady && isAuthenticated && (
           <p className="text-sm text-gray-500 mt-4">
             Bitte erlaube den Zugriff auf deine Kamera und dein Mikrofon, um das Interview zu starten.
           </p>

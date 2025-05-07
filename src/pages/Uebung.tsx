@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -50,12 +49,13 @@ const Uebung: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [interviewCategory, setInterviewCategory] = useState('general');
-  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+  
+  // Simplified camera states
+  const [deviceAccessReady, setDeviceAccessReady] = useState(false);
   const [isRequestingCamera, setIsRequestingCamera] = useState(false);
+  const [showCameraWarning, setShowCameraWarning] = useState(true);
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
-  const [showCameraWarning, setShowCameraWarning] = useState(true);
   
   // Reference to Daily call object
   const callObjectRef = useRef(null);
@@ -82,16 +82,15 @@ const Uebung: React.FC = () => {
   const checkCameraAccess = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setHasCamera(true);
-      // Don't automatically set camera as active, wait for user to click the button
-      setShowCameraWarning(false);  // Hide warning if permissions already granted
-      // Always stop the stream so we don't keep the camera on unnecessarily
+      // Don't automatically activate camera, just check permissions
       stream.getTracks().forEach(track => track.stop());
+      
+      // Only update the warning state - the user still needs to click the button to activate
+      setShowCameraWarning(false);
     } catch (err) {
       console.log("Camera access denied or unavailable:", err);
-      setHasCamera(false);
-      setIsCameraActive(false);
-      setShowCameraWarning(true);  // Show warning if permissions not granted
+      setDeviceAccessReady(false);
+      setShowCameraWarning(true);
     }
   };
   
@@ -99,39 +98,38 @@ const Uebung: React.FC = () => {
     try {
       setIsRequestingCamera(true);
       
-      if (!callObjectRef.current) {
-        console.log("Initializing Daily call object for preview");
-        // Initialize Daily call object for preview
-        const DailyIFrame = (await import('@daily-co/daily-js')).default;
-        const callObject = DailyIFrame.createCallObject({
-          audioSource: true, // Enable microphone
-          videoSource: true, // Enable camera
-        });
-        
-        callObjectRef.current = callObject;
-        setDailyCallObject(callObject); // Set state for DailyProvider
-        
-        // Join with camera/mic on
-        await callObject.startCamera();
-        setIsCameraActive(true);
-        setHasCamera(true);
-        setShowCameraWarning(false); // Hide warning once camera is active
-        
-        // Get the local participant's session ID for the video preview
-        const participants = callObject.participants();
-        if (participants && participants.local) {
-          setLocalSessionId(participants.local.session_id);
-          console.log("Local session ID set:", participants.local.session_id);
-        } else {
-          console.error("Could not get local participant", participants);
-        }
-        
-        toast.success('Kamera erfolgreich aktiviert');
+      console.log("Initializing Daily call object for preview");
+      // Initialize Daily call object for preview
+      const DailyIFrame = (await import('@daily-co/daily-js')).default;
+      const callObject = DailyIFrame.createCallObject({
+        audioSource: true, // Enable microphone
+        videoSource: true, // Enable camera
+      });
+      
+      callObjectRef.current = callObject;
+      
+      // Join with camera/mic on
+      await callObject.startCamera();
+      
+      // Update all relevant states
+      setDailyCallObject(callObject); // Set state for DailyProvider
+      setDeviceAccessReady(true);
+      setShowCameraWarning(false);
+      
+      // Get the local participant's session ID for the video preview
+      const participants = callObject.participants();
+      if (participants && participants.local) {
+        setLocalSessionId(participants.local.session_id);
+        console.log("Local session ID set:", participants.local.session_id);
+      } else {
+        console.error("Could not get local participant", participants);
       }
+      
+      toast.success('Kamera erfolgreich aktiviert');
     } catch (err) {
       console.error("Error starting camera:", err);
       toast.error('Fehler beim Aktivieren der Kamera. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
-      setHasCamera(false);
+      setDeviceAccessReady(false);
       setShowCameraWarning(true);
     } finally {
       setIsRequestingCamera(false);
@@ -203,8 +201,8 @@ const Uebung: React.FC = () => {
       return;
     }
     
-    // Check if camera access is available
-    if (!hasCamera || !isCameraActive) {
+    // Check if camera access is ready
+    if (!deviceAccessReady) {
       toast.error('Kamerazugriff ist für das Interview erforderlich');
       await startCamera(); // Try to request camera permission
       return;
@@ -287,7 +285,7 @@ const Uebung: React.FC = () => {
               className="inline-flex items-center gap-2 bg-gitflash-primary text-white px-4 py-2 rounded hover:bg-gitflash-primary/90"
             >
               <ChevronLeft className="h-4 w-4" />
-              Zurück zur Übersicht
+              Zurück zur ��bersicht
             </button>
           </div>
         </div>
@@ -298,28 +296,23 @@ const Uebung: React.FC = () => {
   const categoryInfo = CATEGORIES[interviewCategory] || CATEGORIES.general;
 
   // Create a wrapper component to display both DailyVideo and device selector
-  // This approach prevents the "data-lov-id" error by not rendering the DailyVideo directly
   const CameraPreviewWrapper = () => {
     if (!localSessionId || !dailyCallObject) return null;
     
     return (
-      <>
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
-          <div className="aspect-video w-full max-w-2xl mx-auto relative">
-            {localSessionId && (
-              <DailyVideo 
-                sessionId={localSessionId} 
-                type="video" 
-                automirror 
-                className="w-full h-full object-cover rounded"
-              />
-            )}
-            <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
-              Videovorschau
-            </div>
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+        <div className="aspect-video w-full max-w-2xl mx-auto relative">
+          <DailyVideo 
+            sessionId={localSessionId} 
+            type="video" 
+            automirror 
+            className="w-full h-full object-cover rounded"
+          />
+          <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+            Videovorschau
           </div>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -343,7 +336,7 @@ const Uebung: React.FC = () => {
           category={categoryInfo}
         />
         
-        {/* Camera Access Warning - only show if camera access not granted */}
+        {/* Camera Access Warning - only show if camera access not granted and no conversation is active */}
         {showCameraWarning && !conversationUrl && (
           <UebungCameraWarning 
             onRequestCameraAccess={handleRequestCameraAccess}
@@ -352,21 +345,21 @@ const Uebung: React.FC = () => {
         )}
         
         {/* Camera Preview and Device Selector (when camera is active but interview not started) */}
-        {dailyCallObject && isCameraActive && localSessionId && !conversationUrl && (
+        {dailyCallObject && deviceAccessReady && localSessionId && !conversationUrl && (
           <DailyProvider callObject={dailyCallObject}>
             <CameraPreviewWrapper />
             <UebungDeviceSelector />
           </DailyProvider>
         )}
         
-        {/* Interview content - only show start section if camera is active */}
-        {(!showCameraWarning || isCameraActive) && !conversationUrl && (
+        {/* Interview start section - always show if no conversation is running */}
+        {!conversationUrl && (
           <div className="mt-8">
             <UebungStartSection 
               isStarting={isStarting}
               onStartInterview={handleStartInterview}
               isAuthenticated={isAuthenticated}
-              hasDeviceAccess={isCameraActive && hasCamera}
+              deviceAccessReady={deviceAccessReady}
             />
           </div>
         )}
