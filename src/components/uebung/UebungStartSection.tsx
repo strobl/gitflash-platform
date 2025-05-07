@@ -33,7 +33,7 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
         
         <Button 
           onClick={onStartInterview} 
-          className="bg-gitflash-accent hover:bg-gitflash-accent/90 px-8 py-6 h-auto text-lg rounded-lg"
+          className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-8 py-[11px] h-auto text-lg rounded-[100px] transition-all duration-300"
           disabled={isStarting}
         >
           {isStarting ? (
@@ -42,10 +42,10 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
               Wird gestartet...
             </>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               Interview starten
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </>
+              <ArrowRight className="h-5 w-5" />
+            </div>
           )}
         </Button>
         

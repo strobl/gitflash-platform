@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
@@ -12,6 +12,7 @@ import { UebungStartSection } from "@/components/uebung/UebungStartSection";
 import { UebungDescription } from "@/components/uebung/UebungDescription";
 import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
+import { DailyVideo } from "@daily-co/daily-react";
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
@@ -48,7 +49,12 @@ const Uebung: React.FC = () => {
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [interviewCategory, setInterviewCategory] = useState('general');
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
+  
+  // Reference to Daily call object
+  const callObjectRef = useRef(null);
 
   useEffect(() => {
     // Check for camera access when component mounts
@@ -57,16 +63,46 @@ const Uebung: React.FC = () => {
     if (id) {
       fetchInterviewDetails();
     }
+    
+    return () => {
+      // Clean up camera preview when component unmounts
+      if (callObjectRef.current) {
+        callObjectRef.current.destroy();
+        callObjectRef.current = null;
+      }
+    };
   }, [id]);
 
   const checkCameraAccess = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setHasCamera(true);
-      // Always stop the stream so we don't keep the camera on
+      setIsCameraActive(true);
+      // Always stop the stream so we don't keep the camera on unnecessarily
       stream.getTracks().forEach(track => track.stop());
     } catch (err) {
       console.log("Camera access denied or unavailable:", err);
+      setHasCamera(false);
+      setIsCameraActive(false);
+    }
+  };
+  
+  const startCamera = async () => {
+    try {
+      if (!callObjectRef.current) {
+        // Initialize Daily call object for preview
+        const DailyIFrame = (await import('@daily-co/daily-js')).default;
+        callObjectRef.current = DailyIFrame.createCallObject();
+        
+        // Join with camera/mic on
+        await callObjectRef.current.startCamera();
+        setIsCameraActive(true);
+        setLocalSessionId(callObjectRef.current.participants().local.session_id);
+        toast.success('Kamera erfolgreich aktiviert');
+      }
+    } catch (err) {
+      console.error("Error starting camera:", err);
+      toast.error('Fehler beim Aktivieren der Kamera');
       setHasCamera(false);
     }
   };
@@ -128,20 +164,30 @@ const Uebung: React.FC = () => {
   const handleStartInterview = async () => {
     if (!id) return;
     
-    // Prüfen, ob der Benutzer eingeloggt ist
+    // Check if the user is authenticated
     if (!isAuthenticated) {
-      // Wenn nicht eingeloggt, zur Login-Seite weiterleiten
+      // If not logged in, redirect to the login page
       const currentPath = `/uebung/${id}`;
       navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+    
+    // Check if camera access is available
+    if (!hasCamera) {
+      toast.error('Kamerazugriff ist für das Interview erforderlich');
+      await checkCameraAccess(); // Try to request camera permission again
       return;
     }
     
     setIsStarting(true);
     
     try {
-      const result = await startConversation(id);
+      console.log("Starting interview with ID:", id);
       
-      // Erfolgsmeldung anzeigen
+      const result = await startConversation(id);
+      console.log("Interview start result:", result);
+      
+      // Success message
       toast.success('Interview erfolgreich gestartet!');
       
       // Set the session information
@@ -149,11 +195,18 @@ const Uebung: React.FC = () => {
       setConversationUrl(result.url || result.conversation_url);
       setSessionStatus('active');
 
+      // Clean up camera preview as the interview will take over
+      if (callObjectRef.current) {
+        callObjectRef.current.destroy();
+        callObjectRef.current = null;
+        setLocalSessionId(null);
+      }
+
       // Return the conversation URL for the embedded interview component
       return result.url || result.conversation_url;
     } catch (error) {
       console.error('Error starting interview:', error);
-      toast.error('Fehler beim Starten des Interviews');
+      toast.error('Fehler beim Starten des Interviews. Bitte versuche es erneut.');
       throw error;
     } finally {
       setIsStarting(false);
@@ -166,6 +219,11 @@ const Uebung: React.FC = () => {
 
   const handleSessionStatusChange = (status: string) => {
     setSessionStatus(status);
+  };
+
+  // Camera access button handler
+  const handleRequestCameraAccess = async () => {
+    await startCamera();
   };
 
   if (isLoading) {
@@ -229,7 +287,34 @@ const Uebung: React.FC = () => {
         
         {/* Camera Access Warning */}
         {hasCamera === false && !conversationUrl && (
-          <UebungCameraWarning />
+          <>
+            <UebungCameraWarning />
+            <div className="flex justify-center mb-6">
+              <button 
+                onClick={handleRequestCameraAccess}
+                className="bg-white text-[#1A1F2C] border border-[#1A1F2C] px-6 py-2 rounded-[100px] hover:bg-[#1A1F2C]/5 transition-colors"
+              >
+                Kamerazugriff erlauben
+              </button>
+            </div>
+          </>
+        )}
+        
+        {/* Camera Preview (when camera is active but interview not started) */}
+        {isCameraActive && localSessionId && !conversationUrl && (
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
+            <div className="aspect-video w-full max-w-2xl mx-auto relative">
+              <DailyVideo 
+                sessionId={localSessionId} 
+                type="video" 
+                automirror 
+                className="w-full h-full object-cover rounded"
+              />
+              <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+                Videovorschau
+              </div>
+            </div>
+          </div>
         )}
         
         {/* Interview content */}
