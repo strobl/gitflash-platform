@@ -243,7 +243,7 @@ const VideoCallUI = ({
   // Handle camera/mic permission errors
   useDailyEvent(
     'camera-error',
-    useCallback((ev) => {
+    useCallback((ev: any) => {
       console.error('Camera error:', ev);
       if (ev.errorMsg && typeof ev.errorMsg === 'string' && ev.errorMsg.includes('Permission denied')) {
         setHasCameraPermission(false);
@@ -399,6 +399,7 @@ const VideoCallUI = ({
                 mirror={false}
                 automirror={false}
                 fit="cover"
+                type="video"
                 className="h-full w-full object-cover"
               />
             ))
@@ -420,6 +421,7 @@ const VideoCallUI = ({
               mirror={true}
               automirror={true}
               fit="cover"
+              type="video"
               className="h-full w-full object-cover"
             />
             
