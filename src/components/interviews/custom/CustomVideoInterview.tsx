@@ -373,10 +373,11 @@ const VideoCallUI = ({
       // Get all video and audio elements in the call
       const elements = document.querySelectorAll('audio, video');
       
-      // Try to play each element
+      // Try to play each element - FIX: Cast to HTMLMediaElement
       for (const element of Array.from(elements)) {
         try {
-          await element.play();
+          // Cast the element to HTMLMediaElement to access play() method
+          await (element as HTMLMediaElement).play();
         } catch (err) {
           console.error("Failed to play element:", element, err);
         }
