@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -12,7 +13,8 @@ import { UebungStartSection } from "@/components/uebung/UebungStartSection";
 import { UebungDescription } from "@/components/uebung/UebungDescription";
 import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
-import { DailyVideo } from "@daily-co/daily-react";
+import { UebungDeviceSelector } from "@/components/uebung/UebungDeviceSelector";
+import { DailyVideo, DailyProvider, useDevices } from "@daily-co/daily-react";
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
@@ -50,6 +52,7 @@ const Uebung: React.FC = () => {
   const [interviewCategory, setInterviewCategory] = useState('general');
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isRequestingCamera, setIsRequestingCamera] = useState(false);
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
   const [showCameraWarning, setShowCameraWarning] = useState(true);
@@ -92,11 +95,16 @@ const Uebung: React.FC = () => {
   
   const startCamera = async () => {
     try {
+      setIsRequestingCamera(true);
+      
       if (!callObjectRef.current) {
         console.log("Initializing Daily call object for preview");
         // Initialize Daily call object for preview
         const DailyIFrame = (await import('@daily-co/daily-js')).default;
-        callObjectRef.current = DailyIFrame.createCallObject();
+        callObjectRef.current = DailyIFrame.createCallObject({
+          audioSource: true, // Enable microphone
+          videoSource: true, // Enable camera
+        });
         
         // Join with camera/mic on
         await callObjectRef.current.startCamera();
@@ -120,6 +128,8 @@ const Uebung: React.FC = () => {
       toast.error('Fehler beim Aktivieren der Kamera. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
       setHasCamera(false);
       setShowCameraWarning(true);
+    } finally {
+      setIsRequestingCamera(false);
     }
   };
 
@@ -283,87 +293,98 @@ const Uebung: React.FC = () => {
   const categoryInfo = CATEGORIES[interviewCategory] || CATEGORIES.general;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
-      <main className="container mx-auto pt-6 pb-12 px-4">
-        {/* Back button */}
-        <button 
-          onClick={handleBackClick}
-          className="inline-flex items-center text-gitflash-primary hover:text-gitflash-primary/80 mb-6"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Zurück zur Übersicht
-        </button>
+    <DailyProvider>
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
         
-        {/* Interview Header */}
-        <UebungHeader 
-          title={interview.conversation_name}
-          category={categoryInfo}
-        />
-        
-        {/* Camera Access Warning - always show initially or if camera access is denied */}
-        {showCameraWarning && !conversationUrl && (
-          <UebungCameraWarning onRequestCameraAccess={handleRequestCameraAccess} />
-        )}
-        
-        {/* Camera Preview (when camera is active but interview not started) */}
-        {isCameraActive && localSessionId && !conversationUrl && (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
-            <div className="aspect-video w-full max-w-2xl mx-auto relative">
-              <DailyVideo 
-                sessionId={localSessionId} 
-                type="video" 
-                automirror 
-                className="w-full h-full object-cover rounded"
-              />
-              <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
-                Videovorschau
+        <main className="container mx-auto pt-6 pb-12 px-4">
+          {/* Back button */}
+          <button 
+            onClick={handleBackClick}
+            className="inline-flex items-center text-gitflash-primary hover:text-gitflash-primary/80 mb-6"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Zurück zur Übersicht
+          </button>
+          
+          {/* Interview Header */}
+          <UebungHeader 
+            title={interview.conversation_name}
+            category={categoryInfo}
+          />
+          
+          {/* Camera Access Warning - only show if camera access not granted */}
+          {showCameraWarning && !conversationUrl && (
+            <UebungCameraWarning 
+              onRequestCameraAccess={handleRequestCameraAccess}
+              isRequesting={isRequestingCamera}
+            />
+          )}
+          
+          {/* Camera Preview and Device Selector (when camera is active but interview not started) */}
+          {isCameraActive && localSessionId && !conversationUrl && (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+                <div className="aspect-video w-full max-w-2xl mx-auto relative">
+                  <DailyVideo 
+                    sessionId={localSessionId} 
+                    type="video" 
+                    automirror 
+                    className="w-full h-full object-cover rounded"
+                  />
+                  <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+                    Videovorschau
+                  </div>
+                </div>
               </div>
+              
+              {/* Device Selection */}
+              <UebungDeviceSelector />
+            </>
+          )}
+          
+          {/* Interview content - only show start section if camera is active */}
+          {(!showCameraWarning || isCameraActive) && !conversationUrl && (
+            <div className="mt-8">
+              <UebungStartSection 
+                isStarting={isStarting}
+                onStartInterview={handleStartInterview}
+                isAuthenticated={isAuthenticated}
+                hasDeviceAccess={isCameraActive && hasCamera}
+              />
             </div>
-          </div>
-        )}
-        
-        {/* Interview content - only show start section if camera is active */}
-        {(!showCameraWarning || isCameraActive) && !conversationUrl && (
-          <div className="mt-8">
-            <UebungStartSection 
-              isStarting={isStarting}
-              onStartInterview={handleStartInterview}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
-        )}
-        
-        {/* Active interview view */}
-        {conversationUrl && (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
-            <CustomVideoInterview 
-              conversationUrl={conversationUrl} 
-              interviewId={id}
-              sessionId={sessionId}
-              status={sessionStatus}
-              onSessionStatusChange={handleSessionStatusChange}
-            />
-          </div>
-        )}
-        
-        {/* Interview Description */}
-        <UebungDescription 
-          interview={interview}
-          categoryName={categoryInfo.name}
-        />
-        
-        {/* Company Info */}
-        <UebungCompanyInfo />
-        
-        {/* Similar Interviews */}
-        <UebungSimilarInterviews 
-          interviews={similarInterviews}
-          category={categoryInfo.name}
-        />
-      </main>
-    </div>
+          )}
+          
+          {/* Active interview view */}
+          {conversationUrl && (
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
+              <CustomVideoInterview 
+                conversationUrl={conversationUrl} 
+                interviewId={id}
+                sessionId={sessionId}
+                status={sessionStatus}
+                onSessionStatusChange={handleSessionStatusChange}
+              />
+            </div>
+          )}
+          
+          {/* Interview Description */}
+          <UebungDescription 
+            interview={interview}
+            categoryName={categoryInfo.name}
+          />
+          
+          {/* Company Info */}
+          <UebungCompanyInfo />
+          
+          {/* Similar Interviews */}
+          <UebungSimilarInterviews 
+            interviews={similarInterviews}
+            category={categoryInfo.name}
+          />
+        </main>
+      </div>
+    </DailyProvider>
   );
 };
 
