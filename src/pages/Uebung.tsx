@@ -204,13 +204,8 @@ const Uebung: React.FC = () => {
   const handleStartInterview = async () => {
     if (!id) return;
     
-    // Check if the user is authenticated
-    if (!isAuthenticated) {
-      // If not logged in, redirect to the Login2 page with the interview ID as parameter
-      console.log("Uebung: User not authenticated, redirecting to login2 with interview ID:", id);
-      navigate(`/login2?interviewId=${id}`);
-      return;
-    }
+    // We no longer need to redirect to login2 here as this is now handled
+    // directly in the UebungStartSection component
     
     // Check if camera is ready
     if (cameraStatus !== "ready") {

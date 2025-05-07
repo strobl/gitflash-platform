@@ -2,6 +2,7 @@
 import React from "react";
 import { Play, ArrowRight, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 // Define clearer camera status types
 export type CameraStatus = "unknown" | "requesting" | "denied" | "ready";
@@ -23,8 +24,23 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
   onRequestCameraAccess,
   interviewId
 }) => {
+  const navigate = useNavigate();
+  
   // Determine if the interview button should be disabled
-  const isInterviewButtonDisabled = isStarting || !isAuthenticated || cameraStatus !== "ready";
+  const isInterviewButtonDisabled = isStarting || cameraStatus !== "ready";
+  
+  // Modified handleClick to handle authentication check
+  const handleInterviewClick = () => {
+    if (!isAuthenticated) {
+      // If not logged in, redirect to Login2 with interviewId
+      console.log("Not authenticated, redirecting to login2 with interview ID:", interviewId);
+      navigate(`/login2?interviewId=${interviewId}`);
+      return;
+    }
+    
+    // If authenticated, start the interview directly
+    onStartInterview();
+  };
   
   // Show camera access UI if camera is not ready yet
   const showCameraAccessUI = cameraStatus !== "ready";
@@ -99,9 +115,9 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
           ruhigen Umgebung befindest und deine Kamera sowie dein Mikrofon funktionieren.
         </p>
         
-        {/* Interview start button */}
+        {/* Interview start button - Now uses handleInterviewClick */}
         <Button 
-          onClick={onStartInterview} 
+          onClick={handleInterviewClick} 
           className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-8 py-[11px] h-auto text-lg rounded-[100px] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isInterviewButtonDisabled}
         >
