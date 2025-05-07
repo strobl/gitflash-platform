@@ -222,7 +222,16 @@ const Uebung: React.FC = () => {
       return result.url || result.conversation_url;
     } catch (error) {
       console.error('Error starting interview:', error);
-      toast.error('Fehler beim Starten des Interviews. Bitte versuche es erneut.');
+      
+      // More specific error handling
+      let errorMessage = 'Fehler beim Starten des Interviews. Bitte versuche es erneut.';
+      
+      // Check if there's a specific error message from the Tavus API
+      if (error.message && error.message.includes('The user is out of conversational credits')) {
+        errorMessage = 'Keine Interview-Guthaben mehr verfügbar. Bitte kontaktiere den Support.';
+      }
+      
+      toast.error(errorMessage);
       setIsStarting(false);
     }
   };
@@ -294,41 +303,8 @@ const Uebung: React.FC = () => {
           category={categoryInfo}
         />
         
-        {/* Camera Preview (when camera is active but interview not started) */}
-        {dailyCallObject && cameraStatus === "ready" && localSessionId && !conversationUrl && (
-          <DailyProvider callObject={dailyCallObject}>
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
-              <div className="aspect-video w-full max-w-2xl mx-auto relative">
-                <DailyVideo 
-                  sessionId={localSessionId} 
-                  type="video" 
-                  automirror 
-                  className="w-full h-full object-cover rounded"
-                />
-                <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
-                  Videovorschau
-                </div>
-              </div>
-            </div>
-            
-            {/* Device Selector - only shown when camera is active */}
-            <UebungDeviceSelector />
-          </DailyProvider>
-        )}
-        
-        {/* Start Section with Camera Permission UI */}
-        {!conversationUrl && (
-          <UebungStartSection 
-            isStarting={isStarting}
-            onStartInterview={handleStartInterview}
-            isAuthenticated={isAuthenticated}
-            cameraStatus={cameraStatus}
-            onRequestCameraAccess={requestCameraAccess}
-          />
-        )}
-        
-        {/* Active interview view */}
-        {conversationUrl && (
+        {/* Active interview view or two-column layout */}
+        {conversationUrl ? (
           <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
             <CustomVideoInterview 
               conversationUrl={conversationUrl} 
@@ -337,6 +313,78 @@ const Uebung: React.FC = () => {
               status={sessionStatus}
               onSessionStatusChange={handleSessionStatusChange}
             />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Left column: Camera preview and device selector */}
+            <div className="flex flex-col">
+              {/* Camera Preview (when camera is active but interview not started) */}
+              {dailyCallObject && cameraStatus === "ready" && localSessionId ? (
+                <DailyProvider callObject={dailyCallObject}>
+                  <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+                    <div className="aspect-video w-full relative">
+                      <DailyVideo 
+                        sessionId={localSessionId} 
+                        type="video" 
+                        automirror 
+                        className="w-full h-full object-cover rounded"
+                      />
+                      <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+                        Videovorschau
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Device Selector - only shown when camera is active */}
+                  <UebungDeviceSelector />
+                </DailyProvider>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex items-center justify-center h-full mb-6">
+                  <div className="text-center py-10">
+                    {cameraStatus === "unknown" ? (
+                      <div className="space-y-4">
+                        <div className="mx-auto w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Camera className="h-10 w-10 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500">Kameraansicht wird angezeigt, sobald du den Zugriff erlaubst</p>
+                      </div>
+                    ) : cameraStatus === "denied" ? (
+                      <div className="space-y-4">
+                        <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                          <Camera className="h-10 w-10 text-red-500" />
+                        </div>
+                        <p className="text-red-500">Kamerazugriff wurde abgelehnt</p>
+                      </div>
+                    ) : (
+                      <div className="animate-pulse space-y-4">
+                        <div className="mx-auto w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                          <Camera className="h-10 w-10 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500">Kamera wird aktiviert...</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* If camera is ready but we don't have device selector shown yet, render it here */}
+              {cameraStatus === "ready" && !dailyCallObject && (
+                <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+                  <p className="text-center text-gray-500">Geräteeigenschaften werden geladen...</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Right column: Interview start section */}
+            <div>
+              <UebungStartSection 
+                isStarting={isStarting}
+                onStartInterview={handleStartInterview}
+                isAuthenticated={isAuthenticated}
+                cameraStatus={cameraStatus}
+                onRequestCameraAccess={requestCameraAccess}
+              />
+            </div>
           </div>
         )}
         

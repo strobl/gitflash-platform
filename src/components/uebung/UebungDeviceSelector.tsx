@@ -17,12 +17,12 @@ export const UebungDeviceSelector: React.FC = () => {
   } = useDevices();
   
   return (
-    <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+    <div className="bg-white rounded-xl shadow-sm border p-6">
       <h3 className="text-lg font-semibold text-gitflash-primary mb-4">
         Geräteauswahl
       </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {/* Camera Selection */}
         <div className="space-y-2">
           <label htmlFor="camera-select" className="text-sm font-medium text-gray-700">
