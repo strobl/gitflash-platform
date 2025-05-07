@@ -49,6 +49,25 @@ export const getDailyCallInstance = (): DailyCall => {
       }
     });
     
+    // New event listener for track-started to handle audio tracks
+    dailyCallSingleton.on('track-started', (event) => {
+      if (event.track.kind === 'audio' && !event.participant.local) {
+        console.log("Remote audio track started");
+        
+        // When a remote audio track starts, ensure the output device is set
+        if (currentAudioOutputDeviceId) {
+          setTimeout(() => {
+            try {
+              console.log(`Setting audio output device for new track to ${currentAudioOutputDeviceId}`);
+              dailyCallSingleton?.setOutputDeviceAsync({ outputDeviceId: currentAudioOutputDeviceId });
+            } catch (error) {
+              console.error("Failed to set audio output device for new track:", error);
+            }
+          }, 500); // Small delay to ensure the track is fully initialized
+        }
+      }
+    });
+    
     dailyCallSingleton.on('error', (e) => {
       console.error("Daily error:", e);
     });
@@ -100,6 +119,12 @@ export const testAudioOutput = async (): Promise<void> => {
   try {
     // Create and play a test tone
     const audioContext = new AudioContext();
+    
+    // Attempt to resume the AudioContext if needed (for autoplay policies)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+    
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     

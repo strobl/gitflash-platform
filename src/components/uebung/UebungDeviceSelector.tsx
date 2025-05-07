@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/select";
 import { useDevices } from "@daily-co/daily-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Volume2 } from "lucide-react";
+import { setAudioOutputDevice, testAudioOutput } from "@/utils/dailyCallSingleton";
 
 export const UebungDeviceSelector: React.FC = () => {
   // Get device information from Daily's hook
@@ -20,6 +23,7 @@ export const UebungDeviceSelector: React.FC = () => {
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [selectedMicId, setSelectedMicId] = useState<string>('');
   const [selectedSpeakerId, setSelectedSpeakerId] = useState<string>('');
+  const [isAudioTesting, setIsAudioTesting] = useState(false);
   
   // Store selected devices and apply when they change
   useEffect(() => {
@@ -74,15 +78,34 @@ export const UebungDeviceSelector: React.FC = () => {
     }
   };
   
-  const handleSpeakerChange = (deviceId: string) => {
+  const handleSpeakerChange = async (deviceId: string) => {
     try {
       console.log("Changing speaker to:", deviceId);
+      
+      // First update Daily's internal state
       setSpeaker(deviceId);
       setSelectedSpeakerId(deviceId);
+      
+      // Then use our utility to ensure the output device is set
+      await setAudioOutputDevice(deviceId);
+      
       toast.success('Lautsprecher erfolgreich geändert');
     } catch (err) {
       console.error("Error changing speaker:", err);
       toast.error('Fehler beim Ändern des Lautsprechers');
+    }
+  };
+  
+  const handleTestAudio = async () => {
+    setIsAudioTesting(true);
+    try {
+      await testAudioOutput();
+      toast.success("Audiotest wird abgespielt");
+    } catch (error) {
+      console.error("Error testing audio output:", error);
+      toast.error("Fehler beim Testen der Audioausgabe");
+    } finally {
+      setTimeout(() => setIsAudioTesting(false), 1500);
     }
   };
   
@@ -178,9 +201,25 @@ export const UebungDeviceSelector: React.FC = () => {
               )}
             </SelectContent>
           </Select>
-          <p className="text-xs text-gray-500">
-            Hinweis: Die Lautsprecherauswahl wird nicht von allen Browsern unterstützt.
-          </p>
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Hinweis: Die Lautsprecherauswahl wird nicht von allen Browsern unterstützt.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1"
+              onClick={handleTestAudio}
+              disabled={isAudioTesting}
+            >
+              {isAudioTesting ? (
+                <div className="h-3 w-3 animate-pulse bg-blue-500 rounded-full"></div>
+              ) : (
+                <Volume2 className="h-3 w-3" />
+              )}
+              <span>Audiotest</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

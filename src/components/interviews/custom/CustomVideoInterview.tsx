@@ -7,7 +7,8 @@ import {
   useDailyEvent,
   useParticipantIds,
   useLocalSessionId,
-  DailyVideo
+  DailyVideo,
+  DailyAudio
 } from '@daily-co/daily-react';
 import type { DailyCall, DailyEventObject } from '@daily-co/daily-js';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,8 @@ import {
   ChevronDown,
   Camera,
   Volume2,
-  VolumeX
+  VolumeX,
+  AlertCircle
 } from 'lucide-react';
 import {
   Select,
@@ -43,6 +45,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getDailyCallInstance, setAudioOutputDevice, testAudioOutput } from '@/utils/dailyCallSingleton';
 
 interface CustomVideoInterviewProps {
@@ -227,6 +230,8 @@ const VideoCallUI = ({
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const [hasAudioOutput, setHasAudioOutput] = useState<boolean>(true);
   const [isAudioOutputTesting, setIsAudioOutputTesting] = useState(false);
+  const [audioPlaybackFailed, setAudioPlaybackFailed] = useState(false);
+  const [remoteAudioActivity, setRemoteAudioActivity] = useState(false);
   
   // Listen for join-meeting events
   useDailyEvent(
@@ -238,11 +243,16 @@ const VideoCallUI = ({
       
       // Check initial audio/video state
       if (callObject) {
-        setIsAudioMuted(!callObject.localAudio());
-        setIsVideoMuted(!callObject.localVideo());
+        const audioEnabled = callObject.localAudio();
+        const videoEnabled = callObject.localVideo();
+        console.log("Initial device states - Audio:", audioEnabled, "Video:", videoEnabled);
+        
+        // Set our state to match the actual device state
+        setIsAudioMuted(!audioEnabled);
+        setIsVideoMuted(!videoEnabled);
         
         // Try to ensure audio is unmuted
-        if (!callObject.localAudio()) {
+        if (!audioEnabled) {
           console.log("Trying to enable audio on join...");
           try {
             callObject.setLocalAudio(true);
@@ -305,7 +315,7 @@ const VideoCallUI = ({
     }, [])
   );
   
-  // Listen for device changes instead of using the invalid "output-devices-updated" event
+  // Listen for device changes
   useDailyEvent(
     'available-devices-updated',
     useCallback((ev: any) => {
@@ -313,6 +323,19 @@ const VideoCallUI = ({
       if (ev && ev.devices) {
         setHasAudioOutput(true);
         toast.success("Audioausgabegerät erfolgreich erkannt");
+      }
+    }, [])
+  );
+  
+  // Monitor remote audio activity
+  useDailyEvent(
+    'active-speaker-change',
+    useCallback((ev: any) => {
+      if (ev && ev.activeSpeaker && !ev.activeSpeaker.local) {
+        console.log("Remote participant is speaking:", ev.activeSpeaker);
+        setRemoteAudioActivity(true);
+        // Reset after a few seconds
+        setTimeout(() => setRemoteAudioActivity(false), 3000);
       }
     }, [])
   );
@@ -329,6 +352,43 @@ const VideoCallUI = ({
       }
     }, [])
   );
+  
+  // Handle audio playback failures
+  const handleAudioPlayFailed = useCallback(() => {
+    console.error("Audio playback failed - likely due to browser autoplay policy");
+    setAudioPlaybackFailed(true);
+    toast.error("Audio-Wiedergabe wurde blockiert", {
+      description: "Klicken Sie auf 'Audio aktivieren', um den Ton zu starten",
+      duration: 10000
+    });
+  }, []);
+  
+  // Function to manually activate audio after autoplay failure
+  const activateAudio = async () => {
+    if (!callObject) return;
+    
+    try {
+      console.log("Manually activating audio playback...");
+      
+      // Get all video and audio elements in the call
+      const elements = document.querySelectorAll('audio, video');
+      
+      // Try to play each element
+      for (const element of Array.from(elements)) {
+        try {
+          await element.play();
+        } catch (err) {
+          console.error("Failed to play element:", element, err);
+        }
+      }
+      
+      setAudioPlaybackFailed(false);
+      toast.success("Audio erfolgreich aktiviert");
+    } catch (err) {
+      console.error("Error activating audio:", err);
+      toast.error("Fehler beim Aktivieren des Tons");
+    }
+  };
   
   // Effect to check device permissions on component mount
   useEffect(() => {
@@ -429,16 +489,22 @@ const VideoCallUI = ({
     }
   };
   
+  // FIX: Corrected toggle functions to properly synchronize state with device state
   const toggleAudio = async () => {
     if (!callObject) return;
     
     try {
-      const newState = !isAudioMuted;
-      console.log(`Setting audio to: ${newState}`);
-      await callObject.setLocalAudio(newState);
-      setIsAudioMuted(!newState);
+      // Get the current state - if muted, we want to unmute (true), and vice versa
+      const newAudioEnabled = isAudioMuted;
+      console.log(`Setting audio to: ${newAudioEnabled ? "enabled" : "disabled"}`);
       
-      if (newState) {
+      // Set the device state first
+      await callObject.setLocalAudio(newAudioEnabled);
+      
+      // Then update our UI state to match
+      setIsAudioMuted(!newAudioEnabled);
+      
+      if (newAudioEnabled) {
         toast.success("Mikrofon aktiviert");
       } else {
         toast.success("Mikrofon deaktiviert");
@@ -449,16 +515,22 @@ const VideoCallUI = ({
     }
   };
   
+  // FIX: Corrected toggle functions to properly synchronize state with device state
   const toggleVideo = async () => {
     if (!callObject) return;
     
     try {
-      const newState = !isVideoMuted;
-      console.log(`Setting video to: ${newState}`);
-      await callObject.setLocalVideo(newState);
-      setIsVideoMuted(!newState);
+      // Get the current state - if muted, we want to unmute (true), and vice versa
+      const newVideoEnabled = isVideoMuted;
+      console.log(`Setting video to: ${newVideoEnabled ? "enabled" : "disabled"}`);
       
-      if (newState) {
+      // Set the device state first
+      await callObject.setLocalVideo(newVideoEnabled);
+      
+      // Then update our UI state to match
+      setIsVideoMuted(!newVideoEnabled);
+      
+      if (newVideoEnabled) {
         toast.success("Kamera aktiviert");
       } else {
         toast.success("Kamera deaktiviert");
@@ -486,6 +558,7 @@ const VideoCallUI = ({
   
   // If the call is closed/ended, show the ended state
   if (isClosed) {
+    // ... keep existing code (closed interview state)
     return (
       <div className="rounded-md border overflow-hidden flex flex-col">
         <div className="p-4 bg-muted/20 border-b flex items-center">
@@ -514,12 +587,39 @@ const VideoCallUI = ({
           <div className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">
             {isJoined ? 'Aktiv' : 'Verbinde...'}
           </div>
+          
+          {/* Audio activity indicator */}
+          {remoteAudioActivity && (
+            <div className="ml-2 flex items-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1"></div>
+              <span className="text-xs text-green-600">Audio aktiv</span>
+            </div>
+          )}
         </div>
         <DeviceSettings onTestAudioOutput={handleTestAudioOutput} isAudioOutputTesting={isAudioOutputTesting} />
       </div>
       
       {/* Main video area */}
       <div className="bg-black flex flex-col relative">
+        {/* Audio playback failed alert */}
+        {audioPlaybackFailed && (
+          <Alert variant="destructive" className="m-4 top-0 left-0 right-0 absolute z-10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex flex-wrap items-center justify-between">
+              <span>Audio wird blockiert. Browser-Autoplay-Richtlinie verhindert die Audiowiedergabe.</span>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="mt-2 sm:mt-0" 
+                onClick={activateAudio}
+              >
+                <Volume2 className="mr-2 h-4 w-4" />
+                Audio aktivieren
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Remote video (AI) */}
         <div className="aspect-video w-full bg-black">
           {remoteParticipantIds.length > 0 ? (
@@ -543,6 +643,9 @@ const VideoCallUI = ({
             </div>
           )}
         </div>
+        
+        {/* Add DailyAudio component to handle remote audio separately */}
+        <DailyAudio onPlayFailed={handleAudioPlayFailed} />
         
         {/* Local video (user) - small overlay */}
         {localSessionId && (
