@@ -1,14 +1,17 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, Play } from "lucide-react";
+import { ChevronLeft, Play, ArrowRight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
-import { Badge } from "@/components/ui/badge";
+import { UebungHeader } from "@/components/uebung/UebungHeader";
+import { UebungCameraWarning } from "@/components/uebung/UebungCameraWarning";
+import { UebungStartSection } from "@/components/uebung/UebungStartSection";
+import { UebungDescription } from "@/components/uebung/UebungDescription";
+import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
+import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
 
 // Hilfsfunktion zum Zuweisen einer Kategorie basierend auf Interview-Namen oder Kontext
 const getCategoryForInterview = (interview) => {
@@ -44,12 +47,29 @@ const Uebung: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [interviewCategory, setInterviewCategory] = useState('general');
+  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
+  const [similarInterviews, setSimilarInterviews] = useState([]);
 
   useEffect(() => {
+    // Check for camera access when component mounts
+    checkCameraAccess();
+    
     if (id) {
       fetchInterviewDetails();
     }
   }, [id]);
+
+  const checkCameraAccess = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setHasCamera(true);
+      // Always stop the stream so we don't keep the camera on
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.log("Camera access denied or unavailable:", err);
+      setHasCamera(false);
+    }
+  };
 
   async function fetchInterviewDetails() {
     if (!id) return;
@@ -64,6 +84,39 @@ const Uebung: React.FC = () => {
       // Kategorie bestimmen
       const category = getCategoryForInterview(data);
       setInterviewCategory(category);
+      
+      // Fetch similar interviews (mock data for now)
+      const mockSimilarInterviews = [
+        {
+          id: "similar1",
+          conversation_name: "Bauprojektmanager",
+          conversation_context: "Führung von Bauprojekten und Ressourcenplanung",
+          image: "https://cdn.builder.io/api/v1/image/assets/a69ef77fc2e5440bb24529f01076d6b8/2dd467d586601d48080d5df03accad71b21462ff?placeholderIfAbsent=true",
+          duration: "18m",
+          difficulty: "Mittel",
+          category: category
+        },
+        {
+          id: "similar2",
+          conversation_name: "Baustellenleiter",
+          conversation_context: "Koordination von Baustellen und Sicherheitsvorschriften",
+          image: "https://cdn.builder.io/api/v1/image/assets/a69ef77fc2e5440bb24529f01076d6b8/76b47a2cddc417d0e75ce89c86396f2a20acb549?placeholderIfAbsent=true",
+          duration: "22m",
+          difficulty: "Schwer",
+          category: category
+        },
+        {
+          id: "similar3",
+          conversation_name: "Tiefbauingenieur",
+          conversation_context: "Planung und Umsetzung von Infrastrukturprojekten",
+          image: "https://cdn.builder.io/api/v1/image/assets/a69ef77fc2e5440bb24529f01076d6b8/2dd467d586601d48080d5df03accad71b21462ff?placeholderIfAbsent=true",
+          duration: "15m",
+          difficulty: "Einfach",
+          category: category
+        }
+      ];
+      setSimilarInterviews(mockSimilarInterviews);
+      
     } catch (error) {
       console.error('Error fetching interview details:', error);
       toast.error('Fehler beim Laden der Interview-Details');
@@ -117,7 +170,7 @@ const Uebung: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
         <div className="container py-8">
           <div className="text-center py-12">
@@ -131,7 +184,7 @@ const Uebung: React.FC = () => {
 
   if (!interview) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
         <div className="container py-8">
           <div className="text-center py-12">
@@ -139,7 +192,13 @@ const Uebung: React.FC = () => {
             <p className="text-muted-foreground mb-6">
               Das angeforderte Interview wurde nicht gefunden oder Sie haben keinen Zugriff darauf.
             </p>
-            <Button onClick={handleBackClick}>Zurück zur Übersicht</Button>
+            <button 
+              onClick={handleBackClick}
+              className="inline-flex items-center gap-2 bg-gitflash-primary text-white px-4 py-2 rounded hover:bg-gitflash-primary/90"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Zurück zur Übersicht
+            </button>
           </div>
         </div>
       </div>
@@ -149,132 +208,66 @@ const Uebung: React.FC = () => {
   const categoryInfo = CATEGORIES[interviewCategory] || CATEGORIES.general;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
-      <div className="container py-8">
-        <div className="flex justify-between items-center mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={handleBackClick}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Zurück zur Übersicht
-          </Button>
-        </div>
+      
+      <main className="container mx-auto pt-6 pb-12 px-4">
+        {/* Back button */}
+        <button 
+          onClick={handleBackClick}
+          className="inline-flex items-center text-gitflash-primary hover:text-gitflash-primary/80 mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Zurück zur Übersicht
+        </button>
         
         {/* Interview Header */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <Badge 
-              className={`bg-${categoryInfo.color}-100 text-${categoryInfo.color}-800 hover:bg-${categoryInfo.color}-200`}
-            >
-              {categoryInfo.name}
-            </Badge>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">{interview.conversation_name}</h1>
-          <p className="text-lg text-muted-foreground">
-            {interview.conversation_context ? (
-              interview.conversation_context.length > 150 
-                ? `${interview.conversation_context.substring(0, 150)}...` 
-                : interview.conversation_context
-            ) : (
-              'Keine Beschreibung verfügbar.'
-            )}
-          </p>
+        <UebungHeader 
+          title={interview.conversation_name}
+          category={categoryInfo}
+        />
+        
+        {/* Camera Access Warning */}
+        {hasCamera === false && !conversationUrl && (
+          <UebungCameraWarning />
+        )}
+        
+        {/* Interview content */}
+        <div className="mt-8">
+          {!conversationUrl ? (
+            <UebungStartSection 
+              isStarting={isStarting}
+              onStartInterview={handleStartInterview}
+              isAuthenticated={isAuthenticated}
+            />
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <CustomVideoInterview 
+                conversationUrl={conversationUrl} 
+                interviewId={id}
+                sessionId={sessionId}
+                status={sessionStatus}
+                onSessionStatusChange={handleSessionStatusChange}
+              />
+            </div>
+          )}
         </div>
         
-        {/* Interview Content */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Left column: Interview description */}
-          <div className="md:col-span-1 space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">Über dieses Interview</h2>
-              <p className="whitespace-pre-line text-gray-700">{interview.conversation_context || 'Keine Kontextinformationen verfügbar.'}</p>
-              
-              <div className="mt-8 space-y-4">
-                <h3 className="font-medium">Details</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="font-medium text-gray-500">Kategorie</p>
-                    <p>{categoryInfo.name}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-500">Sprache</p>
-                    <p>{interview.language === 'de' ? 'Deutsch' : interview.language}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-500">Dauer</p>
-                    <p>{Math.floor(interview.max_call_duration / 60)} Minuten</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-500">Schwierigkeit</p>
-                    <p>Mittel</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">Hinweise für Kandidaten</h2>
-              <ul className="space-y-2 list-disc list-inside text-gray-600">
-                <li>Stellen Sie sicher, dass Ihre Kamera und Ihr Mikrofon funktionieren</li>
-                <li>Suchen Sie einen ruhigen Ort ohne Hintergrundgeräusche</li>
-                <li>Sprechen Sie deutlich und in normaler Geschwindigkeit</li>
-                <li>Das Interview kann jederzeit beendet werden</li>
-                <li>Nach dem Interview erhalten Sie sofortiges Feedback</li>
-              </ul>
-            </div>
-          </div>
-          
-          {/* Right column: Start interview / Video interface */}
-          <div className="md:col-span-1">
-            {!conversationUrl ? (
-              <div className="bg-white p-6 rounded-lg shadow-sm border flex flex-col items-center justify-center min-h-[400px] text-center">
-                <div className="bg-gitflash-primary/20 h-16 w-16 rounded-full flex items-center justify-center mb-4">
-                  <Play className="h-8 w-8 text-gitflash-primary ml-1" />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Bereit für das Interview?</h2>
-                <p className="text-gray-600 mb-6 max-w-sm">
-                  Starten Sie das Interview, um mit dem KI-Interviewer zu sprechen und Ihre Fähigkeiten zu testen.
-                </p>
-                <Button 
-                  onClick={handleStartInterview} 
-                  className="bg-gitflash-accent hover:bg-gitflash-accent/90"
-                  disabled={isStarting}
-                  size="lg"
-                >
-                  {isStarting ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white/20 border-t-white rounded-full mr-2"></div>
-                      Wird gestartet...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="mr-2 h-4 w-4" />
-                      Interview jetzt starten
-                    </>
-                  )}
-                </Button>
-                {!isAuthenticated && (
-                  <p className="text-sm text-muted-foreground mt-3">
-                    Zum Starten des Interviews ist ein Login erforderlich.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                <CustomVideoInterview 
-                  conversationUrl={conversationUrl} 
-                  interviewId={id}
-                  sessionId={sessionId}
-                  status={sessionStatus}
-                  onSessionStatusChange={handleSessionStatusChange}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+        {/* Interview Description */}
+        <UebungDescription 
+          interview={interview}
+          categoryName={categoryInfo.name}
+        />
+        
+        {/* Company Info */}
+        <UebungCompanyInfo />
+        
+        {/* Similar Interviews */}
+        <UebungSimilarInterviews 
+          interviews={similarInterviews}
+          category={categoryInfo.name}
+        />
+      </main>
     </div>
   );
 };
