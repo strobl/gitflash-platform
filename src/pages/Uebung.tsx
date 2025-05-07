@@ -12,7 +12,6 @@ import { UebungStartSection, CameraStatus } from "@/components/uebung/UebungStar
 import { UebungDescription } from "@/components/uebung/UebungDescription";
 import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
 import { UebungSimilarInterviews } from "@/components/uebung/UebungSimilarInterviews";
-import { UebungDeviceSelector } from "@/components/uebung/UebungDeviceSelector";
 import { DailyVideo, DailyProvider } from "@daily-co/daily-react";
 import type { DailyCall } from '@daily-co/daily-js';
 import { getDailyCallInstance, destroyDailyCallInstance } from "@/utils/dailyCallSingleton";
@@ -68,7 +67,6 @@ const Uebung: React.FC = () => {
     return () => {
       console.log("Component unmounted, cleaning up camera resources");
       // We don't destroy the singleton here anymore - it will persist until explicitly destroyed
-      // This ensures device selection works consistently
     };
   }, []);
 
@@ -93,7 +91,11 @@ const Uebung: React.FC = () => {
       const callObject = getDailyCallInstance();
       
       console.log("Starting camera");
-      await callObject.startCamera();
+      // Start camera with explicit audio settings
+      await callObject.startCamera({
+        audio: true,
+        video: true
+      });
       
       console.log("Camera started successfully");
       setDailyCallObject(callObject);
@@ -108,11 +110,11 @@ const Uebung: React.FC = () => {
         console.error("Could not get local participant", participants);
       }
       
-      toast.success('Kamera erfolgreich aktiviert');
+      toast.success('Kamera und Mikrofon erfolgreich aktiviert');
     } catch (err) {
-      console.error("Error requesting camera access:", err);
+      console.error("Error requesting camera/audio access:", err);
       setCameraStatus("denied");
-      toast.error('Fehler beim Aktivieren der Kamera. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
+      toast.error('Fehler beim Aktivieren der Kamera oder des Mikrofons. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
     }
   };
 
@@ -183,7 +185,7 @@ const Uebung: React.FC = () => {
     
     // Check if camera is ready
     if (cameraStatus !== "ready") {
-      toast.error('Kamerazugriff ist für das Interview erforderlich');
+      toast.error('Kamera- und Mikrofonzugriff sind für das Interview erforderlich');
       await requestCameraAccess();
       return;
     }
@@ -209,7 +211,6 @@ const Uebung: React.FC = () => {
       // Instead, we just reset our component state
       setCameraStatus("unknown");
       setLocalSessionId(null);
-      setDailyCallObject(null);
 
       // Return the conversation URL for the embedded interview component
       return result.url || result.conversation_url;
@@ -220,7 +221,7 @@ const Uebung: React.FC = () => {
       let errorMessage = 'Fehler beim Starten des Interviews. Bitte versuche es erneut.';
       
       // Check if there's a specific error message from the Tavus API
-      if (error.message && error.message.includes('The user is out of conversational credits')) {
+      if (error.message && typeof error.message === 'string' && error.message.includes('The user is out of conversational credits')) {
         errorMessage = 'Keine Interview-Guthaben mehr verfügbar. Bitte kontaktiere den Support.';
       } else if (error.status === 402) {
         errorMessage = 'Keine Interview-Guthaben mehr verfügbar. Bitte kontaktiere den Support.';
@@ -326,7 +327,7 @@ const Uebung: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Left column: Camera preview and device selector */}
+            {/* Left column: Camera preview */}
             <div className="flex flex-col">
               {/* Camera Preview (when camera is active but interview not started) */}
               {dailyCallObject && cameraStatus === "ready" && localSessionId ? (
@@ -345,8 +346,16 @@ const Uebung: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Device Selector - only shown when camera is active */}
-                  <UebungDeviceSelector />
+                  {/* Device settings info text instead of selector */}
+                  <div className="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 className="text-lg font-semibold text-gitflash-primary mb-2">
+                      Geräteeinstellungen
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Kamera und Mikrofon sind aktiv. Während des Interviews kannst du jederzeit 
+                      die Geräte wechseln oder stumm schalten.
+                    </p>
+                  </div>
                 </DailyProvider>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex items-center justify-center h-full mb-6">
