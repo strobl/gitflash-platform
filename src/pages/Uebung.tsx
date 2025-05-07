@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
