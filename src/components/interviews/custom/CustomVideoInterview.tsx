@@ -72,10 +72,8 @@ export function CustomVideoInterview({
   useEffect(() => {
     if (!callObject) {
       const daily = DailyIframe.createCallObject({
-        url: localUrl || undefined,
-        dailyConfig: {
-          experimentalChromeVideoMuteLightOff: true,
-        }
+        // Entfernung der nicht unterstützten Konfiguration
+        // Wir verwenden jetzt die Standard-Konfiguration 
       });
       setCallObject(daily);
       
@@ -119,10 +117,8 @@ export function CustomVideoInterview({
       }
       
       const daily = DailyIframe.createCallObject({
-        url: newUrl,
-        dailyConfig: {
-          experimentalChromeVideoMuteLightOff: true,
-        }
+        url: newUrl
+        // Entfernung der nicht unterstützten Konfiguration
       });
       setCallObject(daily);
       

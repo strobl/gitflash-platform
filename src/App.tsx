@@ -15,8 +15,8 @@ import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 
-// Import Daily.co CSS (for better video rendering)
-import '@daily-co/daily-react/dist/styles.css';
+// Wir entfernen den Import der CSS-Datei, die nicht existiert
+// import '@daily-co/daily-react/dist/styles.css';
 
 const queryClient = new QueryClient();
 
