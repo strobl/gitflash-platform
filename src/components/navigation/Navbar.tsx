@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ export function Navbar() {
                     <Link to="/profile" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                       Mein Profil
                     </Link>
-                    <Link to="/interviews/explore" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+                    <Link to="/interviews" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                       Interviews erkunden
                     </Link>
                   </>
@@ -84,7 +85,7 @@ export function Navbar() {
               </>
             )}
             {!isAuthenticated && (
-              <Link to="/interviews/explore" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+              <Link to="/interviews" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                 Interviews erkunden
               </Link>
             )}
@@ -125,16 +126,10 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/interviews/explore" className="cursor-pointer">Interviews erkunden</Link>
-                      </DropdownMenuItem>
                     </>
                   )}
                   {profile?.role === 'business' && (
                     <>
-                      <DropdownMenuItem asChild>
-                        <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
-                      </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
                       </DropdownMenuItem>
@@ -144,9 +139,6 @@ export function Navbar() {
                     <>
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="cursor-pointer">Admin Dashboard</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
@@ -163,7 +155,7 @@ export function Navbar() {
             ) : (
               <div className="flex items-center gap-2">
                 <Button variant="outline" asChild className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white">
-                  <Link to="/interviews/explore">Interviews erkunden</Link>
+                  <Link to="/interviews">Interviews erkunden</Link>
                 </Button>
                 <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary text-white">
                   <Link to="/login">Anmelden</Link>
@@ -217,7 +209,7 @@ export function Navbar() {
                       Mein Profil
                     </Link>
                     <Link 
-                      to="/interviews/explore" 
+                      to="/interviews" 
                       className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -255,7 +247,7 @@ export function Navbar() {
             {!isAuthenticated && (
               <>
                 <Link 
-                  to="/interviews/explore" 
+                  to="/interviews" 
                   className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

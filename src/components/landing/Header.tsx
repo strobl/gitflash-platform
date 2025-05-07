@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,7 +27,7 @@ export const Header: React.FC = () => {
     return profile.name.split(" ").map(n => n[0]).join("").toUpperCase();
   };
   
-  const isInterviewsActive = location.pathname.includes("/interviews") || location.pathname === "/interviewsdesign";
+  const isInterviewsActive = location.pathname.includes("/interviews");
   
   return (
     <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px] border-b border-gray-200">
@@ -38,7 +39,7 @@ export const Header: React.FC = () => {
 
       {/* Desktop Navigation */}
       {!isMobile && <div className="hidden md:flex items-center gap-6">
-          <Link to="/interviewsdesign" className={`text-sm ${isInterviewsActive ? "text-gitflash-primary font-medium" : "text-[#0A2540]"} hover:text-opacity-90`}>
+          <Link to="/interviews" className={`text-sm ${isInterviewsActive ? "text-gitflash-primary font-medium" : "text-[#0A2540]"} hover:text-opacity-90`}>
             KI Interviews
           </Link>
           <Link to="/jobs" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">
@@ -48,11 +49,6 @@ export const Header: React.FC = () => {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link to="/interviews/explore">
-                <button className="bg-white border border-[#0A2540] text-[#0A2540] flex min-h-10 items-center justify-center px-4 py-[10px] rounded-[100px] hover:bg-gray-50 transition-all duration-300 text-sm whitespace-nowrap">
-                  Meine Interviews
-                </button>
-              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="relative h-10 w-10 rounded-full overflow-hidden focus:outline-none">
@@ -79,14 +75,8 @@ export const Header: React.FC = () => {
                       <DropdownMenuItem asChild>
                         <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/interviews/explore" className="cursor-pointer w-full">Interviews erkunden</Link>
-                      </DropdownMenuItem>
                     </>}
                   {(profile?.role === "business" || profile?.role === "operator") && <>
-                      <DropdownMenuItem asChild>
-                        <Link to="/interviews" className="cursor-pointer w-full">Interviews verwalten</Link>
-                      </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
                       </DropdownMenuItem>
@@ -115,7 +105,7 @@ export const Header: React.FC = () => {
       {menuOpen && isMobile && (
         <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
-            <Link to="/interviewsdesign" className={`py-3 text-sm font-medium border-b border-gray-100 ${isInterviewsActive ? "text-gitflash-primary" : "text-[#0A2540]"} hover:text-opacity-90`} onClick={() => setMenuOpen(false)}>
+            <Link to="/interviews" className={`py-3 text-sm font-medium border-b border-gray-100 ${isInterviewsActive ? "text-gitflash-primary" : "text-[#0A2540]"} hover:text-opacity-90`} onClick={() => setMenuOpen(false)}>
               KI Interviews
             </Link>
             <Link to="/jobs" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
@@ -125,8 +115,8 @@ export const Header: React.FC = () => {
               Für Arbeitgeber
             </Link>
             {isAuthenticated ? (
-              <Link to="/interviews/explore" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
-                Meine Interviews
+              <Link to="/dashboard" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
+                Dashboard
               </Link>
             ) : (
               <Link to="/login" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>

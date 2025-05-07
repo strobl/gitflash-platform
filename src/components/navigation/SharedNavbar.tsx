@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ export function SharedNavbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
-              to="/interviewsdesign" 
+              to="/interviews" 
               className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
               }`}
@@ -83,9 +84,6 @@ export function SharedNavbar() {
           <div className="flex items-center">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <Button asChild variant="outline" className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white hover:brightness-105 transition-all duration-300">
-                  <Link to="/interviews/explore">Meine Interviews</Link>
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -115,16 +113,10 @@ export function SharedNavbar() {
                         <DropdownMenuItem asChild>
                           <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/interviews/explore" className="cursor-pointer">Interviews erkunden</Link>
-                        </DropdownMenuItem>
                       </>
                     )}
                     {(profile?.role === 'business' || profile?.role === 'operator') && (
                       <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/interviews" className="cursor-pointer">Interviews verwalten</Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
                         </DropdownMenuItem>
@@ -140,9 +132,6 @@ export function SharedNavbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Button variant="outline" asChild className="hidden sm:flex text-gitflash-primary border-gitflash-primary hover:bg-gitflash-primary hover:text-white hover:brightness-105 transition-all duration-300">
-                  <Link to="/interviews/explore">Finde Experten</Link>
-                </Button>
                 <Button asChild className="bg-gitflash-primary hover:bg-gitflash-primary hover:brightness-105 transition-all duration-300 text-white">
                   <Link to="/login">Anmelden</Link>
                 </Button>
@@ -172,7 +161,7 @@ export function SharedNavbar() {
         <div className="md:hidden bg-white border-t animate-fade-in">
           <nav className="px-4 pt-2 pb-4 space-y-2">
             <Link 
-              to="/interviewsdesign" 
+              to="/interviews" 
               className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
               }`}
@@ -198,13 +187,21 @@ export function SharedNavbar() {
             >
               Unternehmen
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <Link 
-                to="/interviews/explore" 
+                to="/dashboard" 
                 className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Meine Interviews
+                Dashboard
+              </Link>
+            ) : (
+              <Link 
+                to="/login" 
+                className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Anmelden
               </Link>
             )}
           </nav>
