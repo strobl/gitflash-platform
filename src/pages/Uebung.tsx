@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
 import { UebungHeader } from "@/components/uebung/UebungHeader";
-import { UebungCameraWarning } from "@/components/uebung/UebungCameraWarning";
 import { UebungStartSection, CameraStatus } from "@/components/uebung/UebungStartSection";
 import { UebungDescription } from "@/components/uebung/UebungDescription";
 import { UebungCompanyInfo } from "@/components/uebung/UebungCompanyInfo";
@@ -51,7 +50,7 @@ const Uebung: React.FC = () => {
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [interviewCategory, setInterviewCategory] = useState('general');
   
-  // New camera states with clearer state management
+  // Camera state management
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("unknown");
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
@@ -60,7 +59,7 @@ const Uebung: React.FC = () => {
   const callObjectRef = useRef(null);
   const [dailyCallObject, setDailyCallObject] = useState(null);
 
-  // Cleanup function to properly destroy the call object
+  // Clean up function to properly destroy the call object
   const cleanupCamera = () => {
     console.log("Cleaning up camera resources");
     if (callObjectRef.current) {
@@ -72,9 +71,7 @@ const Uebung: React.FC = () => {
   };
 
   useEffect(() => {
-    // Check for camera access permission status when component mounts
-    checkCameraPermissionStatus();
-    
+    // Initial fetch of interview details
     if (id) {
       fetchInterviewDetails();
     }
@@ -83,28 +80,6 @@ const Uebung: React.FC = () => {
     return cleanupCamera;
   }, [id]);
 
-  // Check camera permissions without requesting them
-  const checkCameraPermissionStatus = async () => {
-    try {
-      // Check if permissions are already granted
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const hasVideoPermission = devices.some(device => 
-        device.kind === 'videoinput' && device.label !== '');
-      
-      console.log("Camera permission status check:", hasVideoPermission ? "granted" : "unknown");
-      
-      if (hasVideoPermission) {
-        // If permissions are already granted, we can initialize the camera later
-        setCameraStatus("unknown"); // Still need to activate
-      } else {
-        setCameraStatus("unknown"); // Need to request
-      }
-    } catch (err) {
-      console.error("Error checking camera permission:", err);
-      setCameraStatus("unknown");
-    }
-  };
-  
   // Request and initialize camera
   const requestCameraAccess = async () => {
     // If camera is already active or being requested, do nothing
@@ -248,8 +223,6 @@ const Uebung: React.FC = () => {
     } catch (error) {
       console.error('Error starting interview:', error);
       toast.error('Fehler beim Starten des Interviews. Bitte versuche es erneut.');
-      throw error;
-    } finally {
       setIsStarting(false);
     }
   };
@@ -321,14 +294,6 @@ const Uebung: React.FC = () => {
           category={categoryInfo}
         />
         
-        {/* Camera Access Warning - only show when needed */}
-        {!conversationUrl && (
-          <UebungCameraWarning 
-            onRequestCameraAccess={requestCameraAccess}
-            cameraStatus={cameraStatus}
-          />
-        )}
-        
         {/* Camera Preview (when camera is active but interview not started) */}
         {dailyCallObject && cameraStatus === "ready" && localSessionId && !conversationUrl && (
           <DailyProvider callObject={dailyCallObject}>
@@ -351,17 +316,15 @@ const Uebung: React.FC = () => {
           </DailyProvider>
         )}
         
-        {/* Interview start section - always show if no conversation is running */}
+        {/* Start Section with Camera Permission UI */}
         {!conversationUrl && (
-          <div className="mt-8">
-            <UebungStartSection 
-              isStarting={isStarting}
-              onStartInterview={handleStartInterview}
-              isAuthenticated={isAuthenticated}
-              cameraStatus={cameraStatus}
-              onRequestCameraAccess={requestCameraAccess}
-            />
-          </div>
+          <UebungStartSection 
+            isStarting={isStarting}
+            onStartInterview={handleStartInterview}
+            isAuthenticated={isAuthenticated}
+            cameraStatus={cameraStatus}
+            onRequestCameraAccess={requestCameraAccess}
+          />
         )}
         
         {/* Active interview view */}
