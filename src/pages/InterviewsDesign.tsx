@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -95,7 +96,8 @@ export default function InterviewsDesign() {
   }
 
   const handleInterviewSelect = (id: string) => {
-    navigate(`/interviews/${id}`);
+    // Updated to redirect to the uebung/:id route
+    navigate(`/uebung/${id}`);
   };
 
   return (
