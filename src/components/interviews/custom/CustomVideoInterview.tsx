@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -53,6 +54,27 @@ interface CustomVideoInterviewProps {
   onSessionStatusChange?: (status: string) => void;
 }
 
+// Create a singleton instance of the DailyCall object
+// This ensures we only have one instance throughout the application
+let dailyCallSingleton: DailyCall | null = null;
+
+// Function to get or create the singleton Daily call object
+const getDailyCallInstance = (): DailyCall => {
+  if (!dailyCallSingleton) {
+    dailyCallSingleton = DailyIframe.createCallObject();
+    
+    // Add cleanup for when the app unmounts
+    window.addEventListener('beforeunload', () => {
+      if (dailyCallSingleton) {
+        dailyCallSingleton.destroy().catch(console.error);
+        dailyCallSingleton = null;
+      }
+    });
+  }
+  
+  return dailyCallSingleton;
+};
+
 // Main wrapper component that creates the Daily call object and provides it via context
 export function CustomVideoInterview({ 
   conversationUrl, 
@@ -71,15 +93,19 @@ export function CustomVideoInterview({
   // Initialize the Daily call object when the component mounts
   useEffect(() => {
     if (!callObject) {
-      const daily = DailyIframe.createCallObject();
+      // Use the singleton pattern to get the Daily call instance
+      const daily = getDailyCallInstance();
       setCallObject(daily);
-      
-      return () => {
-        // Clean up the call object when component unmounts
-        daily.destroy().catch(console.error);
-      };
     }
-  }, []);
+    
+    // No need for cleanup here as we're managing the singleton elsewhere
+    return () => {
+      // Only leave the call if we're in one, but don't destroy the object
+      if (callObject && localUrl) {
+        callObject.leave().catch(console.error);
+      }
+    };
+  }, [callObject, localUrl]);
   
   // Update the local URL when the prop changes
   useEffect(() => {
@@ -108,15 +134,20 @@ export function CustomVideoInterview({
       setSessionStatus('active');
       toast.success("Interview erfolgreich gestartet!");
       
-      // Recreate call object with new URL
+      // Instead of recreating the call object, just join with the new URL
       if (callObject) {
-        await callObject.destroy();
+        // Make sure we're not in a call first
+        if (callObject.participants().local) {
+          try {
+            await callObject.leave();
+          } catch (error) {
+            console.error("Failed to leave previous call:", error);
+          }
+        }
+        
+        // Update the URL without recreating the call object
+        callObject.properties.url = newUrl;
       }
-      
-      const daily = DailyIframe.createCallObject({
-        url: newUrl
-      });
-      setCallObject(daily);
       
     } catch (error) {
       console.error("Failed to start interview:", error);
@@ -399,7 +430,6 @@ const VideoCallUI = ({
                 mirror={false}
                 automirror={false}
                 fit="cover"
-                type="video"
                 className="h-full w-full object-cover"
               />
             ))
@@ -421,7 +451,6 @@ const VideoCallUI = ({
               mirror={true}
               automirror={true}
               fit="cover"
-              type="video"
               className="h-full w-full object-cover"
             />
             
