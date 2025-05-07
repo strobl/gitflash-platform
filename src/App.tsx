@@ -14,6 +14,7 @@ import InterviewsDesign from "./pages/InterviewsDesign";
 import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
+import Uebung from "./pages/Uebung";
 
 // Wir entfernen den Import der CSS-Datei, die nicht existiert
 // import '@daily-co/daily-react/dist/styles.css';
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/interviews/create" element={<CreateInterview />} />
             <Route path="/interviews/:id" element={<InterviewDetail />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/uebung" element={<Uebung />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
