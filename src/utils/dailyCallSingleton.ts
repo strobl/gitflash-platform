@@ -42,7 +42,7 @@ export const getDailyCallInstance = (): DailyCall => {
       if (currentAudioOutputDeviceId) {
         try {
           console.log(`Setting audio output device to ${currentAudioOutputDeviceId}`);
-          dailyCallSingleton?.setOutputDevice({ outputDeviceId: currentAudioOutputDeviceId });
+          dailyCallSingleton?.setOutputDeviceAsync({ outputDeviceId: currentAudioOutputDeviceId });
         } catch (error) {
           console.error("Failed to set audio output device on join:", error);
         }
@@ -80,7 +80,7 @@ export const setAudioOutputDevice = async (deviceId: string): Promise<void> => {
   if (dailyCallSingleton) {
     try {
       console.log(`Setting audio output device to ${deviceId}`);
-      await dailyCallSingleton.setOutputDevice({ outputDeviceId: deviceId });
+      await dailyCallSingleton.setOutputDeviceAsync({ outputDeviceId: deviceId });
     } catch (error) {
       console.error("Error setting audio output device:", error);
       throw error;

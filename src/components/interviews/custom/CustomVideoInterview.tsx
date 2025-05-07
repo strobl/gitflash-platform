@@ -305,14 +305,14 @@ const VideoCallUI = ({
     }, [])
   );
   
-  // New event for audio output changes
+  // Listen for device changes instead of using the invalid "output-devices-updated" event
   useDailyEvent(
-    'output-devices-updated',
+    'available-devices-updated',
     useCallback((ev: any) => {
-      console.log("Output devices updated:", ev);
-      if (ev && ev.outputDeviceId) {
+      console.log("Available devices updated:", ev);
+      if (ev && ev.devices) {
         setHasAudioOutput(true);
-        toast.success("Audioausgabegerät erfolgreich geändert");
+        toast.success("Audioausgabegerät erfolgreich erkannt");
       }
     }, [])
   );
