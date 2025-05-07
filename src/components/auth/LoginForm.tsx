@@ -58,6 +58,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => 
         }
         
         await login(email, password);
+        // Navigate to redirectUrl after successful login
+        console.log("Login successful, redirecting to:", redirectUrl);
         navigate(redirectUrl);
       }
     } catch (error: any) {

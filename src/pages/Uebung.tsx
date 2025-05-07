@@ -193,8 +193,9 @@ const Uebung: React.FC = () => {
     
     // Check if the user is authenticated
     if (!isAuthenticated) {
-      // If not logged in, redirect to the login page
+      // If not logged in, redirect to the login page with the current path as redirect parameter
       const currentPath = `/uebung/${id}`;
+      console.log("User not authenticated, redirecting to login with redirect parameter:", currentPath);
       navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
