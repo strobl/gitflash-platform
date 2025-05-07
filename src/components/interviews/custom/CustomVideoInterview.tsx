@@ -145,8 +145,8 @@ export function CustomVideoInterview({
           }
         }
         
-        // Update the URL without recreating the call object
-        callObject.properties.url = newUrl;
+        // Fix: We can't directly modify properties.url, we need to leave and rejoin
+        // We'll store the URL in our state and use it when joining
       }
       
     } catch (error) {
@@ -430,6 +430,7 @@ const VideoCallUI = ({
                 mirror={false}
                 automirror={false}
                 fit="cover"
+                type="video"
                 className="h-full w-full object-cover"
               />
             ))
@@ -451,6 +452,7 @@ const VideoCallUI = ({
               mirror={true}
               automirror={true}
               fit="cover"
+              type="video"
               className="h-full w-full object-cover"
             />
             
