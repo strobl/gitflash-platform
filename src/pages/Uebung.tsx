@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
 import { ChevronLeft, Camera } from "lucide-react";
@@ -42,15 +42,20 @@ const CATEGORIES = {
 const Uebung: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { 
     shouldActivateCamera, 
+    activateCamera,
     deactivateCamera, 
     isInitiallyRequested, 
     setInitiallyRequested,
+    interviewRedirectId,
     setInterviewRedirectId,
     isAutoActivationEnabled,
-    setAutoActivationEnabled
+    setAutoActivationEnabled,
+    hasRedirectedFromLogin,
+    setHasRedirectedFromLogin
   } = useCamera();
   
   const [interview, setInterview] = useState<any>(null);
@@ -73,12 +78,18 @@ const Uebung: React.FC = () => {
   useEffect(() => {
     console.log("Uebung: Component mounted, initializing camera resources");
     
+    // Check if we're coming from the login page based on the interviewRedirectId
+    if (id && interviewRedirectId === id && isAutoActivationEnabled) {
+      console.log("Uebung: Detected we're coming back from login with interview ID:", id);
+      setHasRedirectedFromLogin(true);
+    }
+    
     // Clean up function to run when component unmounts
     return () => {
       console.log("Uebung: Component unmounted, cleaning up camera resources");
       // We don't destroy the singleton here anymore - it will persist until explicitly destroyed
     };
-  }, []);
+  }, [id, interviewRedirectId, isAutoActivationEnabled, setHasRedirectedFromLogin]);
 
   // Effect to fetch interview details
   useEffect(() => {
@@ -90,24 +101,27 @@ const Uebung: React.FC = () => {
     }
   }, [id, setInterviewRedirectId]);
   
-  // Auto-activate camera if coming back from login or if auto-activation is enabled
+  // Auto-activate camera if redirected from login with auto-activation enabled
   useEffect(() => {
-    if (isAuthenticated && isAutoActivationEnabled && id) {
-      console.log(`Uebung: Auto-activation enabled, interview ID: ${id}`);
+    if (isAuthenticated && id) {
+      console.log(`Uebung: Authentication check - ID: ${id}, redirectID: ${interviewRedirectId}, autoActivation: ${isAutoActivationEnabled}, hasRedirected: ${hasRedirectedFromLogin}`);
       
-      if (shouldActivateCamera) {
-        console.log("Uebung: Camera already being activated, nothing to do");
-      } else {
-        console.log("Uebung: Auto-requesting camera access after login redirect");
+      // Check if we should auto-activate camera
+      if (isAutoActivationEnabled && 
+          id === interviewRedirectId && 
+          hasRedirectedFromLogin && 
+          cameraStatus === "unknown") {
+        console.log("Uebung: Auto-activating camera after login redirect");
         setInitiallyRequested(true);
         requestCameraAccess();
+        
+        // Reset the auto-activation flag and redirect flag to prevent duplicate activations
+        setAutoActivationEnabled(false);
+        setHasRedirectedFromLogin(false);
+        console.log("Uebung: Reset auto-activation and redirect flags");
       }
-      
-      // Reset auto-activation flag after use
-      setAutoActivationEnabled(false);
-      console.log("Uebung: Reset auto-activation flag");
     }
-  }, [isAuthenticated, shouldActivateCamera, isAutoActivationEnabled, id, setInitiallyRequested, setAutoActivationEnabled]);
+  }, [isAuthenticated, id, interviewRedirectId, isAutoActivationEnabled, hasRedirectedFromLogin, cameraStatus, setInitiallyRequested, setAutoActivationEnabled, setHasRedirectedFromLogin]);
 
   // Request and initialize camera
   const requestCameraAccess = async () => {
@@ -308,8 +322,11 @@ const Uebung: React.FC = () => {
       // Reset camera context when leaving this component
       deactivateCamera();
       setInitiallyRequested(false);
+      
+      // Explicitly reset redirect flags when unmounting
+      setHasRedirectedFromLogin(false);
     };
-  }, [deactivateCamera, setInitiallyRequested]);
+  }, [deactivateCamera, setInitiallyRequested, setHasRedirectedFromLogin]);
 
   if (isLoading) {
     return (

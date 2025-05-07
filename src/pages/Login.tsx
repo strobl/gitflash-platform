@@ -14,18 +14,16 @@ export default function Login() {
   
   console.log('Login: redirect =', redirectTo, ', activateCamera =', shouldActivateCamera);
   
-  // Extract interview ID from redirect URL and store camera activation preference
-  useEffect(() => {
-    if (redirectTo.includes('/uebung/')) {
-      const interviewId = redirectTo.split('/uebung/')[1];
-      console.log("Login: Storing interview ID from redirect URL:", interviewId);
-      setInterviewRedirectId(interviewId);
-      
-      // If we're redirecting from an interview, we want to auto-activate the camera when returning
-      setAutoActivationEnabled(shouldActivateCamera);
-      console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
-    }
-  }, [redirectTo, setInterviewRedirectId, shouldActivateCamera, setAutoActivationEnabled]);
+  // Extract interview ID from redirect URL and store camera activation preference immediately
+  if (redirectTo.includes('/uebung/')) {
+    const interviewId = redirectTo.split('/uebung/')[1];
+    console.log("Login: Storing interview ID from redirect URL:", interviewId);
+    setInterviewRedirectId(interviewId);
+    
+    // Set auto-activation flag based on URL parameter
+    console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
+    setAutoActivationEnabled(shouldActivateCamera);
+  }
   
   // Redirect to specified path or dashboard if already authenticated
   if (isAuthenticated) {

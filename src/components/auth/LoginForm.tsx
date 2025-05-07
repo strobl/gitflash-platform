@@ -24,7 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   shouldActivateCamera = false
 }) => {
   const { login, register, isLoading } = useAuth();
-  const { activateCamera, interviewRedirectId, isAutoActivationEnabled } = useCamera();
+  const { interviewRedirectId } = useCamera();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -65,18 +65,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         await login(email, password);
         
-        // Check if we should activate the camera before redirecting
-        const shouldAutoActivate = (
-          shouldActivateCamera || 
-          (isAutoActivationEnabled && redirectUrl.includes('/uebung/') && interviewRedirectId)
-        );
+        // No camera activation here - just navigate to the redirectUrl
+        // The Uebung component will handle camera activation when it loads
+        console.log("LoginForm: Login successful, redirecting to:", redirectUrl);
         
-        if (shouldAutoActivate) {
-          console.log("LoginForm: Login successful, activating camera before redirect to:", redirectUrl);
-          activateCamera();
+        // If we're going to an interview, log that information
+        if (redirectUrl.includes('/uebung/') && interviewRedirectId) {
+          console.log("LoginForm: Redirecting to interview:", interviewRedirectId);
         }
         
-        console.log("LoginForm: Login successful, redirecting to:", redirectUrl);
         navigate(redirectUrl);
       }
     } catch (error: any) {
