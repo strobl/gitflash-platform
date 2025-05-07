@@ -16,9 +16,6 @@ import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import Uebung from "./pages/Uebung";
 
-// Wir entfernen den Import der CSS-Datei, die nicht existiert
-// import '@daily-co/daily-react/dist/styles.css';
-
 const queryClient = new QueryClient();
 
 const App = () => (

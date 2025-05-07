@@ -108,8 +108,9 @@ export const UebungContent: React.FC = () => {
   }, [activeCategory]);
 
   const handleInterviewSelect = (id: string) => {
-    console.log(`Navigating to /uebung/${id}`);
-    navigate(`/uebung/${id}`);
+    // Use window.location for direct navigation instead of React Router
+    console.log(`Directly navigating to /uebung/${id}`);
+    window.location.href = `/uebung/${id}`;
   };
 
   return (

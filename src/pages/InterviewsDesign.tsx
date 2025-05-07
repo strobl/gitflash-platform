@@ -96,8 +96,9 @@ export default function InterviewsDesign() {
   }
 
   const handleInterviewSelect = (id: string) => {
-    // Updated to redirect to the uebung/:id route
-    navigate(`/uebung/${id}`);
+    // Use window.location for a direct navigation instead of React Router
+    console.log(`Directly navigating to /uebung/${id}`);
+    window.location.href = `/uebung/${id}`;
   };
 
   return (
