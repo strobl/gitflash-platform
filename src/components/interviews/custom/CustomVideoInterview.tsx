@@ -71,10 +71,7 @@ export function CustomVideoInterview({
   // Initialize the Daily call object when the component mounts
   useEffect(() => {
     if (!callObject) {
-      const daily = DailyIframe.createCallObject({
-        // Entfernung der nicht unterstützten Konfiguration
-        // Wir verwenden jetzt die Standard-Konfiguration 
-      });
+      const daily = DailyIframe.createCallObject();
       setCallObject(daily);
       
       return () => {
@@ -118,7 +115,6 @@ export function CustomVideoInterview({
       
       const daily = DailyIframe.createCallObject({
         url: newUrl
-        // Entfernung der nicht unterstützten Konfiguration
       });
       setCallObject(daily);
       
@@ -249,7 +245,7 @@ const VideoCallUI = ({
     'camera-error',
     useCallback((ev) => {
       console.error('Camera error:', ev);
-      if (ev.errorMsg?.includes('Permission denied')) {
+      if (ev.errorMsg && typeof ev.errorMsg === 'string' && ev.errorMsg.includes('Permission denied')) {
         setHasCameraPermission(false);
         toast.error('Kamera-Zugriff verweigert. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.');
       } else {
@@ -260,15 +256,15 @@ const VideoCallUI = ({
   
   // Track local participant's audio and video state
   useDailyEvent(
-    'local-audio-changed',
-    useCallback((ev) => {
+    'local-audio-changed' as any,
+    useCallback((ev: any) => {
       setIsAudioMuted(!ev?.on);
     }, [])
   );
   
   useDailyEvent(
-    'local-video-changed',
-    useCallback((ev) => {
+    'local-video-changed' as any,
+    useCallback((ev: any) => {
       setIsVideoMuted(!ev?.on);
     }, [])
   );
@@ -421,8 +417,8 @@ const VideoCallUI = ({
           <div className="absolute bottom-4 right-4 w-32 h-24 md:w-40 md:h-32 bg-black rounded-md overflow-hidden border-2 border-white/40 shadow-lg">
             <DailyVideo 
               sessionId={localSessionId} 
-              mirror
-              automirror
+              mirror={true}
+              automirror={true}
               fit="cover"
               className="h-full w-full object-cover"
             />
@@ -485,11 +481,13 @@ const VideoCallUI = ({
 
 // Device settings component (dropdown to select camera/mic)
 const DeviceSettings = () => {
-  const { 
-    cameras, microphones, speakers, 
-    setCamera, setMicrophone, setSpeaker, 
-    selectedDeviceIds
-  } = useDevices();
+  const deviceHook = useDevices();
+  const { cameras, microphones, speakers, setCamera, setMicrophone, setSpeaker } = deviceHook;
+  
+  // Extrahieren der deviceIds aus dem Hook-Ergebnis
+  const selectedCameraId = cameras.find(c => c.selected)?.device.deviceId || '';
+  const selectedMicrophoneId = microphones.find(m => m.selected)?.device.deviceId || '';
+  const selectedSpeakerId = speakers.find(s => s.selected)?.device.deviceId || '';
 
   return (
     <Sheet>
@@ -514,7 +512,7 @@ const DeviceSettings = () => {
               Kamera
             </label>
             <Select 
-              value={selectedDeviceIds?.camera} 
+              value={selectedCameraId}
               onValueChange={setCamera}
             >
               <SelectTrigger id="camera">
@@ -542,7 +540,7 @@ const DeviceSettings = () => {
               Mikrofon
             </label>
             <Select 
-              value={selectedDeviceIds?.mic} 
+              value={selectedMicrophoneId}
               onValueChange={setMicrophone}
             >
               <SelectTrigger id="microphone">
@@ -570,7 +568,7 @@ const DeviceSettings = () => {
               Lautsprecher
             </label>
             <Select 
-              value={selectedDeviceIds?.speaker} 
+              value={selectedSpeakerId}
               onValueChange={setSpeaker}
             >
               <SelectTrigger id="speaker">
