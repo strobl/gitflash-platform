@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -11,6 +10,7 @@ import {
   DailyVideo
 } from '@daily-co/daily-react';
 import DailyIframe from '@daily-co/daily-js';
+import type { DailyCall } from '@daily-co/daily-js';
 import { Button } from '@/components/ui/button';
 import { updateInterviewSessionStatus } from '@/services/tavusService';
 import { 
@@ -66,7 +66,7 @@ export function CustomVideoInterview({
   const [isStarting, setIsStarting] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(conversationUrl);
   const [sessionStatus, setSessionStatus] = useState<string | undefined>(status);
-  const [callObject, setCallObject] = useState<DailyIframe.DailyCall | null>(null);
+  const [callObject, setCallObject] = useState<DailyCall | null>(null);
   
   // Initialize the Daily call object when the component mounts
   useEffect(() => {
