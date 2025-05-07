@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 const getCategoryForInterview = (interview) => {
   if (!interview) return 'general';
   
-  const name = interview.conversation_name.toLowerCase();
+  const name = interview.conversation_name?.toLowerCase() || '';
   const context = interview.conversation_context?.toLowerCase() || '';
   
   if (name.includes('architekt') || context.includes('architekt')) return 'architecture';
@@ -56,7 +56,9 @@ const Uebung: React.FC = () => {
     
     try {
       setIsLoading(true);
+      console.log(`Fetching interview with ID: ${id}`);
       const data = await getConversation(id);
+      console.log("Interview data:", data);
       setInterview(data);
       
       // Kategorie bestimmen

@@ -108,7 +108,7 @@ export const UebungContent: React.FC = () => {
   }, [activeCategory]);
 
   const handleInterviewSelect = (id: string) => {
-    // Changed to redirect to the new uebung/:id route instead of interviews/:id
+    console.log(`Navigating to /uebung/${id}`);
     navigate(`/uebung/${id}`);
   };
 
