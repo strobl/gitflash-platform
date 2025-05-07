@@ -33,7 +33,7 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
           ruhigen Umgebung befindest und deine Kamera sowie dein Mikrofon funktionieren.
         </p>
         
-        <button 
+        <Button 
           onClick={onStartInterview} 
           className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-8 py-[11px] h-auto text-lg rounded-[100px] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isStarting || !isAuthenticated || !hasDeviceAccess}
@@ -49,7 +49,7 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
               <ArrowRight className="h-5 w-5" />
             </>
           )}
-        </button>
+        </Button>
         
         {!isAuthenticated && (
           <p className="text-sm text-gray-500 mt-4">

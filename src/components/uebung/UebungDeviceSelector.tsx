@@ -10,6 +10,7 @@ import {
 import { useDevices } from "@daily-co/daily-react";
 
 export const UebungDeviceSelector: React.FC = () => {
+  // Get device information from Daily's hook
   const { 
     cameras, microphones, speakers, 
     setCamera, setMicrophone, setSpeaker 
@@ -44,6 +45,9 @@ export const UebungDeviceSelector: React.FC = () => {
                   {camera.device.label || `Kamera ${camera.device.deviceId.slice(0, 5)}...`}
                 </SelectItem>
               ))}
+              {(!cameras || cameras.length === 0) && (
+                <SelectItem value="no-cameras">Keine Kameras gefunden</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -70,6 +74,9 @@ export const UebungDeviceSelector: React.FC = () => {
                   {mic.device.label || `Mikrofon ${mic.device.deviceId.slice(0, 5)}...`}
                 </SelectItem>
               ))}
+              {(!microphones || microphones.length === 0) && (
+                <SelectItem value="no-mics">Keine Mikrofone gefunden</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
