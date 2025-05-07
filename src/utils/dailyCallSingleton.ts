@@ -11,18 +11,18 @@ export const getDailyCallInstance = (): DailyCall => {
   if (!dailyCallSingleton) {
     console.log("Creating new Daily call singleton");
     
-    // Improved configuration for audio/video
+    // Improved configuration for audio/video that matches the Daily API types
     dailyCallSingleton = DailyIframe.createCallObject({
-      // Enable both audio input and output explicitly
-      audioSource: true,           // Microphone input
-      videoSource: true,           // Camera input
+      // Enable camera and microphone
+      videoSource: true,
+      audioSource: true,
       dailyConfig: {
-        experimentalChromeVideoMuteLightOff: true,
+        // Remove unsupported property
         userMediaAudioConstraints: {
           echoCancellation: true,
           noiseSuppression: true,
         },
-        // Explicitly enable speaker output
+        // Enable speaker output
         userMediaAudioOutput: true,
       }
     });
@@ -48,7 +48,11 @@ export const getDailyCallInstance = (): DailyCall => {
     window.addEventListener('beforeunload', () => {
       if (dailyCallSingleton) {
         console.log("Cleaning up Daily call singleton on window unload");
-        dailyCallSingleton.destroy().catch(console.error);
+        try {
+          dailyCallSingleton.destroy();
+        } catch (error) {
+          console.error("Error destroying Daily call:", error);
+        }
         dailyCallSingleton = null;
       }
     });
@@ -63,7 +67,11 @@ export const getDailyCallInstance = (): DailyCall => {
 export const destroyDailyCallInstance = () => {
   if (dailyCallSingleton) {
     console.log("Destroying Daily call singleton");
-    dailyCallSingleton.destroy().catch(console.error);
+    try {
+      dailyCallSingleton.destroy();
+    } catch (error) {
+      console.error("Error destroying Daily call:", error);
+    }
     dailyCallSingleton = null;
   }
 };

@@ -10,7 +10,7 @@ import {
   useLocalSessionId,
   DailyVideo
 } from '@daily-co/daily-react';
-import type { DailyCall } from '@daily-co/daily-js';
+import type { DailyCall, DailyEventObject } from '@daily-co/daily-js';
 import { Button } from '@/components/ui/button';
 import { updateInterviewSessionStatus } from '@/services/tavusService';
 import { 
@@ -88,7 +88,11 @@ export function CustomVideoInterview({
       // Only leave the call if we're in one, but don't destroy the object
       if (callObject && localUrl) {
         console.log("Leaving call but keeping singleton alive");
-        callObject.leave().catch(console.error);
+        try {
+          callObject.leave();
+        } catch (error) {
+          console.error("Error leaving call:", error);
+        }
       }
     };
   }, [callObject, localUrl]);
@@ -237,9 +241,11 @@ const VideoCallUI = ({
         // Try to ensure audio is unmuted
         if (!callObject.localAudio()) {
           console.log("Trying to enable audio on join...");
-          callObject.setLocalAudio(true).catch(e => {
+          try {
+            callObject.setLocalAudio(true);
+          } catch (e) {
             console.error("Failed to enable audio:", e);
-          });
+          }
         }
       }
     }, [callObject])
@@ -269,20 +275,30 @@ const VideoCallUI = ({
     }, [])
   );
   
-  // Track local participant's audio and video state
+  // Track local participant's audio and video state using standard event names
   useDailyEvent(
-    'local-audio-changed',
-    useCallback((ev: any) => {
-      console.log("Audio state changed:", ev);
-      setIsAudioMuted(!ev?.on);
+    'track-started',
+    useCallback((ev: DailyEventObject) => {
+      if (ev.track.kind === 'audio') {
+        console.log("Audio track started");
+        setIsAudioMuted(false);
+      } else if (ev.track.kind === 'video') {
+        console.log("Video track started");
+        setIsVideoMuted(false);
+      }
     }, [])
   );
   
   useDailyEvent(
-    'local-video-changed',
-    useCallback((ev: any) => {
-      console.log("Video state changed:", ev);
-      setIsVideoMuted(!ev?.on);
+    'track-stopped',
+    useCallback((ev: DailyEventObject) => {
+      if (ev.track.kind === 'audio') {
+        console.log("Audio track stopped");
+        setIsAudioMuted(true);
+      } else if (ev.track.kind === 'video') {
+        console.log("Video track stopped");
+        setIsVideoMuted(true);
+      }
     }, [])
   );
   
@@ -326,8 +342,9 @@ const VideoCallUI = ({
           
           // Start camera first with explicit audio enabled
           await callObject.startCamera({
-            audio: true,
-            video: true
+            // Use the standard properties for Daily API
+            video: true,
+            audio: true
           });
           
           console.log("Camera/mic started, joining with URL:", conversationUrl);
@@ -335,18 +352,18 @@ const VideoCallUI = ({
           // Then join the meeting
           await callObject.join({ 
             url: conversationUrl,
-            // Force audio to be enabled at join time
-            audio: true,
-            video: true
+            // Don't specify audio/video here as they're already started
           });
           
           // Add a short delay and then check audio status
           setTimeout(() => {
             if (callObject && !callObject.localAudio()) {
               console.log("Audio still not enabled after join, trying again");
-              callObject.setLocalAudio(true).catch(e => {
+              try {
+                callObject.setLocalAudio(true);
+              } catch (e) {
                 console.error("Failed to enable audio on retry:", e);
-              });
+              }
             }
           }, 1000);
           
@@ -362,7 +379,11 @@ const VideoCallUI = ({
     
     return () => {
       if (callObject && isJoined) {
-        callObject.leave().catch(console.error);
+        try {
+          callObject.leave();
+        } catch (error) {
+          console.error("Error leaving call:", error);
+        }
       }
     };
   }, [callObject, isJoined, isJoining, conversationUrl, isClosed]);
@@ -591,7 +612,11 @@ const DeviceSettings = () => {
       
       // Force unmute after mic change
       if (daily) {
-        await daily.setLocalAudio(true);
+        try {
+          daily.setLocalAudio(true);
+        } catch (err) {
+          console.error("Error unmuting after mic change:", err);
+        }
       }
       
       toast.success('Mikrofon erfolgreich geändert');

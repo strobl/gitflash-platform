@@ -91,10 +91,10 @@ const Uebung: React.FC = () => {
       const callObject = getDailyCallInstance();
       
       console.log("Starting camera");
-      // Start camera with explicit audio settings
+      // Start camera with explicit audio settings using daily.js API
       await callObject.startCamera({
-        audio: true,
-        video: true
+        video: true,
+        audio: true
       });
       
       console.log("Camera started successfully");
