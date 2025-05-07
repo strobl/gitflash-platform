@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { CustomVideoInterview } from "@/components/interviews/custom/CustomVideoInterview";
-import { ChevronLeft, Play, ArrowRight, AlertTriangle } from "lucide-react";
+import { ChevronLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
@@ -52,6 +52,7 @@ const Uebung: React.FC = () => {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [localSessionId, setLocalSessionId] = useState<string | null>(null);
   const [similarInterviews, setSimilarInterviews] = useState([]);
+  const [showCameraWarning, setShowCameraWarning] = useState(true);
   
   // Reference to Daily call object
   const callObjectRef = useRef(null);
@@ -77,19 +78,22 @@ const Uebung: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setHasCamera(true);
-      setIsCameraActive(true);
+      // Don't automatically set camera as active, wait for user to click the button
+      setShowCameraWarning(false);  // Hide warning if permissions already granted
       // Always stop the stream so we don't keep the camera on unnecessarily
       stream.getTracks().forEach(track => track.stop());
     } catch (err) {
       console.log("Camera access denied or unavailable:", err);
       setHasCamera(false);
       setIsCameraActive(false);
+      setShowCameraWarning(true);  // Show warning if permissions not granted
     }
   };
   
   const startCamera = async () => {
     try {
       if (!callObjectRef.current) {
+        console.log("Initializing Daily call object for preview");
         // Initialize Daily call object for preview
         const DailyIFrame = (await import('@daily-co/daily-js')).default;
         callObjectRef.current = DailyIFrame.createCallObject();
@@ -97,13 +101,25 @@ const Uebung: React.FC = () => {
         // Join with camera/mic on
         await callObjectRef.current.startCamera();
         setIsCameraActive(true);
-        setLocalSessionId(callObjectRef.current.participants().local.session_id);
+        setHasCamera(true);
+        setShowCameraWarning(false); // Hide warning once camera is active
+        
+        // Get the local participant's session ID for the video preview
+        const participants = callObjectRef.current.participants();
+        if (participants && participants.local) {
+          setLocalSessionId(participants.local.session_id);
+          console.log("Local session ID set:", participants.local.session_id);
+        } else {
+          console.error("Could not get local participant", participants);
+        }
+        
         toast.success('Kamera erfolgreich aktiviert');
       }
     } catch (err) {
       console.error("Error starting camera:", err);
-      toast.error('Fehler beim Aktivieren der Kamera');
+      toast.error('Fehler beim Aktivieren der Kamera. Bitte erlaube den Zugriff in deinen Browsereinstellungen.');
       setHasCamera(false);
+      setShowCameraWarning(true);
     }
   };
 
@@ -173,9 +189,9 @@ const Uebung: React.FC = () => {
     }
     
     // Check if camera access is available
-    if (!hasCamera) {
+    if (!hasCamera || !isCameraActive) {
       toast.error('Kamerazugriff ist für das Interview erforderlich');
-      await checkCameraAccess(); // Try to request camera permission again
+      await startCamera(); // Try to request camera permission
       return;
     }
     
@@ -223,6 +239,7 @@ const Uebung: React.FC = () => {
 
   // Camera access button handler
   const handleRequestCameraAccess = async () => {
+    console.log("Requesting camera access");
     await startCamera();
   };
 
@@ -285,19 +302,9 @@ const Uebung: React.FC = () => {
           category={categoryInfo}
         />
         
-        {/* Camera Access Warning */}
-        {hasCamera === false && !conversationUrl && (
-          <>
-            <UebungCameraWarning />
-            <div className="flex justify-center mb-6">
-              <button 
-                onClick={handleRequestCameraAccess}
-                className="bg-white text-[#1A1F2C] border border-[#1A1F2C] px-6 py-2 rounded-[100px] hover:bg-[#1A1F2C]/5 transition-colors"
-              >
-                Kamerazugriff erlauben
-              </button>
-            </div>
-          </>
+        {/* Camera Access Warning - always show initially or if camera access is denied */}
+        {showCameraWarning && !conversationUrl && (
+          <UebungCameraWarning onRequestCameraAccess={handleRequestCameraAccess} />
         )}
         
         {/* Camera Preview (when camera is active but interview not started) */}
@@ -317,26 +324,29 @@ const Uebung: React.FC = () => {
           </div>
         )}
         
-        {/* Interview content */}
-        <div className="mt-8">
-          {!conversationUrl ? (
+        {/* Interview content - only show start section if camera is active */}
+        {(!showCameraWarning || isCameraActive) && !conversationUrl && (
+          <div className="mt-8">
             <UebungStartSection 
               isStarting={isStarting}
               onStartInterview={handleStartInterview}
               isAuthenticated={isAuthenticated}
             />
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-              <CustomVideoInterview 
-                conversationUrl={conversationUrl} 
-                interviewId={id}
-                sessionId={sessionId}
-                status={sessionStatus}
-                onSessionStatusChange={handleSessionStatusChange}
-              />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+        
+        {/* Active interview view */}
+        {conversationUrl && (
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-8">
+            <CustomVideoInterview 
+              conversationUrl={conversationUrl} 
+              interviewId={id}
+              sessionId={sessionId}
+              status={sessionStatus}
+              onSessionStatusChange={handleSessionStatusChange}
+            />
+          </div>
+        )}
         
         {/* Interview Description */}
         <UebungDescription 
