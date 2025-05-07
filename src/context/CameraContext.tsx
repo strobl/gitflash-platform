@@ -23,12 +23,12 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const [isAutoActivationEnabled, setAutoActivationEnabled] = useState(true);
 
   const activateCamera = () => {
-    console.log("Camera activation requested via context");
+    console.log("CameraContext: Camera activation requested via context");
     setShouldActivateCamera(true);
   };
 
   const deactivateCamera = () => {
-    console.log("Camera deactivation requested via context");
+    console.log("CameraContext: Camera deactivation requested via context");
     setShouldActivateCamera(false);
   };
 
@@ -41,9 +41,15 @@ export function CameraProvider({ children }: { children: ReactNode }) {
         isInitiallyRequested,
         setInitiallyRequested,
         interviewRedirectId,
-        setInterviewRedirectId,
+        setInterviewRedirectId: (id) => {
+          console.log("CameraContext: setInterviewRedirectId", id);
+          setInterviewRedirectId(id);
+        },
         isAutoActivationEnabled,
-        setAutoActivationEnabled
+        setAutoActivationEnabled: (value) => {
+          console.log("CameraContext: setAutoActivationEnabled", value);
+          setAutoActivationEnabled(value);
+        }
       }}
     >
       {children}

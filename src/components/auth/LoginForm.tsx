@@ -67,17 +67,16 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         // Check if we should activate the camera before redirecting
         const shouldAutoActivate = (
-          isAutoActivationEnabled && 
-          (redirectUrl.includes('/uebung/') || shouldActivateCamera) && 
-          interviewRedirectId
+          shouldActivateCamera || 
+          (isAutoActivationEnabled && redirectUrl.includes('/uebung/') && interviewRedirectId)
         );
         
         if (shouldAutoActivate) {
-          console.log("Login successful, activating camera before redirect to:", redirectUrl);
+          console.log("LoginForm: Login successful, activating camera before redirect to:", redirectUrl);
           activateCamera();
         }
         
-        console.log("Login successful, redirecting to:", redirectUrl);
+        console.log("LoginForm: Login successful, redirecting to:", redirectUrl);
         navigate(redirectUrl);
       }
     } catch (error: any) {

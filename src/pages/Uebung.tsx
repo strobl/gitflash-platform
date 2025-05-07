@@ -49,7 +49,8 @@ const Uebung: React.FC = () => {
     isInitiallyRequested, 
     setInitiallyRequested,
     setInterviewRedirectId,
-    isAutoActivationEnabled
+    isAutoActivationEnabled,
+    setAutoActivationEnabled
   } = useCamera();
   
   const [interview, setInterview] = useState<any>(null);
@@ -70,11 +71,11 @@ const Uebung: React.FC = () => {
 
   // Initialize the call object when the component mounts
   useEffect(() => {
-    console.log("Component mounted, initializing camera resources");
+    console.log("Uebung: Component mounted, initializing camera resources");
     
     // Clean up function to run when component unmounts
     return () => {
-      console.log("Component unmounted, cleaning up camera resources");
+      console.log("Uebung: Component unmounted, cleaning up camera resources");
       // We don't destroy the singleton here anymore - it will persist until explicitly destroyed
     };
   }, []);
@@ -91,12 +92,22 @@ const Uebung: React.FC = () => {
   
   // Auto-activate camera if coming back from login or if auto-activation is enabled
   useEffect(() => {
-    if (isAuthenticated && shouldActivateCamera && cameraStatus === "unknown") {
-      console.log("Auto-requesting camera access after login redirect or by auto-activation");
-      setInitiallyRequested(true);
-      requestCameraAccess();
+    if (isAuthenticated && isAutoActivationEnabled && id) {
+      console.log(`Uebung: Auto-activation enabled, interview ID: ${id}`);
+      
+      if (shouldActivateCamera) {
+        console.log("Uebung: Camera already being activated, nothing to do");
+      } else {
+        console.log("Uebung: Auto-requesting camera access after login redirect");
+        setInitiallyRequested(true);
+        requestCameraAccess();
+      }
+      
+      // Reset auto-activation flag after use
+      setAutoActivationEnabled(false);
+      console.log("Uebung: Reset auto-activation flag");
     }
-  }, [isAuthenticated, shouldActivateCamera, cameraStatus, isInitiallyRequested]);
+  }, [isAuthenticated, shouldActivateCamera, isAutoActivationEnabled, id, setInitiallyRequested, setAutoActivationEnabled]);
 
   // Request and initialize camera
   const requestCameraAccess = async () => {
@@ -217,7 +228,7 @@ const Uebung: React.FC = () => {
       // If not logged in, redirect to the login page with the current path as redirect parameter
       // and a flag to activate the camera after login
       const currentPath = `/uebung/${id}`;
-      console.log("User not authenticated, redirecting to login with redirect parameter:", currentPath);
+      console.log("Uebung: User not authenticated, redirecting to login with redirect parameter:", currentPath);
       navigate(`/login?redirect=${encodeURIComponent(currentPath)}&activateCamera=true`);
       return;
     }
@@ -293,7 +304,7 @@ const Uebung: React.FC = () => {
   useEffect(() => {
     return () => {
       // We don't destroy the singleton on normal unmount - only on explicit cleanup
-      console.log("Component unmounting");
+      console.log("Uebung: Component unmounting");
       // Reset camera context when leaving this component
       deactivateCamera();
       setInitiallyRequested(false);
