@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UebungHero } from "./UebungHero";
 import { UebungCategoryNav } from "./UebungCategoryNav";
@@ -7,7 +8,6 @@ import { UebungInterviewList } from "./UebungInterviewList";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useNavigate } from "react-router-dom";
 
 interface Interview {
   id: string;
@@ -108,7 +108,8 @@ export const UebungContent: React.FC = () => {
   }, [activeCategory]);
 
   const handleInterviewSelect = (id: string) => {
-    navigate(`/interviews/${id}`);
+    // Changed to redirect to the new uebung/:id route instead of interviews/:id
+    navigate(`/uebung/${id}`);
   };
 
   return (
