@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useCamera } from "@/context/CameraContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import EmailInput from "./EmailInput";
@@ -19,6 +20,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => {
   const { login, register, isLoading } = useAuth();
+  const { activateCamera, interviewRedirectId } = useCamera();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -58,7 +60,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard" }) => 
         }
         
         await login(email, password);
-        // Navigate to redirectUrl after successful login
+        
+        // If we're redirecting back to an interview page, we should activate the camera
+        if (redirectUrl.includes('/uebung/') && interviewRedirectId) {
+          console.log("Login successful, activating camera before redirect to:", redirectUrl);
+          activateCamera();
+        }
+        
         console.log("Login successful, redirecting to:", redirectUrl);
         navigate(redirectUrl);
       }

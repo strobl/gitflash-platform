@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
@@ -6,6 +7,7 @@ import { ChevronLeft, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { getConversation, startConversation } from "@/services/tavusService";
 import { useAuth } from "@/context/AuthContext";
+import { useCamera } from "@/context/CameraContext";
 import { UebungHeader } from "@/components/uebung/UebungHeader";
 import { UebungStartSection, CameraStatus } from "@/components/uebung/UebungStartSection";
 import { UebungDescription } from "@/components/uebung/UebungDescription";
@@ -42,6 +44,14 @@ const Uebung: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { 
+    shouldActivateCamera, 
+    deactivateCamera, 
+    isInitiallyRequested, 
+    setInitiallyRequested,
+    setInterviewRedirectId 
+  } = useCamera();
+  
   const [interview, setInterview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
@@ -74,8 +84,19 @@ const Uebung: React.FC = () => {
     // Initial fetch of interview details
     if (id) {
       fetchInterviewDetails();
+      // Store the current interview ID in the context for potential redirects
+      setInterviewRedirectId(id);
     }
-  }, [id]);
+  }, [id, setInterviewRedirectId]);
+  
+  // Auto-activate camera if coming back from login
+  useEffect(() => {
+    if (isAuthenticated && shouldActivateCamera && cameraStatus === "unknown" && !isInitiallyRequested) {
+      console.log("Auto-requesting camera access after login redirect");
+      setInitiallyRequested(true);
+      requestCameraAccess();
+    }
+  }, [isAuthenticated, shouldActivateCamera, cameraStatus, isInitiallyRequested]);
 
   // Request and initialize camera
   const requestCameraAccess = async () => {
@@ -261,6 +282,9 @@ const Uebung: React.FC = () => {
       setCameraStatus("unknown");
       setLocalSessionId(null);
       setDailyCallObject(null);
+      
+      // Notify the camera context that we're no longer needing auto-activation
+      deactivateCamera();
     }
   };
 
@@ -269,8 +293,11 @@ const Uebung: React.FC = () => {
     return () => {
       // We don't destroy the singleton on normal unmount - only on explicit cleanup
       console.log("Component unmounting");
+      // Reset camera context when leaving this component
+      deactivateCamera();
+      setInitiallyRequested(false);
     };
-  }, []);
+  }, [deactivateCamera, setInitiallyRequested]);
 
   if (isLoading) {
     return (

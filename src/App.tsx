@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from '@/context/AuthContext';
+import { CameraProvider } from '@/context/CameraContext';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -21,24 +22,26 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/interviews" element={<InterviewsDesign />} />
-            <Route path="/interviews/create" element={<CreateInterview />} />
-            <Route path="/interviews/:id" element={<InterviewDetail />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/uebung/:id" element={<Uebung />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <CameraProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/interviews" element={<InterviewsDesign />} />
+              <Route path="/interviews/create" element={<CreateInterview />} />
+              <Route path="/interviews/:id" element={<InterviewDetail />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/uebung/:id" element={<Uebung />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CameraProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
