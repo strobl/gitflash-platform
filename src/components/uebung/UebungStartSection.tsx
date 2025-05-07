@@ -3,19 +3,30 @@ import React from "react";
 import { Play, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Define clearer camera status types
+export type CameraStatus = "unknown" | "requesting" | "denied" | "ready";
+
 interface UebungStartSectionProps {
   isStarting: boolean;
   onStartInterview: () => void;
   isAuthenticated: boolean;
-  deviceAccessReady: boolean; // Changed from hasDeviceAccess for clarity
+  cameraStatus: CameraStatus;
+  onRequestCameraAccess: () => void;
 }
 
 export const UebungStartSection: React.FC<UebungStartSectionProps> = ({ 
   isStarting, 
   onStartInterview,
   isAuthenticated,
-  deviceAccessReady
+  cameraStatus,
+  onRequestCameraAccess
 }) => {
+  // Determine if the interview button should be disabled
+  const isInterviewButtonDisabled = isStarting || !isAuthenticated || cameraStatus !== "ready";
+  
+  // Show different button based on camera status
+  const showCameraButton = cameraStatus === "denied" || cameraStatus === "unknown";
+  
   return (
     <div className="bg-white rounded-xl shadow-sm border p-8 mb-8">
       <div className="flex flex-col items-center text-center max-w-xl mx-auto">
@@ -33,10 +44,11 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
           ruhigen Umgebung befindest und deine Kamera sowie dein Mikrofon funktionieren.
         </p>
         
+        {/* Interview start button */}
         <Button 
           onClick={onStartInterview} 
           className="bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-8 py-[11px] h-auto text-lg rounded-[100px] transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isStarting || !isAuthenticated || !deviceAccessReady}
+          disabled={isInterviewButtonDisabled}
         >
           {isStarting ? (
             <>
@@ -51,15 +63,40 @@ export const UebungStartSection: React.FC<UebungStartSectionProps> = ({
           )}
         </Button>
         
+        {/* Camera access button - only show when needed */}
+        {showCameraButton && (
+          <Button 
+            onClick={onRequestCameraAccess}
+            variant="outline" 
+            className="mt-4 border border-gitflash-primary text-gitflash-primary hover:bg-gitflash-primary/10 transition-colors"
+          >
+            Kamerazugriff erlauben
+          </Button>
+        )}
+        
+        {/* Authentication message */}
         {!isAuthenticated && (
           <p className="text-sm text-gray-500 mt-4">
             Zum Starten des Interviews ist ein Login erforderlich.
           </p>
         )}
         
-        {!deviceAccessReady && isAuthenticated && (
-          <p className="text-sm text-gray-500 mt-4">
+        {/* Camera status message */}
+        {isAuthenticated && cameraStatus === "denied" && (
+          <p className="text-sm text-rose-500 mt-4">
+            Kamerazugriff wurde verweigert. Bitte erlaube den Zugriff in deinen Browsereinstellungen.
+          </p>
+        )}
+        
+        {isAuthenticated && cameraStatus === "unknown" && (
+          <p className="text-sm text-amber-500 mt-4">
             Bitte erlaube den Zugriff auf deine Kamera und dein Mikrofon, um das Interview zu starten.
+          </p>
+        )}
+        
+        {isAuthenticated && cameraStatus === "requesting" && (
+          <p className="text-sm text-amber-500 mt-4">
+            Kamerazugriff wird angefragt...
           </p>
         )}
         

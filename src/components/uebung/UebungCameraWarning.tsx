@@ -2,16 +2,23 @@
 import React from "react";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CameraStatus } from "./UebungStartSection";
 
 interface UebungCameraWarningProps {
   onRequestCameraAccess: () => void;
-  isRequesting?: boolean;
+  cameraStatus: CameraStatus;
 }
 
 export const UebungCameraWarning: React.FC<UebungCameraWarningProps> = ({ 
   onRequestCameraAccess,
-  isRequesting = false
+  cameraStatus
 }) => {
+  // Only show this warning when camera access is needed or denied
+  if (cameraStatus === "ready") return null;
+  
+  const isRequesting = cameraStatus === "requesting";
+  const isDenied = cameraStatus === "denied";
+  
   return (
     <div className="w-full">
       <div className="bg-[#1A1F2C] text-white rounded-xl shadow-sm overflow-hidden mb-6">
@@ -21,12 +28,14 @@ export const UebungCameraWarning: React.FC<UebungCameraWarningProps> = ({
           </div>
           
           <h3 className="text-xl font-medium mb-4">
-            Kamerazugriff erforderlich
+            {isDenied ? "Kamerazugriff verweigert" : "Kamerazugriff erforderlich"}
           </h3>
           
           <p className="text-[#b3b8c2] text-sm max-w-lg mb-8">
-            Bitte erlaube den Zugriff auf deine Kamera und dein Mikrofon, um am Interview teilzunehmen.
-            Diese werden nur während des Interviews verwendet und nicht gespeichert.
+            {isDenied 
+              ? "Der Zugriff auf deine Kamera wurde verweigert. Bitte erlaube den Zugriff in deinen Browsereinstellungen und aktualisiere die Seite."
+              : "Bitte erlaube den Zugriff auf deine Kamera und dein Mikrofon, um am Interview teilzunehmen. Diese werden nur während des Interviews verwendet und nicht gespeichert."
+            }
           </p>
           
           <Button 
@@ -41,7 +50,7 @@ export const UebungCameraWarning: React.FC<UebungCameraWarningProps> = ({
                 Zugriff wird angefragt...
               </>
             ) : (
-              'Kamerazugriff erlauben'
+              isDenied ? 'Kamerazugriff erneut anfragen' : 'Kamerazugriff erlauben'
             )}
           </Button>
         </div>
