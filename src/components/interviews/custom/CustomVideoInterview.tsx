@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -340,11 +339,11 @@ const VideoCallUI = ({
         try {
           setIsJoining(true);
           
-          // Start camera first with explicit audio enabled
+          // Start camera first with explicit audio enabled using correct properties
           await callObject.startCamera({
-            // Use the standard properties for Daily API
-            video: true,
-            audio: true
+            // Use the supported properties for startCamera
+            audioSource: true,
+            videoSource: true
           });
           
           console.log("Camera/mic started, joining with URL:", conversationUrl);

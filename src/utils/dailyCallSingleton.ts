@@ -11,19 +11,18 @@ export const getDailyCallInstance = (): DailyCall => {
   if (!dailyCallSingleton) {
     console.log("Creating new Daily call singleton");
     
-    // Improved configuration for audio/video that matches the Daily API types
+    // Use the correct configuration properties according to the Daily API types
     dailyCallSingleton = DailyIframe.createCallObject({
-      // Enable camera and microphone
-      videoSource: true,
+      // Use the supported properties for camera and microphone
       audioSource: true,
+      videoSource: true,
       dailyConfig: {
-        // Remove unsupported property
+        // Use supported properties from DailyAdvancedConfig
         userMediaAudioConstraints: {
           echoCancellation: true,
           noiseSuppression: true,
         },
-        // Enable speaker output
-        userMediaAudioOutput: true,
+        // Chrome video light fix - removed unsupported property
       }
     });
     
