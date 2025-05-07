@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
             <div className="text-[#546679] mt-2">Hauptquartier</div>
             <div className="text-[#546679] mt-2">Standort</div>
             <div className="text-[#546679] mt-2">TÜV-Zertifzierungen</div>
-            <div className="text-[#546679] mt-2">Trif das Team</div>
+            <div className="text-[#546679] mt-2">Triff das Team</div>
             <div className="text-[#546679] mt-2">Karriere</div>
             <div className="text-[#546679] mt-2">Presse</div>
           </div>
