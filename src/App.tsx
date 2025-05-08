@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Uebung from "./pages/Uebung";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
+import Agb from "./pages/Agb";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/uebung/:id" element={<Uebung />} />
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
+              <Route path="/agb" element={<Agb />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
