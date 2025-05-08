@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FooterColumnProps {
@@ -29,6 +29,14 @@ const FooterColumn: React.FC<FooterColumnProps> = ({
 
 export const Footer: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  // Function to scroll to top when navigating
+  const navigateAndScrollToTop = (path: string) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+  };
+  
   return <footer className="border-b-[color:var(--dark-dark\_6,#E7E9EC)] w-full px-4 sm:px-6 md:px-12 py-8 md:py-16 border-b border-solid">
       <div className="flex h-5 w-[116px] max-w-full items-center gap-[11px]">
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/44145df779ecfe5e25db57d7cf3109f26a0d3fc6?placeholderIfAbsent=true" className="aspect-[15.71/20.93] object-contain w-4 md:w-5 fill-[#0A2540] self-stretch shrink-0 my-auto" alt="GitFlash logo icon" />
@@ -54,18 +62,20 @@ export const Footer: React.FC = () => {
       </div>
       <div className="flex w-full flex-col items-stretch text-[10px] md:text-xs text-[#546679] font-normal text-center mt-8 md:mt-12 max-w-4xl mx-auto">
         <p className="text-[#546679]">Haftungsausschluss: Die Aussagen auf dieser Seite basieren auf unseren persönlichen Erfahrungen und Beobachtungen aus der Praxis. Wir können Ihnen keine konkreten Ergebnisse garantieren. Was wir Ihnen aber garantieren können: Wer bereit ist, Chancen aktiv zu nutzen, wird langfristig profitieren. Das Internet und insbesondere Künstliche Intelligenz verändern die Spielregeln. In der Vergangenheit fand jeder seinen Weg und seinen Platz – heute allerdings verteilt die Digitalisierung alles neu: Leistung, Effizienz und Transparenz entscheiden darüber, wer erfolgreich wird. Das ist weder unfair noch böse, sondern einfach ein transparentes Ergebnis eines effizienteren Marktes. Akademiker und Fachkräfte, die dies als Chance erkennen und leistungsbereit sind, werden langfristig zu den Gewinnern gehören. Unsere Plattform richtet sich ausdrücklich an Menschen, die bereit sind, Veränderungen aktiv anzunehmen und die Digitalisierung und KI als Chance zu verstehen und zu nutzen.</p>
-        <div className="flex w-full flex-col md:flex-row md:justify-between md:items-center mt-6">
-          <p className="text-[#546679]">Hinweis: Die Angebote & Inhalte dieser Seite richten sich ausdücklich nur an Gewerbetreibende & Unternehmer im Sinne des §14 BGB.</p>
-          <div className="flex flex-col md:flex-row md:gap-6 text-[#0A2540] font-bold whitespace-nowrap mt-3 md:mt-0">
-            <Link to="/impressum" className="text-[#0A2540]">
-              Impressum
-            </Link>
-            <Link to="/agb" className="text-[#0A2540] mt-3 md:mt-0">
-              AGB
-            </Link>
-            <div className="text-[#0A2540] mt-3 md:mt-0">Datenschutz</div>
+        
+        {/* Centered legal links */}
+        <div className="flex flex-col items-center md:flex-row md:justify-center md:gap-6 text-[#0A2540] font-bold whitespace-nowrap mt-6">
+          <div className="cursor-pointer" onClick={() => navigateAndScrollToTop("/impressum")}>
+            Impressum
+          </div>
+          <div className="cursor-pointer mt-3 md:mt-0" onClick={() => navigateAndScrollToTop("/agb")}>
+            AGB
+          </div>
+          <div className="cursor-pointer mt-3 md:mt-0">
+            Datenschutz
           </div>
         </div>
+        
         <div className="mt-3 md:mt-5">
           <p>© Copyright 2025 GitFlash GmbH</p>
           <p className="text-[#546679] mt-3">

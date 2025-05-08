@@ -1,9 +1,14 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 
 const Impressum: React.FC = () => {
+  // Scroll to top when the component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="w-full flex flex-col">
       <div className="bg-white overflow-hidden w-full">
