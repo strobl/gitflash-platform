@@ -2,7 +2,8 @@
 import { useAuth } from '@/context/AuthContext';
 import { TalentDashboard } from '@/components/dashboard/TalentDashboard';
 import { BusinessDashboard } from '@/components/dashboard/BusinessDashboard';
-import { Navigate, useEffect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Navbar } from '@/components/navigation/Navbar';
 
 export default function Dashboard() {
