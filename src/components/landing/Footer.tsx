@@ -44,7 +44,11 @@ export const Footer: React.FC = () => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mt-8 md:mt-12 max-w-6xl mx-auto">
         <FooterColumn title="Für Unternehmen" links={["Personal fnden", "Suche", "Shortlist", "Team"]} />
-        <FooterColumn title="Für Kandidaten" links={["Apply", "Jobs", "KI Bewerbungsgespräche", "Resume feedback", "Zahlungen"]} highlight={1} />
+        <FooterColumn 
+          title="Für Kandidaten" 
+          links={["KI Interviews", "Jobs", "Resume Feedback", "Zahlungen"]} 
+          highlight={1} 
+        />
         <FooterColumn title="Weitere Angebote" links={["Digitale Neukundengewinnung", "Digitale Kapitalbeschafung", "Digitale Rechtsabteilung", "Individuelle Lösungen"]} />
         <FooterColumn title="Support" links={["Kundenbewertungen", "Wie sieht eine Zusammenarbeit aus?", "Welche Ergebnisse kann ich erwarten?"]} />
         <div className="w-full">
