@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: 'user' | 'business' | 'operator') => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -128,6 +129,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Login with Google
+  const loginWithGoogle = async (redirectTo?: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo || window.location.origin + '/dashboard'
+        }
+      });
+
+      if (error) throw error;
+      
+      // No need for toast here because the page will redirect to Google
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      toast.error(`Fehler beim Google-Login: ${error.message}`);
+      setIsLoading(false);
+      throw error;
+    }
+    // Note: We don't set isLoading to false here as the page will redirect
+  };
+
   // Register new user
   const register = async (name: string, email: string, password: string, role: 'user' | 'business' | 'operator') => {
     setIsLoading(true);
@@ -180,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         profile,
         login,
+        loginWithGoogle,
         register,
         logout,
         isAuthenticated: !!user,

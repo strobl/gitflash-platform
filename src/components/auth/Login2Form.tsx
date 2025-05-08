@@ -18,7 +18,7 @@ interface Login2FormProps {
 }
 
 const Login2Form: React.FC<Login2FormProps> = ({ interviewId }) => {
-  const { login, register, isLoading } = useAuth();
+  const { login, loginWithGoogle, register, isLoading } = useAuth();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
@@ -84,11 +84,22 @@ const Login2Form: React.FC<Login2FormProps> = ({ interviewId }) => {
 
   const handleGoogleLogin = async () => {
     try {
-      // Google Auth would be implemented here
-      toast.error("Google Login ist noch nicht implementiert");
-    } catch (error) {
+      console.log("Login2Form: Starting Google login");
+      
+      // Determine the redirect URL based on whether we have an interview ID
+      const redirectUrl = interviewId 
+        ? `${window.location.origin}/uebung/${interviewId}`
+        : `${window.location.origin}/dashboard`;
+      
+      console.log("Login2Form: Google login redirect URL:", redirectUrl);
+      
+      // Start Google login with the determined redirect URL
+      await loginWithGoogle(redirectUrl);
+      
+      // Note: The page will redirect to Google auth
+    } catch (error: any) {
       console.error("Google login error:", error);
-      toast.error("Fehler beim Google Login");
+      toast.error("Fehler beim Google Login: " + (error.message || "Unbekannter Fehler"));
     }
   };
 
@@ -158,7 +169,7 @@ const Login2Form: React.FC<Login2FormProps> = ({ interviewId }) => {
           <SocialLogin 
             provider="google" 
             onClick={handleGoogleLogin}
-            text={isRegisterMode ? "Mit Google registrieren" : "Continue with Google"} 
+            text={isRegisterMode ? "Mit Google registrieren" : "Mit Google anmelden"} 
           />
 
           <AuthToggle isRegister={isRegisterMode} onToggle={handleToggleMode} />

@@ -23,7 +23,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   redirectUrl = "/dashboard",
   shouldActivateCamera = false
 }) => {
-  const { login, register, isLoading } = useAuth();
+  const { login, loginWithGoogle, register, isLoading } = useAuth();
   const { 
     setInterviewRedirectId, 
     setAutoActivationEnabled,
@@ -108,11 +108,33 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const handleGoogleLogin = async () => {
     try {
-      // Google Auth would be implemented here
-      toast.error("Google Login ist noch nicht implementiert");
-    } catch (error) {
+      console.log("LoginForm: Starting Google login, redirect URL is:", redirectUrl);
+      
+      // Check if we're redirecting to an interview
+      if (redirectUrl.includes('/uebung/')) {
+        // Extract interview ID from redirectUrl
+        const interviewId = redirectUrl.split('/uebung/')[1];
+        console.log("LoginForm: Extracted interview ID for Google login:", interviewId);
+        
+        // Set the interview ID in context for the receiving component
+        setInterviewRedirectId(interviewId);
+        
+        // Set camera activation flag based on URL parameter
+        setAutoActivationEnabled(shouldActivateCamera);
+        console.log("LoginForm: Set auto camera activation to:", shouldActivateCamera);
+        
+        // Set the hasRedirectedFromLogin flag BEFORE navigation
+        setHasRedirectedFromLogin(true);
+      }
+      
+      // Start Google login process with the redirect URL
+      await loginWithGoogle(redirectUrl);
+      
+      // Note: The page will redirect to Google auth, so the code below won't execute
+      // until the user returns after successful authentication
+    } catch (error: any) {
       console.error("Google login error:", error);
-      toast.error("Fehler beim Google Login");
+      toast.error("Fehler beim Google Login: " + (error.message || "Unbekannter Fehler"));
     }
   };
 
@@ -174,7 +196,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           <SocialLogin 
             provider="google" 
             onClick={handleGoogleLogin}
-            text={isRegisterMode ? "Mit Google registrieren" : "Continue with Google"} 
+            text={isRegisterMode ? "Mit Google registrieren" : "Mit Google anmelden"} 
           />
 
           <AuthToggle isRegister={isRegisterMode} onToggle={handleToggleMode} />
