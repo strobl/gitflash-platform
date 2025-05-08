@@ -18,6 +18,7 @@ import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import Uebung from "./pages/Uebung";
 import Impressum from "./pages/Impressum";
+import Datenschutz from "./pages/Datenschutz";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/uebung/:id" element={<Uebung />} />
               <Route path="/impressum" element={<Impressum />} />
+              <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
