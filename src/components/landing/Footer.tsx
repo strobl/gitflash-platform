@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
           links={["KI Interviews", "Jobs", "Resume Feedback", "Zahlungen"]} 
           highlight={1} 
         />
-        <FooterColumn title="Weitere Angebote" links={["Digitale Neukundengewinnung", "Digitale Kapitalbeschafung", "Digitale Rechtsabteilung", "Individuelle Lösungen"]} />
+        <FooterColumn title="Weitere Angebote" links={["Digitale Neukundengewinnung", "Digitale Kapitalbeschafung", "Legal Operations", "Individuelle Lösungen"]} />
         <FooterColumn title="Support" links={["Kundenbewertungen", "Wie sieht eine Zusammenarbeit aus?", "Welche Ergebnisse kann ich erwarten?"]} />
         <div className="w-full">
           <h3 className="text-[#0A2540] font-bold md:text-lg">Über GitFlash</h3>
@@ -91,3 +91,4 @@ export const Footer: React.FC = () => {
       </div>
     </footer>;
 };
+
