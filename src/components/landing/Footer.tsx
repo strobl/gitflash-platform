@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
           <div className="cursor-pointer mt-3 md:mt-0" onClick={() => navigateAndScrollToTop("/agb")}>
             AGB
           </div>
-          <div className="cursor-pointer mt-3 md:mt-0">
+          <div className="cursor-pointer mt-3 md:mt-0" onClick={() => navigateAndScrollToTop("/datenschutz")}>
             Datenschutz
           </div>
         </div>

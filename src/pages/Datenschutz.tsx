@@ -174,6 +174,65 @@ const Datenschutz: React.FC = () => {
                       Bitte informieren Sie sich regelmäßig über den aktuellen Stand.
                     </p>
                   </div>
+                  
+                  <div>
+                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">11. Einsatz von KI-basierten Interview-Modulen (Talent-Evaluation)</h2>
+                    <p>
+                      GitFlash verwendet im Rahmen des Bewerbungs- und Auswahlprozesses KI-gestützte Technologien, insbesondere zur Durchführung und Bewertung digitaler Interviews mit Bewerbern („Kandidaten"). Diese Technologien helfen uns und unseren Kundenunternehmen, die Qualifikation, Eignung und Kompetenzen der Kandidaten fair und effizient zu bewerten.
+                    </p>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Zweck der Verarbeitung</h3>
+                    <ul className="list-disc pl-6 space-y-1">
+                      <li>Durchführung von Video- oder Audio-Interviews mit Kandidaten</li>
+                      <li>Automatische Transkription und Auswertung der Interviews mittels KI-gestützter Modelle</li>
+                      <li>Erstellung professioneller Kandidatenprofile, inkl. Generierung von hochwertigen Profilfotos aus Interviewaufnahmen</li>
+                      <li>Analyse und Bewertung von Fähigkeiten und Kompetenzen der Kandidaten</li>
+                      <li>Bereitstellung der Interviews, Profile und Auswertungen an potenzielle Arbeitgeber und Entscheidungsträger</li>
+                      <li>Nutzung anonymisierter oder pseudonymisierter Interviewdaten zur Verbesserung und Weiterentwicklung unserer KI-Modelle zur Talentbewertung</li>
+                    </ul>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Verarbeitete Datenkategorien</h3>
+                    <p>Im Rahmen der Nutzung unseres KI-basierten Interview-Moduls erheben und verarbeiten wir folgende personenbezogene Daten:</p>
+                    <ul className="list-disc pl-6 mt-2 space-y-1">
+                      <li>Audio- und/oder Videoaufnahmen der Interviews</li>
+                      <li>Automatische Transkriptionen der Interviews</li>
+                      <li>Bewerbungsunterlagen (Lebensläufe, Anschreiben, Zeugnisse)</li>
+                      <li>Angaben zu Gehaltsvorstellungen und weiteren jobbezogenen Informationen</li>
+                      <li>Bilder aus den Videoaufnahmen zur Erstellung hochwertiger Profilfotos</li>
+                    </ul>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Datenweitergabe an Drittanbieter</h3>
+                    <p>
+                      Um die genannten Auswertungen durchführen zu können, setzen wir externe technische Dienstleister und Drittanbieter ein. Dazu gehören insbesondere:
+                    </p>
+                    <ul className="list-disc pl-6 mt-2 space-y-1">
+                      <li>Anbieter von KI- und Sprachanalyse-Modellen (Large Language Models, Speech-to-Text Services)</li>
+                      <li>Cloud-basierte Hosting- und Speicherlösungen zur Verarbeitung von Video- und Audiodaten</li>
+                      <li>APIs zur Erstellung und Bearbeitung professioneller Profilbilder aus Interviewmaterial</li>
+                    </ul>
+                    <p className="mt-3">
+                      Die Weitergabe der personenbezogenen Daten erfolgt ausschließlich auf Grundlage Ihrer vorherigen ausdrücklichen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) oder zur Erfüllung vorvertraglicher und vertraglicher Maßnahmen (Art. 6 Abs. 1 lit. b DSGVO).
+                    </p>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Zugriffsrechte von Unternehmen (potentiellen Arbeitgebern)</h3>
+                    <p>
+                      Die im Rahmen des KI-Interview-Moduls erstellten Kandidatenprofile und Interviews (einschließlich aller relevanten persönlichen Informationen) werden potentiellen Arbeitgebern zugänglich gemacht, die mit GitFlash zusammenarbeiten und am Recruitingprozess beteiligt sind.
+                    </p>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Nutzung der Daten zur KI-Modellentwicklung</h3>
+                    <p>
+                      GitFlash nutzt ausgewählte Interviewaufnahmen und -transkriptionen, nach Möglichkeit pseudonymisiert oder anonymisiert, zur Weiterentwicklung und Verbesserung unserer KI-basierten Talent-Modelle. Diese Nutzung erfolgt ausschließlich im Einklang mit geltendem Datenschutzrecht, insbesondere unter Einhaltung geeigneter technischer und organisatorischer Maßnahmen.
+                    </p>
+                    
+                    <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Rechte der Kandidaten (Auskunft, Löschung, Widerspruch)</h3>
+                    <p>
+                      Sie haben jederzeit das Recht, Auskunft über die Verarbeitung Ihrer personenbezogenen Daten zu erhalten, sowie die Berichtigung, Löschung oder Einschränkung der Verarbeitung Ihrer Daten zu verlangen. Falls Sie die Löschung Ihrer Daten wünschen, können Sie eine entsprechende Anfrage an uns richten:
+                    </p>
+                    <p className="mt-3">E-Mail: security@gitflash.com</p>
+                    <p className="mt-3">
+                      Wir werden Ihre Anfrage gemäß den gesetzlichen Bestimmungen bearbeiten. Beachten Sie jedoch, dass bestimmte Daten aus rechtlichen, regulatorischen oder geschäftlichen Gründen auch nach einer Löschanfrage weiterhin gespeichert bleiben können.
+                    </p>
+                  </div>
                 </div>
               </div>
               
