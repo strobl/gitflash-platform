@@ -139,44 +139,7 @@ const Datenschutz: React.FC = () => {
                   </div>
                   
                   <div>
-                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">8. Ihre Rechte</h2>
-                    <p>Sie haben das Recht:</p>
-                    <ul className="list-disc pl-6 mt-2 space-y-1">
-                      <li>auf Auskunft über Ihre gespeicherten Daten (Art. 15 DSGVO)</li>
-                      <li>auf Berichtigung (Art. 16 DSGVO)</li>
-                      <li>auf Löschung (Art. 17 DSGVO)</li>
-                      <li>auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
-                      <li>auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
-                      <li>auf Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)</li>
-                    </ul>
-                    <p className="mt-3">
-                      Zur Ausübung Ihrer Rechte senden Sie bitte eine E-Mail an: security@gitflash.com
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">9. Beschwerderecht bei der Aufsichtsbehörde</h2>
-                    <p>
-                      Wenn Sie der Ansicht sind, dass die Verarbeitung Ihrer personenbezogenen Daten gegen Datenschutzrecht verstößt, haben Sie das Recht auf Beschwerde bei der zuständigen Aufsichtsbehörde:
-                    </p>
-                    <p className="mt-3">
-                      Bayerisches Landesamt für Datenschutzaufsicht (BayLDA)<br />
-                      Promenade 27<br />
-                      91522 Ansbach<br />
-                      <a href="https://www.lda.bayern.de" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">https://www.lda.bayern.de</a>
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">10. Aktualisierungen</h2>
-                    <p>
-                      Diese Datenschutzerklärung kann sich aufgrund gesetzlicher Änderungen oder neuer technischer Gegebenheiten ändern. 
-                      Bitte informieren Sie sich regelmäßig über den aktuellen Stand.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">11. Einsatz von KI-basierten Interview-Modulen (Talent-Evaluation)</h2>
+                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">8. Einsatz von KI-basierten Interview-Modulen (Talent-Evaluation)</h2>
                     <p>
                       GitFlash verwendet im Rahmen des Bewerbungs- und Auswahlprozesses KI-gestützte Technologien, insbesondere zur Durchführung und Bewertung digitaler Interviews mit Bewerbern („Kandidaten"). Diese Technologien helfen uns und unseren Kundenunternehmen, die Qualifikation, Eignung und Kompetenzen der Kandidaten fair und effizient zu bewerten.
                     </p>
@@ -223,6 +186,22 @@ const Datenschutz: React.FC = () => {
                     <p>
                       GitFlash nutzt ausgewählte Interviewaufnahmen und -transkriptionen, nach Möglichkeit pseudonymisiert oder anonymisiert, zur Weiterentwicklung und Verbesserung unserer KI-basierten Talent-Modelle. Diese Nutzung erfolgt ausschließlich im Einklang mit geltendem Datenschutzrecht, insbesondere unter Einhaltung geeigneter technischer und organisatorischer Maßnahmen.
                     </p>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">9. Ihre Rechte</h2>
+                    <p>Sie haben das Recht:</p>
+                    <ul className="list-disc pl-6 mt-2 space-y-1">
+                      <li>auf Auskunft über Ihre gespeicherten Daten (Art. 15 DSGVO)</li>
+                      <li>auf Berichtigung (Art. 16 DSGVO)</li>
+                      <li>auf Löschung (Art. 17 DSGVO)</li>
+                      <li>auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+                      <li>auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
+                      <li>auf Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)</li>
+                    </ul>
+                    <p className="mt-3">
+                      Zur Ausübung Ihrer Rechte senden Sie bitte eine E-Mail an: security@gitflash.com
+                    </p>
                     
                     <h3 className="text-[#0A2540] text-lg font-medium mt-5 mb-2">Rechte der Kandidaten (Auskunft, Löschung, Widerspruch)</h3>
                     <p>
@@ -231,6 +210,27 @@ const Datenschutz: React.FC = () => {
                     <p className="mt-3">E-Mail: security@gitflash.com</p>
                     <p className="mt-3">
                       Wir werden Ihre Anfrage gemäß den gesetzlichen Bestimmungen bearbeiten. Beachten Sie jedoch, dass bestimmte Daten aus rechtlichen, regulatorischen oder geschäftlichen Gründen auch nach einer Löschanfrage weiterhin gespeichert bleiben können.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">10. Beschwerderecht bei der Aufsichtsbehörde</h2>
+                    <p>
+                      Wenn Sie der Ansicht sind, dass die Verarbeitung Ihrer personenbezogenen Daten gegen Datenschutzrecht verstößt, haben Sie das Recht auf Beschwerde bei der zuständigen Aufsichtsbehörde:
+                    </p>
+                    <p className="mt-3">
+                      Bayerisches Landesamt für Datenschutzaufsicht (BayLDA)<br />
+                      Promenade 27<br />
+                      91522 Ansbach<br />
+                      <a href="https://www.lda.bayern.de" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">https://www.lda.bayern.de</a>
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-[#0A2540] text-xl font-semibold mb-4">11. Aktualisierungen</h2>
+                    <p>
+                      Diese Datenschutzerklärung kann sich aufgrund gesetzlicher Änderungen oder neuer technischer Gegebenheiten ändern. 
+                      Bitte informieren Sie sich regelmäßig über den aktuellen Stand.
                     </p>
                   </div>
                 </div>
