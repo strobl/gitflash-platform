@@ -20,6 +20,7 @@ import Uebung from "./pages/Uebung";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Agb from "./pages/Agb";
+import TalentPage from "./pages/TalentPage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<Agb />} />
+              <Route path="/talent" element={<TalentPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

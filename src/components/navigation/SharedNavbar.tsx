@@ -63,7 +63,7 @@ export function SharedNavbar() {
               Interviews
             </Link>
             <Link 
-              to="/talents" 
+              to="/talent" 
               className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
               }`}
@@ -107,6 +107,9 @@ export function SharedNavbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/talent" className="cursor-pointer">Talentbereich</Link>
                     </DropdownMenuItem>
                     {profile?.role === 'user' && (
                       <>
@@ -170,7 +173,7 @@ export function SharedNavbar() {
               Interviews
             </Link>
             <Link 
-              to="/talents" 
+              to="/talent" 
               className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
               }`}
