@@ -43,7 +43,7 @@ export const Footer: React.FC = () => {
         <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/bbd939599d2a9394a53f7298592847fc375fb451?placeholderIfAbsent=true" className="aspect-[4.95] object-contain w-[89px] md:w-[100px] fill-[#0A2540] self-stretch shrink-0 my-auto" alt="GitFlash logo text" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mt-8 md:mt-12 max-w-6xl mx-auto">
-        <FooterColumn title="Für Unternehmen" links={["Personal fnden", "Suche", "Shortlist", "Team"]} />
+        <FooterColumn title="Für Unternehmen" links={["Personal finden", "Suche", "Shortlist", "Team"]} />
         <FooterColumn 
           title="Für Kandidaten" 
           links={["KI Interviews", "Jobs", "Resume Feedback", "Zahlungen"]} 
