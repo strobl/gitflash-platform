@@ -2,15 +2,27 @@
 import { useAuth } from '@/context/AuthContext';
 import { TalentDashboard } from '@/components/dashboard/TalentDashboard';
 import { BusinessDashboard } from '@/components/dashboard/BusinessDashboard';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useEffect } from 'react-router-dom';
 import { Navbar } from '@/components/navigation/Navbar';
 
 export default function Dashboard() {
   const { profile, isAuthenticated, isLoading } = useAuth();
   
+  // For "user" role, redirect to talent page
+  useEffect(() => {
+    if (profile?.role === 'user' && !isLoading) {
+      console.log("Dashboard: Redirecting user role to /talent");
+    }
+  }, [profile, isLoading]);
+  
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect users with "user" role to /talent page
+  if (!isLoading && profile?.role === 'user') {
+    return <Navigate to="/talent" replace />;
   }
 
   // Show loading state while profile is loading

@@ -6,19 +6,22 @@ import { useEffect } from 'react';
 import LoginForm from '@/components/auth/LoginForm';
 
 export default function Login() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
   const { setInterviewRedirectId, setAutoActivationEnabled } = useCamera();
   const [searchParams] = useSearchParams();
   
-  // Use toLowerCase to handle case variations in URL parameters
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  // Get redirect parameter or determine default based on user role
+  const redirectParam = searchParams.get('redirect');
+  const defaultRedirect = profile?.role === 'user' ? '/talent' : '/dashboard';
+  const redirectTo = redirectParam || defaultRedirect;
   const shouldActivateCamera = searchParams.get('activateCamera') === 'true';
   
   // Log all parameters for debugging
   console.log('Login: Parameters received:', {
     redirect: redirectTo,
     activateCamera: shouldActivateCamera,
-    isAuthenticated
+    isAuthenticated,
+    userRole: profile?.role
   });
   
   useEffect(() => {
@@ -44,7 +47,7 @@ export default function Login() {
     }
   }, [redirectTo, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled]);
   
-  // Redirect to specified path or dashboard if already authenticated
+  // Redirect to specified path or appropriate dashboard based on role if already authenticated
   if (isAuthenticated) {
     console.log("Login: User is authenticated, redirecting to:", redirectTo);
     return <Navigate to={redirectTo} replace />;

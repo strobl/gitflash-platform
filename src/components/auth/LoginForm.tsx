@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCamera } from "@/context/CameraContext";
@@ -23,7 +22,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   redirectUrl = "/dashboard",
   shouldActivateCamera = false
 }) => {
-  const { login, loginWithGoogle, register, isLoading } = useAuth();
+  const { login, loginWithGoogle, register, isLoading, profile } = useAuth();
   const { 
     setInterviewRedirectId, 
     setAutoActivationEnabled,
@@ -39,6 +38,16 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const handleToggleMode = () => {
     setIsRegisterMode(!isRegisterMode);
+  };
+
+  const getRedirectUrl = (userType: "user" | "business", providedUrl?: string) => {
+    // If a specific URL was provided in the redirect parameter, use that
+    if (providedUrl && providedUrl !== "/dashboard" && providedUrl !== "/talent") {
+      return providedUrl;
+    }
+    
+    // Otherwise redirect based on user type
+    return userType === "user" ? "/talent" : "/dashboard";
   };
 
   const handleSubmit = async () => {
@@ -72,14 +81,17 @@ const LoginForm: React.FC<LoginFormProps> = ({
         toast.success("Login erfolgreich!");
         
         console.log("LoginForm: Login successful");
-        console.log("LoginForm: Redirect URL is:", redirectUrl);
+        
+        // Determine the appropriate redirect URL based on user type
+        const finalRedirectUrl = getRedirectUrl(userType, redirectUrl);
+        console.log("LoginForm: Final redirect URL is:", finalRedirectUrl);
         console.log("LoginForm: Should activate camera:", shouldActivateCamera);
         
         // Check if we're redirecting to an interview
         let interviewId = null;
-        if (redirectUrl.includes('/uebung/')) {
+        if (finalRedirectUrl.includes('/uebung/')) {
           // Extract interview ID from redirectUrl
-          interviewId = redirectUrl.split('/uebung/')[1];
+          interviewId = finalRedirectUrl.split('/uebung/')[1];
           console.log("LoginForm: Extracted interview ID:", interviewId);
           
           // Set the interview ID in context for the receiving component
@@ -96,8 +108,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         // Short delay to ensure context state is updated before navigation
         setTimeout(() => {
-          console.log("LoginForm: Navigating to:", redirectUrl);
-          navigate(redirectUrl);
+          console.log("LoginForm: Navigating to:", finalRedirectUrl);
+          navigate(finalRedirectUrl);
         }, 100);
       }
     } catch (error: any) {
@@ -108,12 +120,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const handleGoogleLogin = async () => {
     try {
-      console.log("LoginForm: Starting Google login, redirect URL is:", redirectUrl);
+      // Determine the appropriate redirect URL based on user type
+      const finalRedirectUrl = getRedirectUrl(userType, redirectUrl);
+      console.log("LoginForm: Starting Google login, redirect URL is:", finalRedirectUrl);
       
       // Check if we're redirecting to an interview
-      if (redirectUrl.includes('/uebung/')) {
+      if (finalRedirectUrl.includes('/uebung/')) {
         // Extract interview ID from redirectUrl
-        const interviewId = redirectUrl.split('/uebung/')[1];
+        const interviewId = finalRedirectUrl.split('/uebung/')[1];
         console.log("LoginForm: Extracted interview ID for Google login:", interviewId);
         
         // Set the interview ID in context for the receiving component
@@ -128,7 +142,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       }
       
       // Start Google login process with the redirect URL
-      await loginWithGoogle(redirectUrl);
+      await loginWithGoogle(finalRedirectUrl);
       
       // Note: The page will redirect to Google auth, so the code below won't execute
       // until the user returns after successful authentication

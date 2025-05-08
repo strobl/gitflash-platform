@@ -133,10 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async (redirectTo?: string) => {
     setIsLoading(true);
     try {
+      // If no redirect is specified, determine based on role
+      // Default to dashboard if we don't know the role yet
+      let finalRedirectUrl = redirectTo || '/dashboard';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo || window.location.origin + '/dashboard'
+          redirectTo: finalRedirectUrl || window.location.origin + '/dashboard'
         }
       });
 

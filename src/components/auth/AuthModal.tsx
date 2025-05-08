@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +40,7 @@ export function AuthModal({ redirectUrl = '/dashboard' }: AuthModalProps) {
     try {
       if (mode === 'login') {
         await login(email, password);
-        // Redirect wird von Login.tsx gehandhabt
+        // Redirect will be handled based on user role
       } else {
         if (!name.trim()) {
           setError('Bitte geben Sie einen Namen ein');
