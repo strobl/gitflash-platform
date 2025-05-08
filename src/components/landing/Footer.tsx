@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
         />
         <FooterColumn 
           title="Weitere Angebote" 
-          links={["Neukundengewinnung", "CRM für Kapitalbeschaffung", "Legal Operations", "Individuelle Lösungen"]} 
+          links={["Neukundengewinnung", "Mitarbeiterschulung", "CRM für Kapitalbeschaffung", "Legal Operations", "Individuelle Lösungen"]} 
         />
         <FooterColumn title="Support" links={["Kundenbewertungen", "Wie sieht eine Zusammenarbeit aus?", "Welche Ergebnisse kann ich erwarten?"]} />
         <div className="w-full">
