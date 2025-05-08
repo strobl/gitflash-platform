@@ -1,11 +1,14 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 interface FooterColumnProps {
   title: string;
   links: string[];
   highlight?: number;
 }
+
 const FooterColumn: React.FC<FooterColumnProps> = ({
   title,
   links,
@@ -23,6 +26,7 @@ const FooterColumn: React.FC<FooterColumnProps> = ({
       </div>
     </div>;
 };
+
 export const Footer: React.FC = () => {
   const isMobile = useIsMobile();
   return <footer className="border-b-[color:var(--dark-dark\_6,#E7E9EC)] w-full px-4 sm:px-6 md:px-12 py-8 md:py-16 border-b border-solid">

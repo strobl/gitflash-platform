@@ -17,6 +17,7 @@ import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import Uebung from "./pages/Uebung";
+import Impressum from "./pages/Impressum";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/interviews/:id" element={<InterviewDetail />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/uebung/:id" element={<Uebung />} />
+              <Route path="/impressum" element={<Impressum />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
