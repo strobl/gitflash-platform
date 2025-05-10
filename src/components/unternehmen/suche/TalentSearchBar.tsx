@@ -2,7 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 
 interface TalentSearchBarProps {
   query: string;
@@ -25,8 +25,17 @@ export const TalentSearchBar: React.FC<TalentSearchBarProps> = ({
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
         />
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-500" />
+        <div className="absolute inset-y-0 right-3 flex items-center">
+          {query && (
+            <button 
+              onClick={() => onQueryChange('')}
+              className="p-1 mr-1 hover:bg-gray-100 rounded-full"
+              aria-label="Suche löschen"
+            >
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+          )}
+          <Search className="h-5 w-5 text-gray-500 pointer-events-none" />
         </div>
       </div>
       <Button 

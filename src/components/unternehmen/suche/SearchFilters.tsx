@@ -1,36 +1,21 @@
 
 import React, { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-
-interface FilterOptions {
-  profession: string[];
-  experience: number;
-  location: string;
-  remote: boolean;
-  salaryRange: [number, number];
-}
+import { useIsMobile } from "@/hooks/use-mobile";
+import { TalentSearchFilters } from "@/hooks/useTalentSearch";
 
 interface SearchFiltersProps {
   open: boolean;
   onClose: () => void;
-  filters: FilterOptions;
-  onApplyFilters: (filters: FilterOptions) => void;
+  filters: TalentSearchFilters;
+  onApplyFilters: (filters: TalentSearchFilters) => void;
 }
-
-const professions = [
-  "Baujurist", 
-  "Bauingenieur", 
-  "Architekt", 
-  "Bauleiter", 
-  "Projektmanager"
-];
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
   open,
@@ -38,21 +23,16 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   filters,
   onApplyFilters,
 }) => {
-  const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
+  const isMobile = useIsMobile();
+  const [localFilters, setLocalFilters] = useState<TalentSearchFilters>(filters);
 
-  const handleProfessionToggle = (profession: string) => {
-    setLocalFilters(prev => {
-      if (prev.profession.includes(profession)) {
-        return {
-          ...prev,
-          profession: prev.profession.filter(p => p !== profession)
-        };
-      } else {
-        return {
-          ...prev,
-          profession: [...prev.profession, profession]
-        };
-      }
+  const handleReset = () => {
+    setLocalFilters({
+      profession: [],
+      experience: 0,
+      location: '',
+      remote: false,
+      salaryRange: [60000, 120000]
     });
   };
 
@@ -61,126 +41,135 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
     onClose();
   };
 
-  const handleReset = () => {
-    const defaultFilters: FilterOptions = {
-      profession: [],
-      experience: 0,
-      location: "",
-      remote: false,
-      salaryRange: [60000, 120000],
-    };
-    setLocalFilters(defaultFilters);
-    onApplyFilters(defaultFilters);
+  const updateProfession = (profession: string, checked: boolean) => {
+    setLocalFilters(prev => {
+      if (checked) {
+        return { ...prev, profession: [...prev.profession, profession] };
+      } else {
+        return { ...prev, profession: prev.profession.filter(p => p !== profession) };
+      }
+    });
   };
 
+  const filterContent = (
+    <div className="flex flex-col space-y-6">
+      <div className="space-y-3">
+        <h3 className="text-base font-medium">Berufsfelder</h3>
+        <div className="flex flex-col space-y-2">
+          {['Baurecht', 'Projektmanagement', 'Architektur', 'Bauingenieurwesen', 'BIM'].map((profession) => (
+            <div key={profession} className="flex items-center space-x-2">
+              <Checkbox 
+                id={profession}
+                checked={localFilters.profession.includes(profession)}
+                onCheckedChange={(checked) => updateProfession(profession, checked === true)}
+              />
+              <Label htmlFor={profession} className="cursor-pointer">{profession}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="text-base font-medium">Berufserfahrung</h3>
+          <span className="text-sm text-gray-500">{localFilters.experience}+ Jahre</span>
+        </div>
+        <Slider 
+          value={[localFilters.experience]}
+          min={0}
+          max={15}
+          step={1}
+          onValueChange={(value) => setLocalFilters(prev => ({ ...prev, experience: value[0] }))}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-base font-medium">Standort</h3>
+        <Input 
+          placeholder="z.B. Berlin, München"
+          value={localFilters.location}
+          onChange={(e) => setLocalFilters(prev => ({ ...prev, location: e.target.value }))}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="remote" 
+          checked={localFilters.remote}
+          onCheckedChange={(checked) => setLocalFilters(prev => ({ ...prev, remote: checked === true }))}
+        />
+        <Label htmlFor="remote" className="cursor-pointer">Nur Remote-Positionen anzeigen</Label>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="text-base font-medium">Gehaltsrange</h3>
+          <span className="text-sm text-gray-500">
+            {localFilters.salaryRange[0].toLocaleString('de-DE')} € - 
+            {localFilters.salaryRange[1].toLocaleString('de-DE')} €
+          </span>
+        </div>
+        <Slider 
+          value={[localFilters.salaryRange[0], localFilters.salaryRange[1]]}
+          min={40000}
+          max={200000}
+          step={5000}
+          onValueChange={(value) => setLocalFilters(prev => ({ 
+            ...prev, 
+            salaryRange: [value[0], value[1]] 
+          }))}
+        />
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+        <SheetContent className="flex flex-col h-full">
+          <SheetHeader>
+            <SheetTitle>Suchfilter</SheetTitle>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            {filterContent}
+          </div>
+          
+          <SheetFooter className="border-t pt-4">
+            <div className="flex justify-between w-full gap-2">
+              <Button variant="outline" onClick={handleReset} className="flex-1">
+                Zurücksetzen
+              </Button>
+              <Button onClick={handleApply} className="flex-1">
+                Anwenden
+              </Button>
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent className="w-[90%] sm:max-w-md" side="right">
-        <SheetHeader>
-          <SheetTitle className="text-xl font-bold text-[#0A2540]">Suchfilter</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Suchfilter</DialogTitle>
+        </DialogHeader>
         
-        <div className="py-4 space-y-6">
-          {/* Profession Filter */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-[#0A2540]">Berufsfeld</h3>
-            <div className="space-y-3">
-              {professions.map((profession) => (
-                <div key={profession} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`profession-${profession}`}
-                    checked={localFilters.profession.includes(profession)}
-                    onCheckedChange={() => handleProfessionToggle(profession)}
-                  />
-                  <Label htmlFor={`profession-${profession}`} className="text-sm cursor-pointer">
-                    {profession}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Experience Filter */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-[#0A2540]">Mindest-Erfahrung (Jahre)</h3>
-            <div className="space-y-2">
-              <Slider
-                value={[localFilters.experience]}
-                min={0}
-                max={20}
-                step={1}
-                onValueChange={(value) => setLocalFilters(prev => ({ ...prev, experience: value[0] }))}
-              />
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>0 Jahre</span>
-                <span>{localFilters.experience} Jahre</span>
-                <span>20+ Jahre</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Location Filter */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-[#0A2540]">Standort</h3>
-            <Select 
-              value={localFilters.location}
-              onValueChange={(value) => setLocalFilters(prev => ({ ...prev, location: value }))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Alle Standorte" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Alle Standorte</SelectItem>
-                <SelectItem value="berlin">Berlin</SelectItem>
-                <SelectItem value="hamburg">Hamburg</SelectItem>
-                <SelectItem value="munich">München</SelectItem>
-                <SelectItem value="cologne">Köln</SelectItem>
-                <SelectItem value="frankfurt">Frankfurt</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Remote Filter */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-[#0A2540]">Remote-Optionen</h3>
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="remote" 
-                checked={localFilters.remote}
-                onCheckedChange={(checked) => setLocalFilters(prev => ({ ...prev, remote: checked }))} 
-              />
-              <Label htmlFor="remote">Nur Remote-Angebote zeigen</Label>
-            </div>
-          </div>
-          
-          {/* Salary Range Filter */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-[#0A2540]">Gehaltsbereich</h3>
-            <div className="space-y-2">
-              <Slider
-                value={localFilters.salaryRange}
-                min={30000}
-                max={200000}
-                step={10000}
-                onValueChange={(value) => setLocalFilters(prev => ({ ...prev, salaryRange: [value[0], value[1]] }))}
-              />
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>{localFilters.salaryRange[0].toLocaleString('de-DE')} €</span>
-                <span>{localFilters.salaryRange[1].toLocaleString('de-DE')} €</span>
-              </div>
-            </div>
-          </div>
+        <div className="py-4">
+          {filterContent}
         </div>
         
-        <SheetFooter className="flex flex-col sm:flex-row gap-3">
-          <Button variant="outline" onClick={handleReset}>
-            Filter zurücksetzen
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={handleReset} className="sm:w-auto w-full">
+            Zurücksetzen
           </Button>
-          <Button className="bg-[#0A2540] hover:bg-[#0A2540]/90" onClick={handleApply}>
-            Filter anwenden
+          <Button onClick={handleApply} className="sm:w-auto w-full">
+            Anwenden
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
