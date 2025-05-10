@@ -1,97 +1,52 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Header } from "@/components/landing/Header";
+import { Hero } from "@/components/landing/Hero";
+import { JobListings } from "@/components/landing/JobListings";
+import { VideoCallSection } from "@/components/landing/VideoCallSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { EmployerFeatures } from "@/components/landing/EmployerFeatures";
+import { CallToAction } from "@/components/landing/CallToAction";
+import { Footer } from "@/components/landing/Footer";
 
-export default function Index() {
-  const { isAuthenticated, profile } = useAuth();
-
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100 flex flex-col">
-      <header className="container mx-auto py-6 px-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gitflash-primary">GitFlash</h1>
-          <div className="space-x-4">
-            {!isAuthenticated ? (
-              <Link 
-                to="/login" 
-                className="px-4 py-2 bg-gitflash-primary text-white rounded-md hover:bg-gitflash-primary/90 transition-colors"
-              >
-                Login
-              </Link>
-            ) : (
-              <>
-                {profile?.role === 'user' && (
-                  <Link 
-                    to="/talent" 
-                    className="px-4 py-2 bg-gitflash-primary text-white rounded-md hover:bg-gitflash-primary/90 transition-colors"
-                  >
-                    Talent Dashboard
-                  </Link>
-                )}
-                {profile?.role === 'business' && (
-                  <Link 
-                    to="/unternehmen" 
-                    className="px-4 py-2 bg-gitflash-primary text-white rounded-md hover:bg-gitflash-primary/90 transition-colors"
-                  >
-                    Unternehmens Dashboard
-                  </Link>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center">
-        <div className="text-center max-w-3xl px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Willkommen bei GitFlash
-          </h1>
-          <p className="text-xl mb-10 text-gray-600">
-            Die Plattform, die Talente und Unternehmen in der Baubranche verbindet.
-          </p>
-
-          {!isAuthenticated ? (
-            <Link 
-              to="/login" 
-              className="px-6 py-3 bg-gitflash-primary text-white rounded-md text-lg hover:bg-gitflash-primary/90 transition-colors"
-            >
-              Jetzt starten
-            </Link>
-          ) : (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold">Eingeloggt als: {profile?.role === 'user' ? 'Talent' : 'Unternehmen'}</h2>
-              <div className="flex flex-wrap gap-4 justify-center">
-                {profile?.role === 'user' && (
-                  <Link 
-                    to="/talent" 
-                    className="px-6 py-3 bg-gitflash-primary text-white rounded-md text-lg hover:bg-gitflash-primary/90 transition-colors"
-                  >
-                    Zum Talent Dashboard
-                  </Link>
-                )}
-                {profile?.role === 'business' && (
-                  <Link 
-                    to="/unternehmen" 
-                    className="px-6 py-3 bg-gitflash-primary text-white rounded-md text-lg hover:bg-gitflash-primary/90 transition-colors"
-                  >
-                    Zum Unternehmens Dashboard
-                  </Link>
-                )}
+    <div className="w-full flex flex-col">
+      <div className="bg-white overflow-hidden w-full">
+        <div className="w-full">
+          <div className="bg-white flex w-full flex-col overflow-hidden items-center">
+            <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
+              <Header />
+              {/* Added more vertical spacing between navbar and hero section */}
+              <div className="pt-16 md:pt-28 lg:pt-32">
+                <Hero />
               </div>
             </div>
-          )}
+          </div>
+          
+          {/* Added margin between hero and banner image */}
+          <div className="w-full mt-16 md:mt-28 lg:mt-32 flex justify-center">
+            <div className="px-3 md:px-6 max-w-[1200px] mx-auto">
+              <img 
+                src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//image%20(4).webp"
+                alt="GitFlash banner"
+                className="w-full object-cover h-[220px] md:h-[500px]"
+              />
+            </div>
+          </div>
+          
+          <JobListings />
+          <VideoCallSection />
+          <StatsSection />
+          <EmployerFeatures />
+          <CallToAction />
+          <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
+            <Footer />
+          </div>
         </div>
-      </main>
-
-      <footer className="container mx-auto py-6 px-4">
-        <div className="flex justify-center space-x-6 text-sm text-gray-600">
-          <Link to="/impressum" className="hover:text-gitflash-primary">Impressum</Link>
-          <Link to="/datenschutz" className="hover:text-gitflash-primary">Datenschutz</Link>
-          <Link to="/agb" className="hover:text-gitflash-primary">AGB</Link>
-        </div>
-      </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default Index;
