@@ -71,7 +71,7 @@ export function SharedNavbar() {
               Akademiker
             </Link>
             <Link 
-              to="/unternehmen" 
+              to="/unternehmen/suche" 
               className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
                 location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
               }`}
@@ -113,7 +113,7 @@ export function SharedNavbar() {
                     </DropdownMenuItem>
                     {(profile?.role === 'business' || profile?.role === 'operator') && (
                       <DropdownMenuItem asChild>
-                        <Link to="/unternehmen" className="cursor-pointer">Unternehmensbereich</Link>
+                        <Link to="/unternehmen/suche" className="cursor-pointer">Unternehmensbereich</Link>
                       </DropdownMenuItem>
                     )}
                     {profile?.role === 'user' && (
@@ -190,7 +190,7 @@ export function SharedNavbar() {
               Akademiker
             </Link>
             <Link 
-              to="/unternehmen" 
+              to="/unternehmen/suche" 
               className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
                 location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
               }`}

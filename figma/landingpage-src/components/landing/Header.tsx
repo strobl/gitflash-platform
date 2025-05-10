@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
       {!isMobile && (
         <div className="hidden md:flex items-center gap-6">
           <Link to="/jobs" className="text-[#0A2540] font-medium hover:text-gray-600">Jobs</Link>
-          <Link to="/employers" className="text-[#0A2540] font-medium hover:text-gray-600">Arbeitgeber</Link>
+          <Link to="/unternehmen/suche" className="text-[#0A2540] font-medium hover:text-gray-600">Arbeitgeber</Link>
           <Link to="/about" className="text-[#0A2540] font-medium hover:text-gray-600">Über uns</Link>
           <Link to="/login" className="text-[#0A2540] font-medium hover:text-gray-600 ml-4">Login</Link>
         </div>
@@ -48,7 +48,7 @@ export const Header: React.FC = () => {
         <div className="absolute top-[48px] left-0 right-0 bg-white z-50 shadow-lg animate-fade-in">
           <div className="flex flex-col p-4">
             <Link to="/jobs" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Jobs</Link>
-            <Link to="/employers" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Arbeitgeber</Link>
+            <Link to="/unternehmen/suche" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Arbeitgeber</Link>
             <Link to="/about" className="py-3 text-[#0A2540] font-medium border-b border-gray-100">Über uns</Link>
             <Link to="/login" className="py-3 text-[#0A2540] font-medium">Login</Link>
           </div>
