@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -5,6 +6,7 @@ import { X, Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -15,14 +17,18 @@ export const Header: React.FC = () => {
     logout,
     isAuthenticated
   } = useAuth();
+  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+  
   const getInitials = () => {
     if (!profile?.name) return "U";
     return profile.name.split(" ").map(n => n[0]).join("").toUpperCase();
   };
+  
   const isInterviewsActive = location.pathname.includes("/interviews");
+  
   return <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px] border-b border-gray-200">
       <div className="flex items-center gap-2">
         <Link to="/">
@@ -38,7 +44,7 @@ export const Header: React.FC = () => {
           <Link to="/jobs" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">
             Jobs
           </Link>
-          <Link to="/employers" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Unternehmen</Link>
+          <Link to="/unternehmen/suche" className="text-sm text-[#0A2540] font-medium hover:text-opacity-90">Für Unternehmen</Link>
 
           {isAuthenticated ? <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -99,7 +105,7 @@ export const Header: React.FC = () => {
             <Link to="/jobs" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
               Jobs
             </Link>
-            <Link to="/employers" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90" onClick={() => setMenuOpen(false)}>Für Unternehmen</Link>
+            <Link to="/unternehmen/suche" className="py-3 text-sm text-[#0A2540] font-medium border-b border-gray-100 hover:text-opacity-90" onClick={() => setMenuOpen(false)}>Für Unternehmen</Link>
             {isAuthenticated ? <Link to="/dashboard" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
                 Dashboard
               </Link> : <Link to="/login" className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90" onClick={() => setMenuOpen(false)}>
