@@ -1,39 +1,70 @@
 
 import { useState } from 'react';
 
-interface JobFormData {
-  jobTitle: string;
-  jobType: string;
+// Define the job types to match the Figma design
+export type JobType = 'fulltime' | 'parttime' | 'freelance' | 'temporary';
+export type BillingType = 'Stunden' | 'Tage' | 'Monat';
+export type InterviewType = 'Keine' | 'Telefoninterview' | 'Videointerview' | 'Vor-Ort-Interview';
+export type FormType = 'Keins' | 'Standardformular' | 'Benutzerdefinierts Formular';
+
+export interface JobFormData {
+  title: string;
   location: string;
-  salary: string;
   description: string;
+  contractType: JobType;
+  billingType: BillingType;
+  hourlyRateMin: string;
+  hourlyRateMax: string;
+  referralBonus: string;
+  interview: InterviewType;
+  form: FormType;
+  rejectionEmail: string;
+  automaticCommunication: boolean;
+  automaticRedirect: boolean;
 }
 
-interface JobFormErrors {
-  jobTitle?: string;
-  jobType?: string;
+export interface JobFormErrors {
+  title?: string;
   location?: string;
-  salary?: string;
   description?: string;
+  contractType?: string;
+  billingType?: string;
+  hourlyRateMin?: string;
+  hourlyRateMax?: string;
+  referralBonus?: string;
 }
 
 export const useJobForm = () => {
+  // Initialize form data with default values from Figma design
   const [formData, setFormData] = useState<JobFormData>({
-    jobTitle: '',
-    jobType: '',
-    location: '',
-    salary: '',
+    title: '',
+    location: 'Remote',
     description: '',
+    contractType: 'fulltime',
+    billingType: 'Stunden',
+    hourlyRateMin: '0',
+    hourlyRateMax: '0',
+    referralBonus: '$250',
+    interview: 'Keine',
+    form: 'Keins',
+    rejectionEmail: 'Hallo {{first_name}},\nvielen Dank für Ihr Interesse an dieser Position.\nLeider können wir Ihre Bewerbung in diesem Fall nicht weiter berücksichtigen.\n\nSie können gerne über aktuelle Möglichkeiten auf dem Laufenden bleiben.',
+    automaticCommunication: false,
+    automaticRedirect: false
   });
 
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
-  const updateField = (field: keyof JobFormData, value: string) => {
+  const updateField = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
+    // Auto-save indication
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+    
     // Clear error on field change
-    if (errors[field]) {
+    if (errors[field as keyof JobFormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
@@ -41,12 +72,8 @@ export const useJobForm = () => {
   const validateForm = (): boolean => {
     const newErrors: JobFormErrors = {};
 
-    if (!formData.jobTitle.trim()) {
-      newErrors.jobTitle = 'Jobtitel ist erforderlich';
-    }
-
-    if (!formData.jobType) {
-      newErrors.jobType = 'Beschäftigungsart ist erforderlich';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Jobtitel ist erforderlich';
     }
 
     if (!formData.location.trim()) {
@@ -55,6 +82,14 @@ export const useJobForm = () => {
 
     if (!formData.description.trim()) {
       newErrors.description = 'Stellenbeschreibung ist erforderlich';
+    }
+
+    if (!formData.contractType) {
+      newErrors.contractType = 'Vertragsart ist erforderlich';
+    }
+
+    if (!formData.billingType) {
+      newErrors.billingType = 'Abrechnungsart ist erforderlich';
     }
 
     setErrors(newErrors);
@@ -76,12 +111,19 @@ export const useJobForm = () => {
       // await supabase
       //   .from('jobs')
       //   .insert({
-      //     title: formData.jobTitle,
-      //     job_type: formData.jobType,
+      //     title: formData.title,
       //     location: formData.location,
-      //     salary_range: formData.salary,
       //     description: formData.description,
-      //     status: 'Aktiv',
+      //     contract_type: formData.contractType,
+      //     billing_type: formData.billingType,
+      //     hourly_rate_min: formData.hourlyRateMin,
+      //     hourly_rate_max: formData.hourlyRateMax,
+      //     referral_bonus: formData.referralBonus,
+      //     interview: formData.interview,
+      //     form: formData.form,
+      //     rejection_email: formData.rejectionEmail,
+      //     automatic_communication: formData.automaticCommunication,
+      //     automatic_redirect: formData.automaticRedirect,
       //   });
       
       return Promise.resolve();
@@ -99,5 +141,6 @@ export const useJobForm = () => {
     errors,
     isSubmitting,
     submitJob,
+    isSaved,
   };
 };
