@@ -1,4 +1,4 @@
-
+import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +30,9 @@ import UnternehmenJobErstellenPage from "./pages/unternehmen/UnternehmenJobErste
 import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
 
 const queryClient = new QueryClient();
+
+const JobsPage = lazy(() => import('./pages/unternehmen/JobsPage'));
+const CreateJobPage = lazy(() => import('./pages/unternehmen/CreateJobPage'));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
