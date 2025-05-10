@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Menu, X, LogOut } from 'lucide-react';
@@ -71,12 +71,12 @@ export function SharedNavbar() {
               Akademiker
             </Link>
             <Link 
-              to="/businesses" 
+              to="/unternehmen" 
               className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
-                location.pathname.includes('/business') ? 'text-gitflash-primary font-medium' : ''
+                location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
               }`}
             >
-              Unternehmen
+              Für Unternehmen
             </Link>
           </nav>
           
@@ -111,6 +111,11 @@ export function SharedNavbar() {
                     <DropdownMenuItem asChild>
                       <Link to="/talent" className="cursor-pointer">Talentbereich</Link>
                     </DropdownMenuItem>
+                    {(profile?.role === 'business' || profile?.role === 'operator') && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/unternehmen" className="cursor-pointer">Unternehmensbereich</Link>
+                      </DropdownMenuItem>
+                    )}
                     {profile?.role === 'user' && (
                       <>
                         <DropdownMenuItem asChild>
@@ -122,6 +127,9 @@ export function SharedNavbar() {
                       <>
                         <DropdownMenuItem asChild>
                           <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/unternehmen/jobs/neu" className="cursor-pointer">Job erstellen</Link>
                         </DropdownMenuItem>
                       </>
                     )}
@@ -182,13 +190,13 @@ export function SharedNavbar() {
               Akademiker
             </Link>
             <Link 
-              to="/businesses" 
+              to="/unternehmen" 
               className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
-                location.pathname.includes('/business') ? 'text-gitflash-primary font-medium' : ''
+                location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Unternehmen
+              Für Unternehmen
             </Link>
             {isAuthenticated ? (
               <Link 

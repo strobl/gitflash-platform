@@ -21,6 +21,13 @@ import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Agb from "./pages/Agb";
 import TalentPage from "./pages/TalentPage";
+import { UnternehmenLayout } from "./components/unternehmen/UnternehmenLayout";
+import UnternehmenJobsPage from "./pages/unternehmen/UnternehmenJobsPage";
+import UnternehmenTeamPage from "./pages/unternehmen/UnternehmenTeamPage";
+import UnternehmenAusgabenPage from "./pages/unternehmen/UnternehmenAusgabenPage";
+import UnternehmenSuchePage from "./pages/unternehmen/UnternehmenSuchePage";
+import UnternehmenJobErstellenPage from "./pages/unternehmen/UnternehmenJobErstellenPage";
+import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +54,17 @@ const App = () => (
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<Agb />} />
               <Route path="/talent" element={<TalentPage />} />
+              
+              {/* Unternehmen routes */}
+              <Route path="/unternehmen" element={<UnternehmenLayout />}>
+                <Route index element={<UnternehmenJobsPage />} />
+                <Route path="team" element={<UnternehmenTeamPage />} />
+                <Route path="ausgaben" element={<UnternehmenAusgabenPage />} />
+                <Route path="suche" element={<UnternehmenSuchePage />} />
+                <Route path="jobs/neu" element={<UnternehmenJobErstellenPage />} />
+                <Route path="talent/:id" element={<UnternehmenTalentPage />} />
+              </Route>
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
