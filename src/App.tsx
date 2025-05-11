@@ -35,6 +35,8 @@ import TalentStartseitePage from "./pages/talent/startseite";
 import TalentInterviewPage from "./pages/talent/interview";
 import TalentErkundenPage from "./pages/talent/erkunden";
 import TalentZahlungenPage from "./pages/talent/zahlungen";
+import AdminProfilesListPage from "./pages/admin/profiles/index";
+import AdminProfileDetailPage from "./pages/admin/profiles/[id]";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,11 @@ const App = () => (
               <Route path="/interviews/create" element={<CreateInterview />} />
               <Route path="/interviews/:id" element={<InterviewDetail />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              
+              {/* New Admin Profile Routes */}
+              <Route path="/admin/profiles" element={<AdminProfilesListPage />} />
+              <Route path="/admin/profiles/:id" element={<AdminProfileDetailPage />} />
+              
               <Route path="/uebung/:id" element={<Uebung />} />
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
