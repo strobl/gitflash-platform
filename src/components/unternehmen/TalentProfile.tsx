@@ -106,28 +106,38 @@ export default function TalentProfile() {
           setEducation(eduData || []);
         }
         
-        // For projects_entries and awards_entries, use individual fetch calls instead of trying
-        // to use them in the join since they don't appear in the types
+        // For projects_entries and awards_entries, use a different approach since they don't appear in the type definitions
+        // Use the generic fetch method to bypass TypeScript type checking
+        const projectsResponse = await fetch(
+          `${supabase.supabaseUrl}/rest/v1/projects_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
+          {
+            headers: {
+              'apikey': supabase.supabaseKey,
+              'Authorization': `Bearer ${supabase.supabaseKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
         
-        // Using normal fetch calls for tables not in the TypeScript schema
-        const projectsResponse = await supabase
-          .from('projects_entries')
-          .select('*')
-          .eq('talent_profile_id', id)
-          .order('created_at', { ascending: false });
-        
-        if (!projectsResponse.error) {
-          setProjects(projectsResponse.data || []);
+        if (projectsResponse.ok) {
+          const projectsData = await projectsResponse.json();
+          setProjects(projectsData || []);
         }
         
-        const awardsResponse = await supabase
-          .from('awards_entries')
-          .select('*')
-          .eq('talent_profile_id', id)
-          .order('created_at', { ascending: false });
+        const awardsResponse = await fetch(
+          `${supabase.supabaseUrl}/rest/v1/awards_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
+          {
+            headers: {
+              'apikey': supabase.supabaseKey,
+              'Authorization': `Bearer ${supabase.supabaseKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
         
-        if (!awardsResponse.error) {
-          setAwards(awardsResponse.data || []);
+        if (awardsResponse.ok) {
+          const awardsData = await awardsResponse.json();
+          setAwards(awardsData || []);
         }
         
         setIsLoading(false);
