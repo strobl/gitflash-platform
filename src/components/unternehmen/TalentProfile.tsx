@@ -160,31 +160,15 @@ export default function TalentProfile() {
   const renderActiveSection = () => {
     switch (activeTab) {
       case "experience":
-        return experiences.length > 0 ? (
-          <ExperienceSection />
-        ) : (
-          <div className="p-4 text-gray-500 text-center">Keine Berufserfahrung eingetragen.</div>
-        );
+        return <ExperienceSection experiences={experiences} />;
       case "education":
-        return education.length > 0 ? (
-          <EducationSection />
-        ) : (
-          <div className="p-4 text-gray-500 text-center">Keine Ausbildungsdaten eingetragen.</div>
-        );
+        return <EducationSection education={education} />;
       case "awards":
-        return awards.length > 0 ? (
-          <AwardsSection />
-        ) : (
-          <div className="p-4 text-gray-500 text-center">Keine Auszeichnungen eingetragen.</div>
-        );
+        return <AwardsSection awards={awards} />;
       case "projects":
-        return projects.length > 0 ? (
-          <ProjectsSection />
-        ) : (
-          <div className="p-4 text-gray-500 text-center">Keine Projektdaten eingetragen.</div>
-        );
+        return <ProjectsSection projects={projects} />;
       default:
-        return <ExperienceSection />;
+        return <ExperienceSection experiences={experiences} />;
     }
   };
 
@@ -194,41 +178,52 @@ export default function TalentProfile() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+      </div>
+    );
+  }
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <Card className="p-6 m-4">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Profil nicht verfügbar</h2>
+          <p className="text-gray-500">{error}</p>
+        </div>
+      </Card>
+    );
+  }
+
+  // Extract skills as an array for the ProfileCard
+  const skillsArray = talentProfile?.skills ? 
+    talentProfile.skills.split(',').map((skill: string) => skill.trim()) : 
+    ['Baurecht', 'Vergaberecht/B', 'Vertragsgestaltung'];
+
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
-        </div>
-      ) : error ? (
-        <Card className="p-6">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Profil nicht verfügbar</h2>
-            <p className="text-gray-500">{error}</p>
+    <div className="py-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-xl overflow-hidden shadow">
+          <ProfileHeader username={userName} />
+          <ProfileCard 
+            name={userName || 'T.P.'} 
+            expertise={skillsArray}
+          />
+          <ProfileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="min-h-[60vh]">
+            {renderActiveSection()}
           </div>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {/* Content container with max width for better readability */}
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-xl overflow-hidden">
-              <ProfileHeader />
-              <ProfileCard />
-              <ProfileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-              <div className="min-h-[60vh]">
-                {renderActiveSection()}
-              </div>
-              <ProfileFooter />
-            </div>
-          </div>
+          <ProfileFooter cvUrl={talentProfile?.cv_url} />
         </div>
-      )}
+      </div>
     </div>
   );
 }
