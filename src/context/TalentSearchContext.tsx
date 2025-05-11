@@ -44,10 +44,10 @@ export const TalentSearchProvider: React.FC<{ children: ReactNode }> = ({ childr
       setIsLoading(true);
       
       try {
-        // Fetch only approved talent profiles
+        // First, fetch only approved talent profiles
         const { data: talentProfilesData, error: profilesError } = await supabase
           .from('talent_profiles')
-          .select('*, profiles(name)')
+          .select('*, user_id')
           .eq('status', 'approved')
           .order('updated_at', { ascending: false });
           
@@ -55,7 +55,27 @@ export const TalentSearchProvider: React.FC<{ children: ReactNode }> = ({ childr
         
         if (!talentProfilesData || talentProfilesData.length === 0) {
           setResults([]);
+          setIsLoading(false);
           return;
+        }
+        
+        // Get all unique user_ids to fetch names separately
+        const userIds = talentProfilesData.map(profile => profile.user_id).filter(Boolean);
+        
+        // Fetch user profiles separately to get names
+        const { data: profilesData, error: namesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+        
+        if (namesError) throw namesError;
+        
+        // Create a map of user_id to name for quick lookup
+        const nameMap = new Map();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            nameMap.set(profile.id, profile.name);
+          });
         }
         
         // Transform talent profiles to card format
@@ -65,8 +85,8 @@ export const TalentSearchProvider: React.FC<{ children: ReactNode }> = ({ childr
             ? profile.skills.split(',').map((skill: string) => skill.trim())
             : [];
           
-          // Get name from joined profiles table or use default
-          const name = profile.profiles?.name || 'Unbekannt';
+          // Get name from the map or use default
+          const name = nameMap.get(profile.user_id) || 'Unbekannt';
           
           // Transform to TalentCardProps format
           return {
@@ -115,6 +135,7 @@ export const TalentSearchProvider: React.FC<{ children: ReactNode }> = ({ childr
       } catch (error: any) {
         console.error('Error fetching talent profiles:', error);
         toast.error('Fehler beim Laden der Profile');
+        setResults([]);
       } finally {
         setIsLoading(false);
       }
