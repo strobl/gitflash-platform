@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileUpload, Download } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 
 interface CvUploadProps {
   cvUrl: string | undefined;
@@ -71,7 +71,7 @@ export const CvUpload: React.FC<CvUploadProps> = ({ cvUrl, onUpload, isEditable 
                   onClick={triggerFileInput}
                   disabled={isUploading}
                 >
-                  <FileUpload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" />
                   {isUploading ? 'Wird hochgeladen...' : 'CV hochladen'}
                 </Button>
               )}

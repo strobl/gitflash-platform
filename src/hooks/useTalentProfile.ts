@@ -39,7 +39,7 @@ export const useTalentProfile = () => {
               headline: '',
               summary: '',
               skills: '',
-              status: 'draft'
+              status: 'draft' as const
             }
           ])
           .select()
@@ -68,7 +68,13 @@ export const useTalentProfile = () => {
         return;
       }
 
-      setProfile(profileData);
+      // Ensure the status is of the correct type
+      const typedProfileData: TalentProfile = {
+        ...profileData,
+        status: profileData.status as TalentProfile['status']
+      };
+
+      setProfile(typedProfileData);
 
       // Fetch experience entries
       if (profileData?.id) {
@@ -157,7 +163,7 @@ export const useTalentProfile = () => {
     try {
       const { error } = await supabase
         .from('talent_profiles')
-        .update({ status: 'submitted' })
+        .update({ status: 'submitted' as const })
         .eq('id', profile.id);
 
       if (error) {
