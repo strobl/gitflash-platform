@@ -8,11 +8,16 @@ const TalentPage: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Only redirect when auth check is complete
     if (!isLoading) {
-      // Redirect to the talent startseite page
-      navigate("/talent/startseite", { replace: true });
+      if (!isAuthenticated) {
+        navigate("/login", { replace: true });
+      } else {
+        // Redirect to the talent startseite page
+        navigate("/talent/startseite", { replace: true });
+      }
     }
-  }, [navigate, isLoading]);
+  }, [navigate, isLoading, isAuthenticated]);
 
   // Show loading while redirecting
   return (

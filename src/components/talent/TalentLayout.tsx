@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { cn } from '@/lib/utils';
@@ -12,11 +12,24 @@ interface TalentLayoutProps {
   children: React.ReactNode;
 }
 
-export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab, children }) => {
+export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTab, children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
-  const [currentTab, setCurrentTab] = useState(activeTab);
+  const [currentTab, setCurrentTab] = useState(initialTab);
+  
+  // Sync the currentTab state with the URL on mount and when location changes
+  useEffect(() => {
+    const pathSegments = location.pathname.split('/');
+    const tabFromUrl = pathSegments[pathSegments.length - 1];
+    
+    // Only update if it's a valid tab and different from current
+    const validTabs = ['startseite', 'profil', 'interview', 'erkunden'];
+    if (validTabs.includes(tabFromUrl) && tabFromUrl !== currentTab) {
+      setCurrentTab(tabFromUrl);
+    }
+  }, [location.pathname, currentTab]);
   
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -29,7 +42,7 @@ export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab, children 
     }
   }, [isAuthenticated, isLoading, user, navigate]);
   
-  // Handle tab change
+  // Handle tab change with explicit navigation
   const handleTabChange = (tab: string) => {
     setCurrentTab(tab);
   };
