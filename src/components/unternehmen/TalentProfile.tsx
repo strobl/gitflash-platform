@@ -16,6 +16,10 @@ import AwardsSection from '../../../figma/company-profilecv-src/components/profi
 import ProfileNavigation from '../../../figma/company-profilecv-src/components/profile/ProfileNavigation';
 import ProfileFooter from '../../../figma/company-profilecv-src/components/profile/ProfileFooter';
 
+// Supabase URL and anon key from integration/client file
+const SUPABASE_URL = "https://gehhxwqlhzsesxzqleks.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlaGh4d3FsaHpzZXN4enFsZWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxNzkxOTYsImV4cCI6MjA2MTc1NTE5Nn0.n0xnb83NgWgJFA1eZ6K_36N_JhePnmiEYnRS-vHEcWM";
+
 export default function TalentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -107,13 +111,13 @@ export default function TalentProfile() {
         }
         
         // For projects_entries and awards_entries, use a different approach since they don't appear in the type definitions
-        // Use the generic fetch method to bypass TypeScript type checking
+        // Use fetch API with the Supabase REST endpoint directly
         const projectsResponse = await fetch(
-          `${supabase.supabaseUrl}/rest/v1/projects_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
+          `${SUPABASE_URL}/rest/v1/projects_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
           {
             headers: {
-              'apikey': supabase.supabaseKey,
-              'Authorization': `Bearer ${supabase.supabaseKey}`,
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
               'Content-Type': 'application/json'
             }
           }
@@ -125,11 +129,11 @@ export default function TalentProfile() {
         }
         
         const awardsResponse = await fetch(
-          `${supabase.supabaseUrl}/rest/v1/awards_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
+          `${SUPABASE_URL}/rest/v1/awards_entries?talent_profile_id=eq.${id}&order=created_at.desc`,
           {
             headers: {
-              'apikey': supabase.supabaseKey,
-              'Authorization': `Bearer ${supabase.supabaseKey}`,
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
               'Content-Type': 'application/json'
             }
           }
