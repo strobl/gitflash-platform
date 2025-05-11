@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, User, Video, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,18 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Sync the active tab with the current URL path on component mount
+  useEffect(() => {
+    const path = location.pathname;
+    const pathSegments = path.split('/');
+    const currentTab = pathSegments[pathSegments.length - 1];
+    
+    if (navigationItems.some(item => item.id === currentTab) && currentTab !== activeTab) {
+      onTabChange(currentTab);
+    }
+  }, [location.pathname, activeTab, onTabChange]);
 
   const navigationItems = [
     {
