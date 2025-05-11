@@ -15,7 +15,7 @@ interface AwardsSectionProps {
 const AwardsSection: React.FC<AwardsSectionProps> = ({ awards = [] }) => {
   const defaultAwards = [
     {
-      title: "Preisträger:in „BauRecht Innovativ 2023"",
+      title: 'Preisträger:in "BauRecht Innovativ 2023"',
       description: "Verliehen vom Deutschen Baugerichtstag für herausragende Arbeit zur Digitalisierung im Claim Management"
     },
     {
