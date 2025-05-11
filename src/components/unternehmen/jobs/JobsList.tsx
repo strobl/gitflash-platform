@@ -16,8 +16,8 @@ export const JobsList: React.FC = () => {
     job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const handleJobClick = (jobId: string) => {
-    navigate(`/unternehmen/jobanzeigen/${jobId}`);
+  const handleJobClick = (jobId: number) => {
+    navigate(`/unternehmen/jobanzeigen/${jobId.toString()}`);
   };
 
   if (isLoading) {
@@ -86,7 +86,7 @@ export const JobsList: React.FC = () => {
                         className="text-gitflash-primary hover:text-gitflash-primary/70"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/unternehmen/jobs/bearbeiten/${job.id}`);
+                          navigate(`/unternehmen/jobs/bearbeiten/${job.id.toString()}`);
                         }}
                       >
                         Bearbeiten
