@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
@@ -21,9 +20,11 @@ export default function TalentProfile() {
   const { isAuthenticated, profile, isLoading: authLoading } = useAuth();
   
   const [talentProfile, setTalentProfile] = useState<any>(null);
-  const [userName, setUserName] = useState<string>('Talent');
   const [experiences, setExperiences] = useState<any[]>([]);
   const [education, setEducation] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [awards, setAwards] = useState<any[]>([]);
+  const [userName, setUserName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("experience");
@@ -43,12 +44,12 @@ export default function TalentProfile() {
 
   useEffect(() => {
     const fetchTalentProfile = async () => {
-      if (authLoading) return; // Wait until auth check is done
+      if (authLoading || !id) return; // Wait until auth check is done
       
       try {
         setIsLoading(true);
         
-        // Load talent profile
+        // Load talent profile - ONLY approved profiles
         const { data: profileData, error: profileError } = await supabase
           .from('talent_profiles')
           .select('*')
@@ -103,6 +104,28 @@ export default function TalentProfile() {
           setEducation(eduData || []);
         }
         
+        // Load projects (if table exists)
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects_entries')
+          .select('*')
+          .eq('talent_profile_id', id)
+          .order('created_at', { ascending: false });
+          
+        if (!projectError) {
+          setProjects(projectData || []);
+        }
+        
+        // Load awards (if table exists)
+        const { data: awardData, error: awardError } = await supabase
+          .from('awards_entries')
+          .select('*')
+          .eq('talent_profile_id', id)
+          .order('created_at', { ascending: false });
+          
+        if (!awardError) {
+          setAwards(awardData || []);
+        }
+        
         setIsLoading(false);
       } catch (error: any) {
         console.error('Error fetching talent profile:', error);
@@ -119,13 +142,29 @@ export default function TalentProfile() {
   const renderActiveSection = () => {
     switch (activeTab) {
       case "experience":
-        return <ExperienceSection />;
+        return experiences.length > 0 ? (
+          <ExperienceSection />
+        ) : (
+          <div className="p-4 text-gray-500 text-center">Keine Berufserfahrung eingetragen.</div>
+        );
       case "education":
-        return <EducationSection />;
+        return education.length > 0 ? (
+          <EducationSection />
+        ) : (
+          <div className="p-4 text-gray-500 text-center">Keine Ausbildungsdaten eingetragen.</div>
+        );
       case "awards":
-        return <AwardsSection />;
+        return awards.length > 0 ? (
+          <AwardsSection />
+        ) : (
+          <div className="p-4 text-gray-500 text-center">Keine Auszeichnungen eingetragen.</div>
+        );
       case "projects":
-        return <ProjectsSection />;
+        return projects.length > 0 ? (
+          <ProjectsSection />
+        ) : (
+          <div className="p-4 text-gray-500 text-center">Keine Projektdaten eingetragen.</div>
+        );
       default:
         return <ExperienceSection />;
     }
@@ -144,37 +183,34 @@ export default function TalentProfile() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <SharedNavbar />
-      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {isLoading ? (
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+        </div>
+      ) : error ? (
+        <Card className="p-6">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Profil nicht verfügbar</h2>
+            <p className="text-gray-500">{error}</p>
           </div>
-        ) : error ? (
-          <Card className="p-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">Profil nicht verfügbar</h2>
-              <p className="text-gray-500">{error}</p>
-            </div>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {/* Content container with max width for better readability */}
-            <div className="max-w-3xl mx-auto">
-              <div className="bg-white rounded-xl overflow-hidden">
-                <ProfileHeader />
-                <ProfileCard />
-                <ProfileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-                <div className="min-h-[60vh]">
-                  {renderActiveSection()}
-                </div>
-                <ProfileFooter />
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {/* Content container with max width for better readability */}
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white rounded-xl overflow-hidden">
+              <ProfileHeader />
+              <ProfileCard />
+              <ProfileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+              <div className="min-h-[60vh]">
+                {renderActiveSection()}
               </div>
+              <ProfileFooter />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
