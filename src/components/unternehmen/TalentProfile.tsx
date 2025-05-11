@@ -5,12 +5,14 @@ import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
-import ProfileHeader from '@/figma/company-profilecv-src/components/profile/ProfileHeader';
-import ProfileCard from '@/figma/company-profilecv-src/components/profile/ProfileCard';
-import ExperienceSection from '@/figma/company-profilecv-src/components/profile/ExperienceSection';
-import EducationSection from '@/figma/company-profilecv-src/components/profile/EducationSection';
-import ProjectsSection from '@/figma/company-profilecv-src/components/profile/ProjectsSection';
-import AwardsSection from '@/figma/company-profilecv-src/components/profile/AwardsSection';
+import ProfileHeader from '../../../figma/company-profilecv-src/components/profile/ProfileHeader';
+import ProfileCard from '../../../figma/company-profilecv-src/components/profile/ProfileCard';
+import ExperienceSection from '../../../figma/company-profilecv-src/components/profile/ExperienceSection';
+import EducationSection from '../../../figma/company-profilecv-src/components/profile/EducationSection';
+import ProjectsSection from '../../../figma/company-profilecv-src/components/profile/ProjectsSection';
+import AwardsSection from '../../../figma/company-profilecv-src/components/profile/AwardsSection';
+import ProfileNavigation from '../../../figma/company-profilecv-src/components/profile/ProfileNavigation';
+import ProfileFooter from '../../../figma/company-profilecv-src/components/profile/ProfileFooter';
 import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export default function TalentProfile() {
@@ -24,6 +26,7 @@ export default function TalentProfile() {
   const [education, setEducation] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("experience");
 
   useEffect(() => {
     // Check authentication and role
@@ -113,6 +116,25 @@ export default function TalentProfile() {
     }
   }, [id, authLoading]);
 
+  const renderActiveSection = () => {
+    switch (activeTab) {
+      case "experience":
+        return <ExperienceSection />;
+      case "education":
+        return <EducationSection />;
+      case "awards":
+        return <AwardsSection />;
+      case "projects":
+        return <ProjectsSection />;
+      default:
+        return <ExperienceSection />;
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -140,13 +162,15 @@ export default function TalentProfile() {
           <div className="space-y-4">
             {/* Content container with max width for better readability */}
             <div className="max-w-3xl mx-auto">
-              {/* Using components from company-profilecv-src */}
-              <ProfileHeader />
-              <ProfileCard />
-              <ExperienceSection />
-              <EducationSection />
-              <ProjectsSection />
-              <AwardsSection />
+              <div className="bg-white rounded-xl overflow-hidden">
+                <ProfileHeader />
+                <ProfileCard />
+                <ProfileNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+                <div className="min-h-[60vh]">
+                  {renderActiveSection()}
+                </div>
+                <ProfileFooter />
+              </div>
             </div>
           </div>
         )}
