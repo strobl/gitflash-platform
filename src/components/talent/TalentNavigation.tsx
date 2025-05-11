@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Home, User, Video, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,7 +22,7 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
       id: "startseite",
       label: "Startseite",
       icon: <Home className="h-5 w-5" />,
-      href: "/talent",
+      href: "/talent/startseite",
     },
     {
       id: "profil",

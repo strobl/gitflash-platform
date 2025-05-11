@@ -31,6 +31,9 @@ import CreateJobPage from "./pages/unternehmen/CreateJobPage";
 import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
 import JobAnzeigeDetailPage from "./pages/unternehmen/JobAnzeigeDetailPage";
 import TalentProfilPage from "./pages/talent/profil";
+import TalentStartseitePage from "./pages/talent/startseite";
+import TalentInterviewPage from "./pages/talent/interview";
+import TalentErkundenPage from "./pages/talent/erkunden";
 
 const queryClient = new QueryClient();
 
@@ -58,8 +61,13 @@ const App = () => (
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<Agb />} />
+              
+              {/* Talent routes */}
               <Route path="/talent" element={<TalentPage />} />
+              <Route path="/talent/startseite" element={<TalentStartseitePage />} />
               <Route path="/talent/profil" element={<TalentProfilPage />} />
+              <Route path="/talent/interview" element={<TalentInterviewPage />} />
+              <Route path="/talent/erkunden" element={<TalentErkundenPage />} />
               
               {/* Unternehmen routes */}
               <Route path="/unternehmen" element={<UnternehmenLayout />}>
