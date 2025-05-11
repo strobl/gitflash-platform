@@ -53,7 +53,13 @@ const AdminProfilesListPage: React.FC = () => {
         throw error;
       }
       
-      setProfiles(data || []);
+      // Type assertion to ensure status matches expected TalentProfile type
+      const typedProfiles = (data || []).map(profile => ({
+        ...profile,
+        status: profile.status as TalentProfile['status']
+      }));
+      
+      setProfiles(typedProfiles);
     } catch (error: any) {
       console.error('Error fetching profiles:', error);
       toast.error('Fehler beim Laden der Profile');
@@ -158,7 +164,7 @@ const AdminProfilesListPage: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <ProfileStatusBadge status={profile.status as any} />
+                        <ProfileStatusBadge status={profile.status} />
                       </TableCell>
                       <TableCell>
                         {formatDate(profile.updated_at)}

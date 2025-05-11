@@ -43,7 +43,10 @@ const AdminProfileDetailPage: React.FC = () => {
       if (profileError) throw profileError;
       
       // Set profile and user name
-      setProfile(profileData);
+      setProfile({
+        ...profileData,
+        status: profileData.status as TalentProfile['status'] // Type assertion to ensure status matches expected type
+      });
       setUserName((profileData as any).profiles?.name || 'Unbekannt');
       
       // Fetch experience entries
@@ -166,7 +169,7 @@ const AdminProfileDetailPage: React.FC = () => {
                 <CardTitle className="text-xl">{userName}</CardTitle>
                 <CardDescription>{profile.headline}</CardDescription>
               </div>
-              <ProfileStatusBadge status={profile.status as any} size="lg" />
+              <ProfileStatusBadge status={profile.status} size="lg" />
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
