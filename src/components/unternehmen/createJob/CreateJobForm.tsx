@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useJobForm } from '@/hooks/useJobForm';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import TiptapEditor from '@/components/editor/TiptapEditor';
 
 export const CreateJobForm: React.FC = () => {
@@ -43,12 +42,8 @@ export const CreateJobForm: React.FC = () => {
     }
   };
 
-  const handleClose = () => {
-    navigate("/unternehmen/jobs");
-  };
-
   return (
-    <div className="bg-white relative flex w-full flex-col items-stretch justify-center pt-8 pb-5 px-4 rounded-[8px_8px_0px_0px]">
+    <div className="bg-white relative flex w-full flex-col items-stretch justify-center py-8 px-4 sm:pt-8 sm:pb-5 rounded-[8px_8px_0px_0px]">
       {/* Header */}
       <div className="z-0 flex w-full items-center gap-2">
         <h2 className="text-[#0A2540] text-base font-bold self-stretch my-auto">
@@ -60,15 +55,6 @@ export const CreateJobForm: React.FC = () => {
           </div>
         )}
       </div>
-      
-      {/* Close Button */}
-      <button 
-        onClick={handleClose}
-        className="absolute z-0 right-2.5 top-2.5"
-        aria-label="Schließen"
-      >
-        <X className="w-3 h-3 text-gray-500" />
-      </button>
       
       {/* Progress indicator */}
       <div className="absolute z-0 flex w-80 flex-col h-[18px] px-16 py-2 right-0 top-0">
