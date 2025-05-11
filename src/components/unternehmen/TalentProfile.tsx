@@ -4,6 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
+
+// Import components using relative paths
 import ProfileHeader from '../../../figma/company-profilecv-src/components/profile/ProfileHeader';
 import ProfileCard from '../../../figma/company-profilecv-src/components/profile/ProfileCard';
 import ExperienceSection from '../../../figma/company-profilecv-src/components/profile/ExperienceSection';
@@ -12,7 +15,6 @@ import ProjectsSection from '../../../figma/company-profilecv-src/components/pro
 import AwardsSection from '../../../figma/company-profilecv-src/components/profile/AwardsSection';
 import ProfileNavigation from '../../../figma/company-profilecv-src/components/profile/ProfileNavigation';
 import ProfileFooter from '../../../figma/company-profilecv-src/components/profile/ProfileFooter';
-import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export default function TalentProfile() {
   const { id } = useParams<{ id: string }>();
@@ -104,26 +106,28 @@ export default function TalentProfile() {
           setEducation(eduData || []);
         }
         
-        // Load projects (if table exists)
-        const { data: projectData, error: projectError } = await supabase
+        // For projects_entries and awards_entries, use individual fetch calls instead of trying
+        // to use them in the join since they don't appear in the types
+        
+        // Using normal fetch calls for tables not in the TypeScript schema
+        const projectsResponse = await supabase
           .from('projects_entries')
           .select('*')
           .eq('talent_profile_id', id)
           .order('created_at', { ascending: false });
-          
-        if (!projectError) {
-          setProjects(projectData || []);
+        
+        if (!projectsResponse.error) {
+          setProjects(projectsResponse.data || []);
         }
         
-        // Load awards (if table exists)
-        const { data: awardData, error: awardError } = await supabase
+        const awardsResponse = await supabase
           .from('awards_entries')
           .select('*')
           .eq('talent_profile_id', id)
           .order('created_at', { ascending: false });
-          
-        if (!awardError) {
-          setAwards(awardData || []);
+        
+        if (!awardsResponse.error) {
+          setAwards(awardsResponse.data || []);
         }
         
         setIsLoading(false);
