@@ -30,6 +30,7 @@ import UnternehmenSuchePage from "./pages/unternehmen/UnternehmenSuchePage";
 import CreateJobPage from "./pages/unternehmen/CreateJobPage";
 import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
 import JobAnzeigeDetailPage from "./pages/unternehmen/JobAnzeigeDetailPage";
+import TalentProfilPage from "./pages/talent/profil";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<Agb />} />
               <Route path="/talent" element={<TalentPage />} />
+              <Route path="/talent/profil" element={<TalentProfilPage />} />
               
               {/* Unternehmen routes */}
               <Route path="/unternehmen" element={<UnternehmenLayout />}>

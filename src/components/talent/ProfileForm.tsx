@@ -1,256 +1,208 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { TalentProfile } from '@/types/talent-profile';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Loader } from 'lucide-react';
 
-export function ProfileForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import { ProfileHeader } from './ProfileHeader';
+import { ExperienceForm } from './ExperienceForm';
+import { EducationForm } from './EducationForm';
+import { CvUpload } from './CvUpload';
+import { useTalentProfile } from '@/hooks/useTalentProfile';
+import { useToast } from '@/hooks/use-toast';
+
+export const ProfileForm: React.FC = () => {
+  const { 
+    profile,
+    experiences,
+    education,
+    isLoading,
+    isSaving,
+    isSubmitting,
+    updateProfile,
+    submitProfile,
+    addExperienceEntry,
+    updateExperienceEntry,
+    deleteExperienceEntry,
+    addEducationEntry,
+    updateEducationEntry,
+    deleteEducationEntry,
+    uploadCv
+  } = useTalentProfile();
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const { toast } = useToast();
+  
+  // Form state
+  const [headline, setHeadline] = useState('');
+  const [summary, setSummary] = useState('');
+  const [skills, setSkills] = useState('');
+  
+  // Initialize form with profile data
+  useEffect(() => {
+    if (profile) {
+      setHeadline(profile.headline || '');
+      setSummary(profile.summary || '');
+      setSkills(profile.skills || '');
+    }
+  }, [profile]);
+  
+  // Debounce values for autosave
+  const debouncedHeadline = useDebounce(headline, 800);
+  const debouncedSummary = useDebounce(summary, 800);  
+  const debouncedSkills = useDebounce(skills, 800);
+  
+  // Autosave when debounced values change
+  useEffect(() => {
+    if (profile && debouncedHeadline !== profile.headline) {
+      updateProfile({ headline: debouncedHeadline });
+    }
+  }, [debouncedHeadline]);
+  
+  useEffect(() => {
+    if (profile && debouncedSummary !== profile.summary) {
+      updateProfile({ summary: debouncedSummary });
+    }
+  }, [debouncedSummary]);
+  
+  useEffect(() => {
+    if (profile && debouncedSkills !== profile.skills) {
+      updateProfile({ skills: debouncedSkills });
+    }
+  }, [debouncedSkills]);
+  
+  const handleSubmitProfile = async () => {
+    if (!headline || !summary || !skills) {
+      toast({
+        title: "Unvollständiges Profil",
+        description: "Bitte fülle alle Pflichtfelder aus, bevor du dein Profil einreichst.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast.success('Profil erfolgreich aktualisiert');
-    }, 1000);
+    await submitProfile();
   };
   
+  // Check if profile is editable (in draft state)
+  const isEditable = profile?.status === 'draft';
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  if (!profile) {
+    return (
+      <div className="py-8">
+        <p className="text-center text-muted-foreground">
+          Profilinformationen konnten nicht geladen werden.
+        </p>
+      </div>
+    );
+  }
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="py-6 space-y-6">
+      <ProfileHeader profile={profile} isEditable={isEditable} />
+      
       <Card>
         <CardHeader>
-          <CardTitle>Persönliche Informationen</CardTitle>
-          <CardDescription>
-            Teilen Sie grundlegende Informationen über sich selbst.
-          </CardDescription>
+          <CardTitle>Grundlegende Informationen</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Vorname</Label>
-              <Input id="firstName" placeholder="Vorname eingeben" defaultValue="Max" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Nachname</Label>
-              <Input id="lastName" placeholder="Nachname eingeben" defaultValue="Mustermann" />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="headline">Headline</Label>
+            <Input
+              id="headline"
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              placeholder="z.B. Senior Frontend Developer mit 5 Jahren Erfahrung"
+              disabled={!isEditable || isSaving}
+            />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">E-Mail</Label>
-            <Input id="email" type="email" placeholder="Ihre E-Mail-Adresse" defaultValue="max@example.com" />
+            <Label htmlFor="summary">Zusammenfassung</Label>
+            <Textarea
+              id="summary"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="Kurze Zusammenfassung deiner Fähigkeiten und Erfahrungen"
+              disabled={!isEditable || isSaving}
+              rows={4}
+            />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="phone">Telefon</Label>
-            <Input id="phone" placeholder="Ihre Telefonnummer" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">Stadt</Label>
-              <Input id="city" placeholder="Ihre Stadt" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Land</Label>
-              <Select defaultValue="germany">
-                <SelectTrigger>
-                  <SelectValue placeholder="Land auswählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="germany">Deutschland</SelectItem>
-                  <SelectItem value="austria">Österreich</SelectItem>
-                  <SelectItem value="switzerland">Schweiz</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="bio">Kurzbiografie</Label>
-            <Textarea 
-              id="bio" 
-              placeholder="Kurze Beschreibung Ihrer Person und Ihrer beruflichen Ziele"
-              className="min-h-[120px]"
-              defaultValue="Ich bin ein erfahrener Bauingenieur mit Schwerpunkt auf nachhaltigen Bauprojekten."
+            <Label htmlFor="skills">Skills (kommagetrennt)</Label>
+            <Input
+              id="skills"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              placeholder="z.B. React, TypeScript, Node.js, GraphQL"
+              disabled={!isEditable || isSaving}
             />
           </div>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Berufserfahrung</CardTitle>
-          <CardDescription>
-            Fügen Sie Ihre relevanten Berufserfahrungen hinzu.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border rounded-md p-4 relative space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="jobTitle">Position</Label>
-                <Input id="jobTitle" placeholder="Ihre Position" defaultValue="Senior Bauingenieur" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">Unternehmen</Label>
-                <Input id="company" placeholder="Name des Unternehmens" defaultValue="BauProjekt GmbH" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Von</Label>
-                <Input id="startDate" type="date" defaultValue="2018-03-01" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Bis</Label>
-                <Input id="endDate" type="date" defaultValue="2023-04-30" />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Beschreibung</Label>
-              <Textarea 
-                id="description" 
-                placeholder="Beschreiben Sie Ihre Tätigkeiten und Erfolge"
-                className="min-h-[100px]"
-                defaultValue="Leitung von Bauprojekten im Wert von über 5 Millionen Euro. Verantwortlich für Planung, Ausführung und Qualitätskontrolle."
-              />
-            </div>
-            
-            <Button variant="outline" type="button" className="w-full">
-              + Weitere Berufserfahrung hinzufügen
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <ExperienceForm
+        experiences={experiences}
+        onAdd={addExperienceEntry}
+        onUpdate={updateExperienceEntry}
+        onDelete={deleteExperienceEntry}
+        isEditable={isEditable}
+      />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Ausbildung</CardTitle>
-          <CardDescription>
-            Fügen Sie Ihre Bildungsabschlüsse hinzu.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border rounded-md p-4 relative space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="degree">Abschluss</Label>
-                <Input id="degree" placeholder="Art des Abschlusses" defaultValue="Master of Science" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="field">Fachrichtung</Label>
-                <Input id="field" placeholder="Studiengang/Fachrichtung" defaultValue="Bauingenieurwesen" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="school">Bildungseinrichtung</Label>
-                <Input id="school" placeholder="Name der Universität/Schule" defaultValue="Technische Universität Berlin" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="graduationYear">Abschlussjahr</Label>
-                <Input id="graduationYear" placeholder="Jahr des Abschlusses" defaultValue="2018" />
-              </div>
-            </div>
-            
-            <Button variant="outline" type="button" className="w-full">
-              + Weitere Ausbildung hinzufügen
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EducationForm
+        education={education}
+        onAdd={addEducationEntry}
+        onUpdate={updateEducationEntry}
+        onDelete={deleteEducationEntry}
+        isEditable={isEditable}
+      />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Fähigkeiten</CardTitle>
-          <CardDescription>
-            Fügen Sie Ihre relevanten Fähigkeiten und Kenntnisse hinzu.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="border rounded-md p-4 grid grid-cols-1 gap-2">
-              <div className="flex gap-2">
-                <div className="bg-gitflash-primary/20 text-gitflash-primary px-3 py-1 rounded-md text-sm">
-                  Statikberechnung
-                </div>
-                <div className="bg-gitflash-primary/20 text-gitflash-primary px-3 py-1 rounded-md text-sm">
-                  Projektmanagement
-                </div>
-                <div className="bg-gitflash-primary/20 text-gitflash-primary px-3 py-1 rounded-md text-sm">
-                  BIM
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="bg-gitflash-primary/20 text-gitflash-primary px-3 py-1 rounded-md text-sm">
-                  AutoCAD
-                </div>
-                <div className="bg-gitflash-primary/20 text-gitflash-primary px-3 py-1 rounded-md text-sm">
-                  Nachhaltiges Bauen
-                </div>
-              </div>
-              <div className="mt-2">
-                <Input placeholder="Neue Fähigkeit hinzufügen und Enter drücken" />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <CvUpload
+        cvUrl={profile.cv_url}
+        onUpload={uploadCv}
+        isEditable={isEditable}
+      />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Lebenslauf hochladen</CardTitle>
-          <CardDescription>
-            Laden Sie Ihren aktuellen Lebenslauf hoch (PDF, DOC, DOCX).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
-            <div className="text-center space-y-2">
-              <div className="bg-gitflash-primary/20 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
-                <svg className="h-6 w-6 text-gitflash-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium">Datei hierher ziehen oder klicken zum Hochladen</p>
-                <p className="text-sm text-muted-foreground">Max. 5MB</p>
-              </div>
-              <Button variant="outline" type="button" className="mt-2">Durchsuchen</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {isEditable && (
+        <div className="flex justify-center">
+          <Button 
+            size="lg" 
+            onClick={handleSubmitProfile} 
+            disabled={isSubmitting || !headline || !summary || !skills}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader className="h-4 w-4 mr-2 animate-spin" />
+                Wird eingereicht...
+              </>
+            ) : (
+              'Zur Prüfung einreichen'
+            )}
+          </Button>
+        </div>
+      )}
       
-      <div className="flex justify-end">
-        <Button type="submit" className="bg-gitflash-primary hover:bg-gitflash-secondary" disabled={isSubmitting}>
-          {isSubmitting ? 'Wird gespeichert...' : 'Profil speichern'}
-        </Button>
-      </div>
-    </form>
+      {isSaving && (
+        <div className="fixed bottom-4 right-4">
+          <div className="bg-black/70 text-white px-4 py-2 rounded-md text-sm flex items-center">
+            <Loader className="h-3 w-3 mr-2 animate-spin" />
+            Wird gespeichert...
+          </div>
+        </div>
+      )}
+    </div>
   );
-}
+};

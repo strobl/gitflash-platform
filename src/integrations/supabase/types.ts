@@ -66,6 +66,94 @@ export type Database = {
         }
         Relationships: []
       }
+      education_entries: {
+        Row: {
+          created_at: string
+          degree: string
+          description: string | null
+          end_date: string | null
+          id: string
+          institution: string
+          start_date: string
+          talent_profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          degree: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          institution: string
+          start_date: string
+          talent_profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          degree?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          institution?: string
+          start_date?: string
+          talent_profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_entries_talent_profile_id_fkey"
+            columns: ["talent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_entries: {
+        Row: {
+          company: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          start_date: string
+          talent_profile_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date: string
+          talent_profile_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          talent_profile_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_entries_talent_profile_id_fkey"
+            columns: ["talent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_feedback: {
         Row: {
           comment: string
@@ -170,6 +258,42 @@ export type Database = {
           location?: string | null
           name?: string
           role?: string
+        }
+        Relationships: []
+      }
+      talent_profiles: {
+        Row: {
+          created_at: string
+          cv_url: string | null
+          headline: string | null
+          id: string
+          skills: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cv_url?: string | null
+          headline?: string | null
+          id?: string
+          skills?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cv_url?: string | null
+          headline?: string | null
+          id?: string
+          skills?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
