@@ -5,12 +5,12 @@ import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
-import ProfileHeader from 'figma/company-profilecv-src/components/profile/ProfileHeader';
-import ProfileCard from 'figma/company-profilecv-src/components/profile/ProfileCard';
-import ExperienceSection from 'figma/company-profilecv-src/components/profile/ExperienceSection';
-import EducationSection from 'figma/company-profilecv-src/components/profile/EducationSection';
-import ProjectsSection from 'figma/company-profilecv-src/components/profile/ProjectsSection';
-import AwardsSection from 'figma/company-profilecv-src/components/profile/AwardsSection';
+import ProfileHeader from '@/figma/company-profilecv-src/components/profile/ProfileHeader';
+import ProfileCard from '@/figma/company-profilecv-src/components/profile/ProfileCard';
+import ExperienceSection from '@/figma/company-profilecv-src/components/profile/ExperienceSection';
+import EducationSection from '@/figma/company-profilecv-src/components/profile/EducationSection';
+import ProjectsSection from '@/figma/company-profilecv-src/components/profile/ProjectsSection';
+import AwardsSection from '@/figma/company-profilecv-src/components/profile/AwardsSection';
 import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export default function TalentProfile() {
