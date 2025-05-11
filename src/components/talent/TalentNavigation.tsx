@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, User, Video, Search } from "lucide-react";
+import { Home, User, Video, Search, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -41,6 +41,12 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
       label: "Erkunden",
       icon: <Search className="h-5 w-5" />,
       href: "/talent/erkunden",
+    },
+    {
+      id: "zahlungen",
+      label: "Zahlungen",
+      icon: <CreditCard className="h-5 w-5" />,
+      href: "/talent/zahlungen",
     },
   ];
 
