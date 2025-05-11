@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -43,17 +44,18 @@ export const CreateJobForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white relative flex w-full flex-col items-stretch justify-center px-4 py-6 sm:py-8 rounded-[8px_8px_0px_0px]">
+    <div className="bg-white relative flex w-full flex-col items-stretch justify-center px-4 py-6 pb-24 sm:py-8 sm:pb-12 rounded-[8px_8px_0px_0px]">
       {/* Header mit Speicherstatus */}
-      <div className="z-0 flex w-full items-center gap-2">
+      <div className="flex w-full items-center mb-4">
+        <h2 className="text-[#0A2540] text-base font-bold">Jobanzeige erstellen</h2>
         {isSaved && (
-          <div className="text-[#546679] text-right text-[10px] font-normal self-stretch flex-1 shrink basis-[0%] my-auto">
+          <div className="text-[#546679] text-right text-[10px] font-normal ml-auto">
             Entwurf gespeichert
           </div>
         )}
       </div>
       
-      <form onSubmit={handleSubmit} className="z-0 w-full">
+      <form onSubmit={handleSubmit} className="w-full">
         {/* Job Title */}
         <div className="w-full text-[10px]">
           <label className="text-[#0A2540] font-bold block" htmlFor="jobTitle">
