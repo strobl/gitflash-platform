@@ -43,12 +43,9 @@ export const CreateJobForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white relative flex w-full flex-col items-stretch justify-center py-8 px-4 sm:pt-8 sm:pb-5 rounded-[8px_8px_0px_0px]">
-      {/* Header */}
+    <div className="bg-white relative flex w-full flex-col items-stretch justify-center px-4 py-6 sm:py-8 rounded-[8px_8px_0px_0px]">
+      {/* Header mit Speicherstatus */}
       <div className="z-0 flex w-full items-center gap-2">
-        <h2 className="text-[#0A2540] text-base font-bold self-stretch my-auto">
-          Jobanzeige erstellen
-        </h2>
         {isSaved && (
           <div className="text-[#546679] text-right text-[10px] font-normal self-stretch flex-1 shrink basis-[0%] my-auto">
             Entwurf gespeichert
@@ -56,12 +53,7 @@ export const CreateJobForm: React.FC = () => {
         )}
       </div>
       
-      {/* Progress indicator */}
-      <div className="absolute z-0 flex w-80 flex-col h-[18px] px-16 py-2 right-0 top-0">
-        <div className="flex w-[72px] shrink-0 h-0.5 bg-[#9DA8B3] rounded-lg" />
-      </div>
-      
-      <form onSubmit={handleSubmit} className="z-0 w-full mt-4">
+      <form onSubmit={handleSubmit} className="z-0 w-full">
         {/* Job Title */}
         <div className="w-full text-[10px]">
           <label className="text-[#0A2540] font-bold block" htmlFor="jobTitle">
