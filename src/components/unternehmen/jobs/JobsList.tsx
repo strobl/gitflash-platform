@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useJobsList } from '@/hooks/useJobsList';
 import { EmptyState } from '@/components/unternehmen/jobs/EmptyState';
 import { JobStatusBadge } from '@/components/unternehmen/jobs/JobStatusBadge';
@@ -10,10 +10,15 @@ import { JobStatusBadge } from '@/components/unternehmen/jobs/JobStatusBadge';
 export const JobsList: React.FC = () => {
   const { jobs, isLoading } = useJobsList();
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const filteredJobs = jobs.filter(job => 
     job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handleJobClick = (jobId: string) => {
+    navigate(`/unternehmen/jobanzeigen/${jobId}`);
+  };
 
   if (isLoading) {
     return (
@@ -66,7 +71,7 @@ export const JobsList: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredJobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-50">
+                  <tr key={job.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleJobClick(job.id)}>
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">{job.title}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
                       <JobStatusBadge status={job.status} />
@@ -75,7 +80,15 @@ export const JobsList: React.FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap text-sm">{job.posted}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">{job.views}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                      <Button variant="ghost" size="sm" className="text-gitflash-primary hover:text-gitflash-primary/70">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gitflash-primary hover:text-gitflash-primary/70"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/unternehmen/jobs/bearbeiten/${job.id}`);
+                        }}
+                      >
                         Bearbeiten
                       </Button>
                     </td>

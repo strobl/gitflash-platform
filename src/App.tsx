@@ -29,6 +29,7 @@ import UnternehmenAusgabenPage from "./pages/unternehmen/UnternehmenAusgabenPage
 import UnternehmenSuchePage from "./pages/unternehmen/UnternehmenSuchePage";
 import CreateJobPage from "./pages/unternehmen/CreateJobPage";
 import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
+import JobAnzeigeDetailPage from "./pages/unternehmen/JobAnzeigeDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="suche" element={<UnternehmenSuchePage />} />
                 <Route path="jobs/neu" element={<CreateJobPage />} />
                 <Route path="talent/:id" element={<UnternehmenTalentPage />} />
+                <Route path="jobanzeigen/:id" element={<JobAnzeigeDetailPage />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />
