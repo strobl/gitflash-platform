@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { TalentSearchProvider } from '@/context/TalentSearchContext';
 import { useTalentSearchContext } from '@/context/TalentSearchContext';
@@ -7,13 +7,16 @@ import { TalentSearchBar } from '@/components/unternehmen/suche/TalentSearchBar'
 import { SearchFilters } from '@/components/unternehmen/suche/SearchFilters';
 import { TalentResultList } from '@/components/unternehmen/suche/TalentResultList';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 // Component that uses the context needs to be inside the provider
 const TalentSearchContent = () => {
   const { query, filters, results, isLoading, handleQueryChange, handleFilterChange } = useTalentSearchContext();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   
   const resetSearch = () => {
@@ -69,6 +72,29 @@ const TalentSearchContent = () => {
 };
 
 export default function UnternehmenSuchePage() {
+  const { profile, isLoading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Check authentication and role
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        navigate('/login');
+      } else if (profile?.role !== 'business' && profile?.role !== 'operator') {
+        navigate(getRoleRedirectPath(profile?.role));
+      }
+    }
+  }, [isAuthenticated, profile, isLoading, navigate]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <SharedNavbar />

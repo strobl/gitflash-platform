@@ -1,32 +1,159 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useTalentSearch, TalentSearchFilters } from '@/hooks/useTalentSearch';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { TalentCardProps } from '@/components/unternehmen/suche/TalentCard';
+import { toast } from 'sonner';
+
+interface SearchFilters {
+  profession: string[];
+  experience: number;
+  location: string;
+  remote: boolean;
+  salaryRange: [number, number];
+}
 
 interface TalentSearchContextType {
   query: string;
-  filters: TalentSearchFilters;
+  filters: SearchFilters;
   results: Omit<TalentCardProps, 'active'>[];
   isLoading: boolean;
   handleQueryChange: (query: string) => void;
-  handleFilterChange: (filters: TalentSearchFilters) => void;
+  handleFilterChange: (filters: SearchFilters) => void;
+  resetSearch: () => void;
 }
+
+const defaultFilters: SearchFilters = {
+  profession: [],
+  experience: 0,
+  location: '',
+  remote: false,
+  salaryRange: [60000, 120000]
+};
 
 const TalentSearchContext = createContext<TalentSearchContextType | undefined>(undefined);
 
 export const TalentSearchProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const searchState = useTalentSearch();
+  const [query, setQuery] = useState<string>('');
+  const [filters, setFilters] = useState<SearchFilters>(defaultFilters);
+  const [results, setResults] = useState<Omit<TalentCardProps, 'active'>[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Fetch talent profiles when query or filters change
+  useEffect(() => {
+    const fetchTalentProfiles = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Fetch only approved talent profiles
+        const { data: talentProfilesData, error: profilesError } = await supabase
+          .from('talent_profiles')
+          .select('*, profiles(name)')
+          .eq('status', 'approved')
+          .order('updated_at', { ascending: false });
+          
+        if (profilesError) throw profilesError;
+        
+        if (!talentProfilesData || talentProfilesData.length === 0) {
+          setResults([]);
+          return;
+        }
+        
+        // Transform talent profiles to card format
+        const talentCards = talentProfilesData.map(profile => {
+          // Parse skills from string to array of tags
+          const skillsArray = profile.skills 
+            ? profile.skills.split(',').map((skill: string) => skill.trim())
+            : [];
+          
+          // Get name from joined profiles table or use default
+          const name = profile.profiles?.name || 'Unbekannt';
+          
+          // Transform to TalentCardProps format
+          return {
+            id: profile.id,
+            name,
+            experience: 0, // Default value as we don't have years of experience in the profile
+            description: profile.summary || 'Keine Beschreibung vorhanden',
+            expertise: skillsArray.map((skill: string) => ({ 
+              label: skill, 
+              highlighted: skillsArray[0] === skill 
+            })),
+            availability: [{ label: 'Verfügbar' }], // Default availability
+          };
+        });
+        
+        // Filter results based on query and filters
+        const filtered = talentCards.filter(talent => {
+          // Simple search implementation - match against name, description and skills
+          if (query) {
+            const searchLower = query.toLowerCase();
+            const nameMatch = talent.name.toLowerCase().includes(searchLower);
+            const descMatch = talent.description.toLowerCase().includes(searchLower);
+            const skillsMatch = talent.expertise.some(tag => 
+              tag.label.toLowerCase().includes(searchLower)
+            );
+            
+            if (!(nameMatch || descMatch || skillsMatch)) {
+              return false;
+            }
+          }
+          
+          // Filter by profession/expertise
+          if (filters.profession.length > 0) {
+            const hasMatchingSkill = talent.expertise.some(skill =>
+              filters.profession.includes(skill.label)
+            );
+            if (!hasMatchingSkill) return false;
+          }
+          
+          // More filters could be added here
+          
+          return true;
+        });
+        
+        setResults(filtered);
+      } catch (error: any) {
+        console.error('Error fetching talent profiles:', error);
+        toast.error('Fehler beim Laden der Profile');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTalentProfiles();
+  }, [query, filters]);
+  
+  const handleQueryChange = (newQuery: string) => {
+    setQuery(newQuery);
+  };
+  
+  const handleFilterChange = (newFilters: SearchFilters) => {
+    setFilters(newFilters);
+  };
+  
+  const resetSearch = () => {
+    setQuery('');
+    setFilters(defaultFilters);
+  };
   
   return (
-    <TalentSearchContext.Provider value={searchState}>
+    <TalentSearchContext.Provider value={{
+      query,
+      filters,
+      results,
+      isLoading,
+      handleQueryChange,
+      handleFilterChange,
+      resetSearch
+    }}>
       {children}
     </TalentSearchContext.Provider>
   );
 };
 
-export const useTalentSearchContext = (): TalentSearchContextType => {
+export const useTalentSearchContext = () => {
   const context = useContext(TalentSearchContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useTalentSearchContext must be used within a TalentSearchProvider');
   }
   return context;
