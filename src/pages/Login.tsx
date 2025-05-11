@@ -1,24 +1,22 @@
-
 import { useAuth } from '@/context/AuthContext';
 import { useCamera } from '@/context/CameraContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import LoginForm from '@/components/auth/LoginForm';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export default function Login() {
   const { isAuthenticated, profile } = useAuth();
   const { setInterviewRedirectId, setAutoActivationEnabled } = useCamera();
   const [searchParams] = useSearchParams();
   
-  // Get redirect parameter or determine default based on user role
+  // Get redirect parameter if it exists
   const redirectParam = searchParams.get('redirect');
-  const defaultRedirect = profile?.role === 'user' ? '/talent' : '/dashboard';
-  const redirectTo = redirectParam || defaultRedirect;
   const shouldActivateCamera = searchParams.get('activateCamera') === 'true';
   
   // Log all parameters for debugging
   console.log('Login: Parameters received:', {
-    redirect: redirectTo,
+    redirect: redirectParam,
     activateCamera: shouldActivateCamera,
     isAuthenticated,
     userRole: profile?.role
@@ -26,12 +24,12 @@ export default function Login() {
   
   useEffect(() => {
     // Extract interview ID from redirect URL and store camera activation preference immediately
-    if (redirectTo.includes('/uebung/')) {
+    if (redirectParam && redirectParam.includes('/uebung/')) {
       // Handle both uppercase and lowercase variations in the URL
-      const redirectLower = redirectTo.toLowerCase();
+      const redirectLower = redirectParam.toLowerCase();
       const parts = redirectLower.includes('/uebung/') 
-        ? redirectTo.split('/uebung/') 
-        : redirectTo.split('/Uebung/');
+        ? redirectParam.split('/uebung/') 
+        : redirectParam.split('/Uebung/');
       
       if (parts.length > 1) {
         const interviewId = parts[1];
@@ -42,20 +40,28 @@ export default function Login() {
         console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
         setAutoActivationEnabled(shouldActivateCamera);
       } else {
-        console.error("Login: Failed to extract interview ID from URL:", redirectTo);
+        console.error("Login: Failed to extract interview ID from URL:", redirectParam);
       }
     }
-  }, [redirectTo, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled]);
+  }, [redirectParam, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled]);
   
-  // Redirect to specified path or appropriate dashboard based on role if already authenticated
+  // Redirect to appropriate dashboard based on role if already authenticated
   if (isAuthenticated) {
-    console.log("Login: User is authenticated, redirecting to:", redirectTo);
-    return <Navigate to={redirectTo} replace />;
+    if (redirectParam) {
+      // If a redirect param was provided, honor that
+      console.log("Login: User is authenticated, redirecting to specified path:", redirectParam);
+      return <Navigate to={redirectParam} replace />;
+    } else {
+      // Otherwise use role-based redirect
+      const rolePath = getRoleRedirectPath(profile?.role);
+      console.log("Login: User is authenticated, redirecting to role-based path:", rolePath);
+      return <Navigate to={rolePath} replace />;
+    }
   }
   
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#E7E9EC]">
-      <LoginForm redirectUrl={redirectTo} shouldActivateCamera={shouldActivateCamera} />
+      <LoginForm redirectUrl={redirectParam || ""} shouldActivateCamera={shouldActivateCamera} />
     </div>
   );
 }

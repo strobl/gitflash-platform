@@ -34,6 +34,7 @@ import TalentProfilPage from "./pages/talent/profil";
 import TalentStartseitePage from "./pages/talent/startseite";
 import TalentInterviewPage from "./pages/talent/interview";
 import TalentErkundenPage from "./pages/talent/erkunden";
+import TalentZahlungenPage from "./pages/talent/zahlungen";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="/talent/profil" element={<TalentProfilPage />} />
               <Route path="/talent/interview" element={<TalentInterviewPage />} />
               <Route path="/talent/erkunden" element={<TalentErkundenPage />} />
+              <Route path="/talent/zahlungen" element={<TalentZahlungenPage />} />
               
               {/* Unternehmen routes */}
               <Route path="/unternehmen" element={<UnternehmenLayout />}>

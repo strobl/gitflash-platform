@@ -1,8 +1,8 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 interface UserProfile {
   id: string;
@@ -133,14 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async (redirectTo?: string) => {
     setIsLoading(true);
     try {
-      // If no redirect is specified, determine based on role
-      // Default to dashboard if we don't know the role yet
-      let finalRedirectUrl = redirectTo || '/dashboard';
+      // If a specific URL was provided (like for interviews), use that
+      // Otherwise, we'll handle the redirect after auth in the component
+      const finalRedirectUrl = redirectTo || window.location.origin;
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: finalRedirectUrl || window.location.origin + '/dashboard'
+          redirectTo: finalRedirectUrl
         }
       });
 

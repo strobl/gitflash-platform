@@ -1,29 +1,27 @@
 
 import { useAuth } from '@/context/AuthContext';
-import { TalentDashboard } from '@/components/dashboard/TalentDashboard';
 import { BusinessDashboard } from '@/components/dashboard/BusinessDashboard';
 import { Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Navbar } from '@/components/navigation/Navbar';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export default function Dashboard() {
   const { profile, isAuthenticated, isLoading } = useAuth();
-  
-  // For "user" role, redirect to talent page
-  useEffect(() => {
-    if (profile?.role === 'user' && !isLoading) {
-      console.log("Dashboard: User role detected, redirecting to /talent");
-    }
-  }, [profile, isLoading]);
   
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   
-  // Redirect users with "user" role to /talent page
+  // Redirect users with "user" role to their appropriate area
   if (!isLoading && profile?.role === 'user') {
-    return <Navigate to="/talent" replace />;
+    return <Navigate to="/talent/startseite" replace />;
+  }
+
+  // Redirect business users to their appropriate area
+  if (!isLoading && profile?.role === 'business') {
+    return <Navigate to="/unternehmen" replace />;
   }
 
   // Show loading state while profile is loading
@@ -35,6 +33,7 @@ export default function Dashboard() {
     );
   }
   
+  // Only operators should reach this point
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

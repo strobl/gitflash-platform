@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TalentNavigation } from '@/components/talent/TalentNavigation';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 interface TalentLayoutProps {
   activeTab: string;
@@ -13,7 +14,7 @@ interface TalentLayoutProps {
 }
 
 export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTab, children }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, profile, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -29,18 +30,17 @@ export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTa
     if (tabFromUrl && tabFromUrl !== currentTab) {
       setCurrentTab(tabFromUrl);
     }
-  }, [location.pathname]);
+  }, [location.pathname, currentTab]);
   
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        navigate('/login');
-      } else if (user?.role !== 'user') {
-        navigate('/dashboard');
-      }
-    }
-  }, [isAuthenticated, isLoading, user, navigate]);
+  // If not authenticated, redirect to login
+  if (!isLoading && !isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If authenticated but not a talent user, redirect to appropriate area based on role
+  if (!isLoading && isAuthenticated && profile?.role !== 'user') {
+    return <Navigate to={getRoleRedirectPath(profile?.role)} replace />;
+  }
   
   // Handle tab change
   const handleTabChange = (tab: string) => {
@@ -48,7 +48,7 @@ export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTa
   };
   
   // Show loading while checking authentication
-  if (isLoading || !isAuthenticated) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>

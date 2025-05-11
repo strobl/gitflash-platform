@@ -12,11 +12,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 export function Navbar() {
   const { user, profile, logout, isAuthenticated } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Get the appropriate dashboard link based on user role
+  const dashboardLink = getRoleRedirectPath(profile?.role);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,24 +51,24 @@ export function Navbar() {
             <Link to="/" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
               Startseite
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated && profile?.role && (
               <>
-                <Link to="/dashboard" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
-                  Dashboard
+                <Link to={dashboardLink} className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+                  {profile.role === 'user' ? 'Mein Bereich' : 'Dashboard'}
                 </Link>
                 {profile?.role === 'user' && (
                   <>
-                    <Link to="/profile" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+                    <Link to="/talent/profil" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                       Mein Profil
                     </Link>
-                    <Link to="/interviews" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+                    <Link to="/talent/interview" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                       Interviews erkunden
                     </Link>
                   </>
                 )}
                 {profile?.role === 'business' && (
                   <>
-                    <Link to="/talents" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
+                    <Link to="/unternehmen/suche" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
                       Talente finden
                     </Link>
                     <Link to="/interviews" className="text-gitflash-text hover:text-gitflash-primary transition-colors link-underline">
@@ -93,7 +97,7 @@ export function Navbar() {
           
           {/* User Menu or Login Button */}
           <div className="flex items-center">
-            {isAuthenticated ? (
+            {isAuthenticated && profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -119,12 +123,14 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+                    <Link to={dashboardLink} className="cursor-pointer">
+                      {profile?.role === 'user' ? 'Mein Bereich' : 'Dashboard'}
+                    </Link>
                   </DropdownMenuItem>
                   {profile?.role === 'user' && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
+                        <Link to="/talent/profil" className="cursor-pointer">Profil bearbeiten</Link>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -190,26 +196,26 @@ export function Navbar() {
               Startseite
             </Link>
 
-            {isAuthenticated && (
+            {isAuthenticated && profile?.role && (
               <>
                 <Link 
-                  to="/dashboard" 
+                  to={dashboardLink} 
                   className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Dashboard
+                  {profile?.role === 'user' ? 'Mein Bereich' : 'Dashboard'}
                 </Link>
                 {profile?.role === 'user' && (
                   <>
                     <Link 
-                      to="/profile" 
+                      to="/talent/profil" 
                       className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Mein Profil
                     </Link>
                     <Link 
-                      to="/interviews" 
+                      to="/talent/interview" 
                       className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -220,7 +226,7 @@ export function Navbar() {
                 {profile?.role === 'business' && (
                   <>
                     <Link 
-                      to="/talents" 
+                      to="/unternehmen/suche" 
                       className="block py-2 text-gitflash-text hover:text-gitflash-primary"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
