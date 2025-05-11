@@ -19,17 +19,17 @@ export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTa
   const isMobile = useIsMobile();
   const [currentTab, setCurrentTab] = useState(initialTab);
   
-  // Sync the currentTab state with the URL on mount and when location changes
+  // Sync the currentTab state with the location on mount and when location changes
   useEffect(() => {
     const pathSegments = location.pathname.split('/');
+    // The last segment should be the tab name
     const tabFromUrl = pathSegments[pathSegments.length - 1];
     
-    // Only update if it's a valid tab and different from current
-    const validTabs = ['startseite', 'profil', 'interview', 'erkunden'];
-    if (validTabs.includes(tabFromUrl) && tabFromUrl !== currentTab) {
+    // Only update if it's different from current tab
+    if (tabFromUrl && tabFromUrl !== currentTab) {
       setCurrentTab(tabFromUrl);
     }
-  }, [location.pathname, currentTab]);
+  }, [location.pathname]);
   
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -42,7 +42,7 @@ export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTa
     }
   }, [isAuthenticated, isLoading, user, navigate]);
   
-  // Handle tab change with explicit navigation
+  // Handle tab change
   const handleTabChange = (tab: string) => {
     setCurrentTab(tab);
   };

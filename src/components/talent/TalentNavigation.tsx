@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Home, User, Video, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,7 +16,6 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const location = useLocation();
   
   const navigationItems = [
     {
@@ -35,7 +34,7 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
       id: "interview",
       label: "Interviews",
       icon: <Video className="h-5 w-5" />,
-      href: "/talent/interview", // Correct path, singular "interview" not "interviews"
+      href: "/talent/interview",
     },
     {
       id: "erkunden",
@@ -46,9 +45,9 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
   ];
 
   const handleNavigation = (tabId: string, href: string) => {
-    // First update the tab state
+    // Update the state first
     onTabChange(tabId);
-    // Then navigate to the new URL
+    // Then navigate to the appropriate route
     navigate(href);
   };
 
