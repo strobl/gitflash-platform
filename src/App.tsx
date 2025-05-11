@@ -80,7 +80,7 @@ const App = () => (
               <Route path="/talent/erkunden" element={<TalentErkundenPage />} />
               <Route path="/talent/zahlungen" element={<TalentZahlungenPage />} />
               
-              {/* Unternehmen routes */}
+              {/* Unternehmen routes - here's the fix: the Layout is the element, and its children are nested inside */}
               <Route path="/unternehmen" element={<UnternehmenLayout />}>
                 <Route index element={<UnternehmenJobsPage />} />
                 <Route path="team" element={<UnternehmenTeamPage />} />
