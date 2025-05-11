@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -26,13 +27,12 @@ import UnternehmenJobsPage from "./pages/unternehmen/UnternehmenJobsPage";
 import UnternehmenTeamPage from "./pages/unternehmen/UnternehmenTeamPage";
 import UnternehmenAusgabenPage from "./pages/unternehmen/UnternehmenAusgabenPage";
 import UnternehmenSuchePage from "./pages/unternehmen/UnternehmenSuchePage";
-import UnternehmenJobErstellenPage from "./pages/unternehmen/UnternehmenJobErstellenPage";
+import CreateJobPage from "./pages/unternehmen/CreateJobPage";
 import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
 
 const queryClient = new QueryClient();
 
 const JobsPage = lazy(() => import('./pages/unternehmen/JobsPage'));
-const CreateJobPage = lazy(() => import('./pages/unternehmen/CreateJobPage'));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -64,7 +64,7 @@ const App = () => (
                 <Route path="team" element={<UnternehmenTeamPage />} />
                 <Route path="ausgaben" element={<UnternehmenAusgabenPage />} />
                 <Route path="suche" element={<UnternehmenSuchePage />} />
-                <Route path="jobs/neu" element={<UnternehmenJobErstellenPage />} />
+                <Route path="jobs/neu" element={<CreateJobPage />} />
                 <Route path="talent/:id" element={<UnternehmenTalentPage />} />
               </Route>
               
