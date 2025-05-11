@@ -35,7 +35,7 @@ export const TalentNavigation: React.FC<TalentNavigationProps> = ({
       id: "interview",
       label: "Interviews",
       icon: <Video className="h-5 w-5" />,
-      href: "/talent/interview",
+      href: "/talent/interview", // Correct path, singular "interview" not "interviews"
     },
     {
       id: "erkunden",

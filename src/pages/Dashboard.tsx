@@ -12,7 +12,7 @@ export default function Dashboard() {
   // For "user" role, redirect to talent page
   useEffect(() => {
     if (profile?.role === 'user' && !isLoading) {
-      console.log("Dashboard: Redirecting user role to /talent");
+      console.log("Dashboard: User role detected, redirecting to /talent");
     }
   }, [profile, isLoading]);
   
@@ -39,7 +39,7 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <div className="container py-8 flex-1">
-        {profile?.role === 'user' ? <TalentDashboard /> : <BusinessDashboard />}
+        <BusinessDashboard />
       </div>
     </div>
   );

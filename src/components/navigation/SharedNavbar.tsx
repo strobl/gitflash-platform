@@ -36,6 +36,21 @@ export function SharedNavbar() {
     return profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Determine where to redirect based on user role
+  const getDashboardLink = () => {
+    if (!profile?.role) return '/';
+    
+    switch (profile.role) {
+      case 'user':
+        return '/talent';
+      case 'business':
+      case 'operator':
+        return '/dashboard';
+      default:
+        return '/';
+    }
+  };
+
   return (
     <header 
       className={`sticky top-0 z-40 w-full transition-all duration-300 ${
@@ -105,24 +120,34 @@ export function SharedNavbar() {
                       )}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
-                    </DropdownMenuItem>
+                    
+                    {/* Show appropriate dashboard link based on user role */}
+                    {profile?.role !== 'user' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Always show Talent area for all users */}
                     <DropdownMenuItem asChild>
                       <Link to="/talent" className="cursor-pointer">Talentbereich</Link>
                     </DropdownMenuItem>
+                    
+                    {/* Business area only for business and operator roles */}
                     {(profile?.role === 'business' || profile?.role === 'operator') && (
                       <DropdownMenuItem asChild>
                         <Link to="/unternehmen/suche" className="cursor-pointer">Unternehmensbereich</Link>
                       </DropdownMenuItem>
                     )}
+                    
+                    {/* Profile edit link */}
                     {profile?.role === 'user' && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
-                        </DropdownMenuItem>
-                      </>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
+                      </DropdownMenuItem>
                     )}
+                    
+                    {/* Admin features for business users and operators */}
                     {(profile?.role === 'business' || profile?.role === 'operator') && (
                       <>
                         <DropdownMenuItem asChild>
@@ -133,6 +158,7 @@ export function SharedNavbar() {
                         </DropdownMenuItem>
                       </>
                     )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -198,13 +224,15 @@ export function SharedNavbar() {
             >
               Für Unternehmen
             </Link>
+            
+            {/* Replace Dashboard link with role-based destination */}
             {isAuthenticated ? (
               <Link 
-                to="/dashboard" 
+                to={getDashboardLink()}
                 className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Dashboard
+                {profile?.role === 'user' ? 'Talentbereich' : 'Dashboard'}
               </Link>
             ) : (
               <Link 
