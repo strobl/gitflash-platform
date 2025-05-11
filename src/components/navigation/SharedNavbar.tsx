@@ -1,24 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation, NavLink } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
-import { Menu, X, LogOut } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Logo } from './navbar/Logo';
+import { DesktopNavigation } from './navbar/DesktopNavigation';
+import { MobileNavigation } from './navbar/MobileNavigation';
+import { AuthButtons } from './navbar/AuthButtons';
 
 export function SharedNavbar() {
-  const { user, profile, logout, isAuthenticated } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,26 +19,6 @@ export function SharedNavbar() {
     };
   }, []);
 
-  const getInitials = () => {
-    if (!profile?.name) return 'U';
-    return profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  // Determine where to redirect based on user role
-  const getDashboardLink = () => {
-    if (!profile?.role) return '/';
-    
-    switch (profile.role) {
-      case 'user':
-        return '/talent';
-      case 'business':
-      case 'operator':
-        return '/dashboard';
-      default:
-        return '/';
-    }
-  };
-
   return (
     <header 
       className={`sticky top-0 z-40 w-full transition-all duration-300 ${
@@ -59,132 +27,18 @@ export function SharedNavbar() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <img 
-              src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//LogoGF.svg" 
-              alt="GitFlash Logo" 
-              className="h-5 md:h-6 w-auto" 
-            />
-          </Link>
+          <Logo />
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/interviews" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
-                location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-            >
-              Interviews
-            </Link>
-            <Link 
-              to="/talent" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
-                location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-            >
-              Akademiker
-            </Link>
-            <Link 
-              to="/unternehmen/suche" 
-              className={`text-gitflash-text hover:text-gitflash-primary transition-colors link-underline ${
-                location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-            >
-              Für Unternehmen
-            </Link>
-          </nav>
+          <DesktopNavigation />
           
           {/* User Menu or Login Button */}
           <div className="flex items-center">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                      <Avatar>
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                        <AvatarFallback className="bg-gitflash-primary text-white">
-                          {getInitials()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-white">
-                    <DropdownMenuLabel>
-                      {profile?.name || 'Mein Konto'}
-                      {profile?.role === 'operator' && (
-                        <span className="ml-2 text-xs bg-gitflash-primary text-white px-2 py-0.5 rounded-full">
-                          Admin
-                        </span>
-                      )}
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    
-                    {/* Show appropriate dashboard link based on user role */}
-                    {profile?.role !== 'user' && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Always show Talent area for all users */}
-                    <DropdownMenuItem asChild>
-                      <Link to="/talent" className="cursor-pointer">Talentbereich</Link>
-                    </DropdownMenuItem>
-                    
-                    {/* Business area only for business and operator roles */}
-                    {(profile?.role === 'business' || profile?.role === 'operator') && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/unternehmen/suche" className="cursor-pointer">Unternehmensbereich</Link>
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Profile edit link */}
-                    {profile?.role === 'user' && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/profile" className="cursor-pointer">Profil bearbeiten</Link>
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Admin features for business users and operators */}
-                    {(profile?.role === 'business' || profile?.role === 'operator') && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/interviews/create" className="cursor-pointer">Interview erstellen</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/unternehmen/jobs/neu" className="cursor-pointer">Job erstellen</Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Abmelden</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button asChild className="bg-gitflash-primary hover:bg-gitflash-primary hover:brightness-105 transition-all duration-300 text-white">
-                  <Link to="/login">Anmelden</Link>
-                </Button>
-              </div>
-            )}
+            <AuthButtons />
 
             {/* Mobile Menu Button */}
-            <div className="ml-2 md:hidden">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Menu"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </Button>
+            <div className="ml-2">
+              <MobileNavigation />
             </div>
           </div>
         </div>
@@ -192,60 +46,6 @@ export function SharedNavbar() {
 
       {/* Horizontal Line */}
       <div className="w-full h-px bg-gray-200"></div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t animate-fade-in">
-          <nav className="px-4 pt-2 pb-4 space-y-2">
-            <Link 
-              to="/interviews" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
-                location.pathname.includes('/interview') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Interviews
-            </Link>
-            <Link 
-              to="/talent" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
-                location.pathname.includes('/talent') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Akademiker
-            </Link>
-            <Link 
-              to="/unternehmen/suche" 
-              className={`block py-2 text-gitflash-text hover:text-gitflash-primary link-underline ${
-                location.pathname.includes('/unternehmen') ? 'text-gitflash-primary font-medium' : ''
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Für Unternehmen
-            </Link>
-            
-            {/* Replace Dashboard link with role-based destination */}
-            {isAuthenticated ? (
-              <Link 
-                to={getDashboardLink()}
-                className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {profile?.role === 'user' ? 'Talentbereich' : 'Dashboard'}
-              </Link>
-            ) : (
-              <Link 
-                to="/login" 
-                className="block py-2 text-gitflash-text hover:text-gitflash-primary link-underline"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Anmelden
-              </Link>
-            )}
-          </nav>
-        </div>
-      )}
     </header>
   );
 }
