@@ -2,12 +2,13 @@
 import React from 'react';
 
 interface JobStatusBadgeProps {
-  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Geschlossen';
+  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Geschlossen' | 'Abgelehnt';
 }
 
 export const JobStatusBadge: React.FC<JobStatusBadgeProps> = ({ status }) => {
   let bgColor = '';
   let textColor = '';
+  let icon = null;
   
   switch (status) {
     case 'Aktiv':
@@ -25,6 +26,10 @@ export const JobStatusBadge: React.FC<JobStatusBadgeProps> = ({ status }) => {
     case 'Geschlossen':
       bgColor = 'bg-red-100';
       textColor = 'text-red-800';
+      break;
+    case 'Abgelehnt':
+      bgColor = 'bg-orange-100';
+      textColor = 'text-orange-800';
       break;
     default:
       bgColor = 'bg-gray-100';
