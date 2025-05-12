@@ -23,7 +23,7 @@ export function useAdminJobApproval() {
   const { profile } = useAuth();
 
   // Check if user is admin
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'operator';
+  const isAdmin = profile?.role === 'operator';
 
   useEffect(() => {
     if (!isAdmin) {

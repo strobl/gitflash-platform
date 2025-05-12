@@ -3,12 +3,21 @@ export interface JobDetail {
   id: string;
   title: string;
   location: string;
-  project: string;
-  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Archiviert' | 'Geschlossen';
-  visibility: 'Öffentlich' | 'Nur intern';
-  createdAt: string;
-  updatedAt: string;
   description: string;
+  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Archiviert' | 'Geschlossen' | 'Abgelehnt';
+  contract_type: string;
+  billing_type: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  views: number;
+  applicants: number;
+  hourly_rate_min?: string;
+  hourly_rate_max?: string;
+  project?: string;
+  visibility?: 'Öffentlich' | 'Nur intern';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Applicant {

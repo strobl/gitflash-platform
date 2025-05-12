@@ -17,6 +17,8 @@ export interface JobDetail {
   user_id: string;
   views: number;
   applicants: number;
+  hourly_rate_min?: string;
+  hourly_rate_max?: string;
   approved_at?: string;
   approved_by?: string;
   rejected_at?: string;
@@ -55,7 +57,7 @@ export function useJobDetail(jobId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
   const { profile } = useAuth();
 
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'operator';
+  const isAdmin = profile?.role === 'operator';
 
   useEffect(() => {
     if (!jobId) {
