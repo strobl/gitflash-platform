@@ -10,6 +10,7 @@ interface DashboardCardProps {
   footer?: ReactNode;
   className?: string;
   isHighlighted?: boolean;
+  onClick?: () => void; // Added onClick property
 }
 
 export function DashboardCard({ 
@@ -18,14 +19,19 @@ export function DashboardCard({
   children, 
   footer,
   className,
-  isHighlighted = false
+  isHighlighted = false,
+  onClick
 }: DashboardCardProps) {
   return (
-    <Card className={cn(
-      "overflow-hidden",
-      isHighlighted && "border-gitflash-primary card-gradient",
-      className
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden",
+        isHighlighted && "border-gitflash-primary card-gradient",
+        onClick && "cursor-pointer hover:border-gitflash-primary transition-colors",
+        className
+      )}
+      onClick={onClick}
+    >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

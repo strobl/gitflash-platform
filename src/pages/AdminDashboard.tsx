@@ -193,7 +193,7 @@ export default function AdminDashboard() {
           <DashboardCard 
             title="Job-Freigaben"
             description="Prüfen und verwalten Sie eingereichte Jobs"
-            className="cursor-pointer hover:border-gitflash-primary transition-colors"
+            className="hover:border-gitflash-primary transition-colors"
             onClick={handleNavigateToJobApprovals}
           >
             <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
           <DashboardCard 
             title="Benutzer-Verwaltung"
             description="Benutzer und Berechtigungen verwalten"
-            className="cursor-pointer hover:border-gitflash-accent transition-colors"
+            className="hover:border-gitflash-accent transition-colors"
             onClick={handleNavigateToUserManagement}
           >
             <div className="flex items-center justify-between">
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
           <DashboardCard 
             title="System-Einstellungen"
             description="Konfigurieren Sie die Plattform-Einstellungen"
-            className="cursor-pointer hover:border-gitflash-secondary transition-colors"
+            className="hover:border-gitflash-secondary transition-colors"
             onClick={handleNavigateToSystemSettings}
           >
             <div className="flex items-center justify-between">
@@ -262,7 +262,7 @@ export default function AdminDashboard() {
           <DashboardCard 
             title="Analysen & Berichte"
             description="Einsichten und Statistiken zur Plattform"
-            className="cursor-pointer hover:border-green-500 transition-colors"
+            className="hover:border-green-500 transition-colors"
             onClick={handleNavigateToAnalytics}
           >
             <div className="flex items-center justify-between">
