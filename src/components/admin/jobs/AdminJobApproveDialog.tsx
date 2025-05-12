@@ -1,16 +1,14 @@
 
 import React from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Check } from 'lucide-react';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface AdminJobApproveDialogProps {
   isOpen: boolean;
@@ -19,27 +17,38 @@ interface AdminJobApproveDialogProps {
   jobTitle: string;
 }
 
-export function AdminJobApproveDialog({ isOpen, onClose, onConfirm, jobTitle }: AdminJobApproveDialogProps) {
+export const AdminJobApproveDialog: React.FC<AdminJobApproveDialogProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  jobTitle,
+}) => {
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Job freigeben</AlertDialogTitle>
-          <AlertDialogDescription>
-            Sind Sie sicher, dass Sie den Job <strong>"{jobTitle}"</strong> freigeben möchten? 
-            Der Job wird dann öffentlich sichtbar für alle Benutzer.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Abbrechen</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={onConfirm}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Check className="mr-2 h-4 w-4" /> Freigeben
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Job freigeben</DialogTitle>
+          <DialogDescription>
+            Möchten Sie diesen Job wirklich öffentlich freigeben?
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          <p className="font-medium">{jobTitle}</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Nach der Freigabe wird der Job für alle Talente sichtbar und kann von diesen gefunden werden.
+          </p>
+        </div>
+
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Abbrechen
+          </Button>
+          <Button onClick={onConfirm} className="bg-green-600 hover:bg-green-700">
+            Freigeben
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
-}
+};

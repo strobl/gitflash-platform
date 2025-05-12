@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { X } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 interface AdminJobRejectDialogProps {
   isOpen: boolean;
@@ -19,46 +19,63 @@ interface AdminJobRejectDialogProps {
   jobTitle: string;
 }
 
-export function AdminJobRejectDialog({ isOpen, onClose, onConfirm, jobTitle }: AdminJobRejectDialogProps) {
+export const AdminJobRejectDialog: React.FC<AdminJobRejectDialogProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  jobTitle,
+}) => {
   const [reason, setReason] = useState('');
-  
-  const handleSubmit = () => {
+
+  const handleConfirm = () => {
     onConfirm(reason);
     setReason('');
   };
-  
+
+  const handleClose = () => {
+    onClose();
+    setReason('');
+  };
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Job ablehnen</AlertDialogTitle>
-          <AlertDialogDescription>
-            Bitte geben Sie einen Grund an, warum der Job <strong>"{jobTitle}"</strong> abgelehnt wird.
-            Dies wird dem Ersteller des Jobs mitgeteilt.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Job ablehnen</DialogTitle>
+          <DialogDescription>
+            Bitte geben Sie einen Grund für die Ablehnung an
+          </DialogDescription>
+        </DialogHeader>
+
         <div className="py-4">
-          <Textarea
-            placeholder="Begründung für die Ablehnung..."
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={4}
-            className="resize-none"
-          />
+          <p className="font-medium">{jobTitle}</p>
+          
+          <div className="mt-4">
+            <Label htmlFor="rejection-reason">Ablehnungsgrund</Label>
+            <Textarea
+              id="rejection-reason"
+              placeholder="Bitte geben Sie einen Grund für die Ablehnung an..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="mt-2"
+              rows={4}
+            />
+          </div>
         </div>
-        
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Abbrechen</Button>
+
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <Button variant="outline" onClick={handleClose}>
+            Abbrechen
+          </Button>
           <Button 
-            className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={handleSubmit}
+            onClick={handleConfirm} 
+            className="bg-red-600 hover:bg-red-700"
             disabled={!reason.trim()}
           >
-            <X className="mr-2 h-4 w-4" /> Ablehnen
+            Ablehnen
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
-}
+};
