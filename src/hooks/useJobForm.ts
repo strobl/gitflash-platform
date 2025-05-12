@@ -1,5 +1,7 @@
 
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Define the job types to match the Figma design
 export type JobType = 'fulltime' | 'parttime' | 'freelance' | 'temporary';
@@ -35,6 +37,7 @@ export interface JobFormErrors {
 }
 
 export const useJobForm = () => {
+  const { toast } = useToast();
   // Initialize form data with default values from Figma design
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -104,30 +107,59 @@ export const useJobForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      // Get user session to get the user ID
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      // Here would be the actual API call, e.g.:
-      // await supabase
-      //   .from('jobs')
-      //   .insert({
-      //     title: formData.title,
-      //     location: formData.location,
-      //     description: formData.description,
-      //     contract_type: formData.contractType,
-      //     billing_type: formData.billingType,
-      //     hourly_rate_min: formData.hourlyRateMin,
-      //     hourly_rate_max: formData.hourlyRateMax,
-      //     referral_bonus: formData.referralBonus,
-      //     interview: formData.interview,
-      //     form: formData.form,
-      //     rejection_email: formData.rejectionEmail,
-      //     automatic_communication: formData.automaticCommunication,
-      //     automatic_redirect: formData.automaticRedirect,
-      //   });
+      if (sessionError || !session) {
+        toast({
+          title: "Fehler bei der Authentifizierung",
+          description: "Bitte melden Sie sich an, um fortzufahren.",
+          variant: "destructive",
+        });
+        throw new Error("Authentifizierungsfehler");
+      }
+      
+      const userId = session.user.id;
+      
+      // Insert job into the database
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert({
+          user_id: userId,
+          title: formData.title,
+          location: formData.location,
+          description: formData.description,
+          contract_type: formData.contractType,
+          billing_type: formData.billingType,
+          hourly_rate_min: formData.hourlyRateMin,
+          hourly_rate_max: formData.hourlyRateMax,
+          referral_bonus: formData.referralBonus,
+          interview: formData.interview,
+          form: formData.form,
+          rejection_email: formData.rejectionEmail,
+          automatic_communication: formData.automaticCommunication,
+          automatic_redirect: formData.automaticRedirect,
+          status: 'Aktiv' // Default status for new jobs
+        });
+
+      if (error) {
+        console.error("Error inserting job:", error);
+        toast({
+          title: "Fehler beim Erstellen des Jobs",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Job erstellt!",
+        description: "Ihre Jobanzeige wurde erfolgreich erstellt.",
+      });
       
       return Promise.resolve();
     } catch (error) {
+      console.error("Error in submitJob:", error);
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);

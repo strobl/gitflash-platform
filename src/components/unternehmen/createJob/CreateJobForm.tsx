@@ -5,8 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useJobForm } from '@/hooks/useJobForm';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import TiptapEditor from '@/components/editor/TiptapEditor';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const CreateJobForm: React.FC = () => {
   const navigate = useNavigate();
@@ -23,9 +24,11 @@ export const CreateJobForm: React.FC = () => {
   const [isApplicationProcessOpen, setIsApplicationProcessOpen] = useState(false);
   const [isRejectionProcessOpen, setIsRejectionProcessOpen] = useState(false);
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError(null);
     
     try {
       await submitJob();
@@ -33,8 +36,9 @@ export const CreateJobForm: React.FC = () => {
         title: "Erfolg!",
         description: "Ihre Jobanzeige wurde erfolgreich veröffentlicht.",
       });
-      navigate("/unternehmen/jobs");
+      navigate("/unternehmen");
     } catch (error) {
+      setSubmissionError(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
       toast({
         title: "Fehler",
         description: "Es gab ein Problem beim Veröffentlichen der Jobanzeige.",
@@ -54,6 +58,12 @@ export const CreateJobForm: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {submissionError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{submissionError}</AlertDescription>
+        </Alert>
+      )}
       
       <form onSubmit={handleSubmit} className="w-full">
         {/* Job Title */}
@@ -219,7 +229,7 @@ export const CreateJobForm: React.FC = () => {
           </div>
         </div>
         
-        <div className="text-[#546679] text-[10px] font-normal mt-2">
+        <div className="text-[#546679] text-[10px] font-normal mt-2 mb-4">
           Fügen Sie eine Empfehlungsprämie hinzu: Für jede erfolgreiche
           Vermittlung über diese Anzeige kann ein Bonus vergeben werden.
         </div>
@@ -395,11 +405,18 @@ export const CreateJobForm: React.FC = () => {
         <button 
           type="submit"
           disabled={isSubmitting}
-          className="justify-center items-center flex min-h-9 w-full flex-col overflow-hidden text-sm text-white font-medium text-right bg-[#0A2540] mt-4 px-[25px] py-2.5 rounded-[100px] disabled:opacity-70 disabled:cursor-not-allowed"
+          className="justify-center items-center flex min-h-9 w-full flex-col overflow-hidden text-sm text-white font-medium text-right bg-[#0A2540] mt-4 px-[25px] py-2.5 rounded-[100px] disabled:opacity-70"
         >
-          <span className="text-white gap-[5px]">
-            {isSubmitting ? "Wird veröffentlicht..." : "Anzeige veröfentlichen"}
-          </span>
+          {isSubmitting ? (
+            <span className="flex items-center">
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Wird erstellt...
+            </span>
+          ) : (
+            <span className="text-white gap-[5px]">
+              Anzeige veröfentlichen
+            </span>
+          )}
         </button>
       </form>
     </div>

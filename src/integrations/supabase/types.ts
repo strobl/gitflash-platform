@@ -240,6 +240,75 @@ export type Database = {
           },
         ]
       }
+      jobs: {
+        Row: {
+          applicants: number
+          automatic_communication: boolean
+          automatic_redirect: boolean
+          billing_type: string
+          contract_type: string
+          created_at: string | null
+          description: string
+          form: string
+          hourly_rate_max: string
+          hourly_rate_min: string
+          id: string
+          interview: string
+          location: string
+          referral_bonus: string | null
+          rejection_email: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          user_id: string
+          views: number
+        }
+        Insert: {
+          applicants?: number
+          automatic_communication?: boolean
+          automatic_redirect?: boolean
+          billing_type: string
+          contract_type: string
+          created_at?: string | null
+          description: string
+          form?: string
+          hourly_rate_max?: string
+          hourly_rate_min?: string
+          id?: string
+          interview?: string
+          location: string
+          referral_bonus?: string | null
+          rejection_email?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+          views?: number
+        }
+        Update: {
+          applicants?: number
+          automatic_communication?: boolean
+          automatic_redirect?: boolean
+          billing_type?: string
+          contract_type?: string
+          created_at?: string | null
+          description?: string
+          form?: string
+          hourly_rate_max?: string
+          hourly_rate_min?: string
+          id?: string
+          interview?: string
+          location?: string
+          referral_bonus?: string | null
+          rejection_email?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          views?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string
