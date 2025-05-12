@@ -139,7 +139,7 @@ export const useJobForm = () => {
           rejection_email: formData.rejectionEmail,
           automatic_communication: formData.automaticCommunication,
           automatic_redirect: formData.automaticRedirect,
-          status: 'Aktiv' // Default status for new jobs
+          status: 'In Prüfung' // Changed from 'Aktiv' to 'In Prüfung'
         });
 
       if (error) {
@@ -153,8 +153,8 @@ export const useJobForm = () => {
       }
       
       toast({
-        title: "Job erstellt!",
-        description: "Ihre Jobanzeige wurde erfolgreich erstellt.",
+        title: "Job zur Prüfung eingereicht!",
+        description: "Ihre Jobanzeige wurde erfolgreich zur Prüfung eingereicht und wird von unserem Team freigegeben.",
       });
       
       return Promise.resolve();
