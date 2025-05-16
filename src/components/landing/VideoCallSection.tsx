@@ -22,7 +22,7 @@ export const VideoCallSection: React.FC = () => {
       <div className="relative w-full overflow-hidden mt-6 md:mt-10 rounded-xl max-w-3xl mx-auto">
         <div className="relative z-0 flex w-full flex-col items-stretch font-medium text-right">
           <img
-            src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild13.png"
+            src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild13.png"
             className="aspect-[1.44] object-contain w-full z-0"
             alt="Video call interface"
           />
