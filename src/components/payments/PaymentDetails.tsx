@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { usePayments } from '@/hooks/usePayments';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, RefreshCcw, ReceiptRefund } from 'lucide-react';
+import { Loader2, RefreshCcw, Receipt } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PaymentDetailsProps {
@@ -101,7 +101,7 @@ export const PaymentDetails: React.FC<PaymentDetailsProps> = ({
                 variant="outline" 
                 size="sm"
               >
-                <ReceiptRefund className="mr-2 h-4 w-4" />
+                <Receipt className="mr-2 h-4 w-4" />
                 Erstattung anfordern
               </Button>
             </DialogTrigger>
