@@ -41,9 +41,13 @@ serve(async (req) => {
       }
     });
 
+    console.log(`Processing webhook event: ${event.type}`);
+
     // Handle the checkout.session.completed event
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+      
+      console.log(`Processing successful checkout: ${session.id}`);
       
       // Update payment status
       const { error: paymentUpdateError } = await supabase
@@ -83,6 +87,8 @@ serve(async (req) => {
     if (event.type === "payment_intent.payment_failed") {
       const paymentIntent = event.data.object;
       
+      console.log(`Processing payment failure: ${paymentIntent.id}`);
+      
       // Get the session ID from the payment intent
       const sessions = await stripe.checkout.sessions.list({
         payment_intent: paymentIntent.id,
@@ -103,6 +109,69 @@ serve(async (req) => {
         if (paymentUpdateError) {
           console.error("Error updating payment:", paymentUpdateError);
           return new Response(JSON.stringify({ error: "Error updating payment" }), { status: 500 });
+        }
+      }
+    }
+
+    // Handle charge.refunded event
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object;
+      
+      console.log(`Processing refund for charge: ${charge.id}`);
+      
+      // Find payment with this charge's payment intent
+      const paymentIntentId = charge.payment_intent;
+      
+      if (paymentIntentId) {
+        const { data: payments, error: paymentError } = await supabase
+          .from("payments")
+          .select("*")
+          .eq("stripe_payment_intent_id", paymentIntentId);
+          
+        if (paymentError) {
+          console.error("Error finding payment:", paymentError);
+        } else if (payments && payments.length > 0) {
+          const payment = payments[0];
+          
+          // Update payment status
+          const { error: updateError } = await supabase
+            .from("payments")
+            .update({
+              status: "refunded",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", payment.id);
+            
+          if (updateError) {
+            console.error("Error updating payment status:", updateError);
+          }
+          
+          // Update refund request if exists
+          const { data: refundRequests } = await supabase
+            .from("refund_requests")
+            .select("*")
+            .eq("payment_id", payment.id)
+            .eq("status", "pending");
+            
+          if (refundRequests && refundRequests.length > 0) {
+            await supabase
+              .from("refund_requests")
+              .update({
+                status: "approved",
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", refundRequests[0].id);
+          }
+          
+          // Update job status
+          await supabase
+            .from("jobs")
+            .update({
+              is_paid: false,
+              status: "Zahlung erstattet",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", payment.job_id);
         }
       }
     }
