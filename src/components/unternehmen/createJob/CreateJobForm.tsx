@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +17,9 @@ export const CreateJobForm: React.FC = () => {
     submitJob,
     errors,
     isSubmitting,
-    isSaved
+    isSaved,
+    createPaymentSession,
+    isCreatingPayment
   } = useJobForm();
 
   const [isApplicationProcessOpen, setIsApplicationProcessOpen] = useState(false);
@@ -31,12 +32,14 @@ export const CreateJobForm: React.FC = () => {
     setSubmissionError(null);
     
     try {
-      await submitJob();
-      toast({
-        title: "Erfolg!",
-        description: "Ihre Jobanzeige wurde erfolgreich veröffentlicht.",
-      });
-      navigate("/unternehmen");
+      // First save the job to get its ID
+      const jobId = await submitJob();
+      
+      // Now create a payment session for this job
+      const checkoutUrl = await createPaymentSession(jobId);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = checkoutUrl;
     } catch (error) {
       setSubmissionError(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
       toast({
@@ -234,6 +237,19 @@ export const CreateJobForm: React.FC = () => {
           Vermittlung über diese Anzeige kann ein Bonus vergeben werden.
         </div>
         
+        {/* Payment Information */}
+        <div className="bg-blue-50 p-4 rounded-lg text-sm mt-6 mb-4 border border-blue-100">
+          <h3 className="font-bold text-blue-700 mb-2">Zahlungsinformationen</h3>
+          <p className="text-blue-700 mb-2">
+            Für die Veröffentlichung Ihrer Jobanzeige berechnen wir eine einmalige Gebühr von 79,00 €.
+          </p>
+          <ul className="list-disc pl-5 text-blue-700 text-xs space-y-1">
+            <li>Die Zahlung erfolgt sicher über Stripe</li>
+            <li>Nach erfolgreicher Zahlung wird Ihre Jobanzeige zur Prüfung freigeschaltet</li>
+            <li>Sobald die Prüfung abgeschlossen ist, wird Ihre Anzeige veröffentlicht</li>
+          </ul>
+        </div>
+        
         {/* Collapsible Sections */}
         {/* Application Process */}
         <Collapsible 
@@ -404,17 +420,17 @@ export const CreateJobForm: React.FC = () => {
         
         <button 
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isCreatingPayment}
           className="justify-center items-center flex min-h-9 w-full flex-col overflow-hidden text-sm text-white font-medium text-right bg-[#0A2540] mt-4 px-[25px] py-2.5 rounded-[100px] disabled:opacity-70"
         >
-          {isSubmitting ? (
+          {isSubmitting || isCreatingPayment ? (
             <span className="flex items-center">
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Wird erstellt...
+              {isSubmitting ? "Wird erstellt..." : "Zahlungsvorgang starten..."}
             </span>
           ) : (
             <span className="text-white gap-[5px]">
-              Anzeige veröfentlichen
+              Anzeige für 79,00 € veröffentlichen
             </span>
           )}
         </button>

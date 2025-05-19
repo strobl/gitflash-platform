@@ -58,6 +58,7 @@ export const useJobForm = () => {
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
   const updateField = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -99,7 +100,7 @@ export const useJobForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const submitJob = async (): Promise<void> => {
+  const submitJob = async (): Promise<string> => {
     if (!validateForm()) {
       return Promise.reject('Formular enthält Fehler');
     }
@@ -121,7 +122,7 @@ export const useJobForm = () => {
       
       const userId = session.user.id;
       
-      // Insert job into the database
+      // Insert job into the database with draft status
       const { data, error } = await supabase
         .from('jobs')
         .insert({
@@ -139,8 +140,11 @@ export const useJobForm = () => {
           rejection_email: formData.rejectionEmail,
           automatic_communication: formData.automaticCommunication,
           automatic_redirect: formData.automaticRedirect,
-          status: 'In Prüfung' // Changed from 'Aktiv' to 'In Prüfung'
-        });
+          status: 'draft', // Always set to draft initially
+          is_paid: false, // Mark as not paid yet
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("Error inserting job:", error);
@@ -153,16 +157,42 @@ export const useJobForm = () => {
       }
       
       toast({
-        title: "Job zur Prüfung eingereicht!",
-        description: "Ihre Jobanzeige wurde erfolgreich zur Prüfung eingereicht und wird von unserem Team freigegeben.",
+        title: "Job erstellt!",
+        description: "Ihr Job wurde gespeichert. Führen Sie nun die Zahlung durch, um ihn zu veröffentlichen.",
       });
       
-      return Promise.resolve();
+      return data.id;
     } catch (error) {
       console.error("Error in submitJob:", error);
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const createPaymentSession = async (jobId: string) => {
+    try {
+      setIsCreatingPayment(true);
+      
+      const { data, error } = await supabase.functions.invoke('create-payment-session', {
+        body: { jobId }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data.url;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Fehler beim Erstellen der Zahlungssession';
+      toast({
+        title: "Fehler bei der Zahlungsinitiierung",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsCreatingPayment(false);
     }
   };
 
@@ -174,5 +204,7 @@ export const useJobForm = () => {
     isSubmitting,
     submitJob,
     isSaved,
+    createPaymentSession,
+    isCreatingPayment,
   };
 };

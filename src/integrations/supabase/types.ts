@@ -256,6 +256,7 @@ export type Database = {
           hourly_rate_min: string
           id: string
           interview: string
+          is_paid: boolean
           location: string
           referral_bonus: string | null
           rejected_at: string | null
@@ -283,6 +284,7 @@ export type Database = {
           hourly_rate_min?: string
           id?: string
           interview?: string
+          is_paid?: boolean
           location: string
           referral_bonus?: string | null
           rejected_at?: string | null
@@ -310,6 +312,7 @@ export type Database = {
           hourly_rate_min?: string
           id?: string
           interview?: string
+          is_paid?: boolean
           location?: string
           referral_bonus?: string | null
           rejected_at?: string | null
@@ -333,6 +336,60 @@ export type Database = {
           {
             foreignKeyName: "jobs_rejected_by_fkey"
             columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          job_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
