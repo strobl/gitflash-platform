@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define the job types to match the Figma design
 export type JobType = 'fulltime' | 'parttime' | 'freelance' | 'temporary';
@@ -104,30 +105,48 @@ export const useJobForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // Here would be the actual API call, e.g.:
-      // await supabase
-      //   .from('jobs')
-      //   .insert({
-      //     title: formData.title,
-      //     location: formData.location,
-      //     description: formData.description,
-      //     contract_type: formData.contractType,
-      //     billing_type: formData.billingType,
-      //     hourly_rate_min: formData.hourlyRateMin,
-      //     hourly_rate_max: formData.hourlyRateMax,
-      //     referral_bonus: formData.referralBonus,
-      //     interview: formData.interview,
-      //     form: formData.form,
-      //     rejection_email: formData.rejectionEmail,
-      //     automatic_communication: formData.automaticCommunication,
-      //     automatic_redirect: formData.automaticRedirect,
-      //   });
-      
+      // Create job with 'draft' status
+      const { data: job, error } = await supabase
+        .from('jobs')
+        .insert({
+          title: formData.title,
+          location: formData.location,
+          description: formData.description,
+          contract_type: formData.contractType,
+          billing_type: formData.billingType,
+          hourly_rate_min: formData.hourlyRateMin,
+          hourly_rate_max: formData.hourlyRateMax,
+          referral_bonus: formData.referralBonus,
+          interview: formData.interview,
+          form: formData.form,
+          rejection_email: formData.rejectionEmail,
+          automatic_communication: formData.automaticCommunication,
+          automatic_redirect: formData.automaticRedirect,
+          status: 'draft'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create payment session and redirect to Stripe
+      const { data, error: paymentError } = await supabase.functions.invoke(
+        'create-payment-session',
+        {
+          body: { jobId: job.id },
+        }
+      );
+
+      if (paymentError) throw paymentError;
+
+      // Redirect to Stripe checkout
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+
       return Promise.resolve();
     } catch (error) {
+      console.error('Error submitting job:', error);
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);

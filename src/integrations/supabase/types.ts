@@ -240,6 +240,162 @@ export type Database = {
           },
         ]
       }
+      jobs: {
+        Row: {
+          applicants: number
+          approved_at: string | null
+          approved_by: string | null
+          automatic_communication: boolean
+          automatic_redirect: boolean
+          billing_type: string
+          contract_type: string
+          created_at: string | null
+          description: string
+          form: string
+          hourly_rate_max: string
+          hourly_rate_min: string
+          id: string
+          interview: string
+          is_paid: boolean
+          location: string
+          referral_bonus: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_email: string | null
+          rejection_reason: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          user_id: string
+          views: number
+        }
+        Insert: {
+          applicants?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          automatic_communication?: boolean
+          automatic_redirect?: boolean
+          billing_type: string
+          contract_type: string
+          created_at?: string | null
+          description: string
+          form?: string
+          hourly_rate_max?: string
+          hourly_rate_min?: string
+          id?: string
+          interview?: string
+          is_paid?: boolean
+          location: string
+          referral_bonus?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_email?: string | null
+          rejection_reason?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+          views?: number
+        }
+        Update: {
+          applicants?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          automatic_communication?: boolean
+          automatic_redirect?: boolean
+          billing_type?: string
+          contract_type?: string
+          created_at?: string | null
+          description?: string
+          form?: string
+          hourly_rate_max?: string
+          hourly_rate_min?: string
+          id?: string
+          interview?: string
+          is_paid?: boolean
+          location?: string
+          referral_bonus?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_email?: string | null
+          rejection_reason?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          job_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           id: string
@@ -302,7 +458,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_monthly_revenue: {
+        Args: { year: number }
+        Returns: {
+          month: number
+          revenue: number
+        }[]
+      }
+      get_total_revenue: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       conversation_status: "active" | "pending" | "ended" | "failed"
