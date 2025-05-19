@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { getRoleRedirectPath } from '@/utils/routingUtils';
-import { Login2Form } from '@/components/auth/Login2Form';
+import Login2Form from '@/components/auth/Login2Form';
 
 export default function RegisterPage() {
   const { user, profile } = useAuth();
@@ -31,7 +31,7 @@ export default function RegisterPage() {
             </a>
           </p>
         </div>
-        <Login2Form isRegistration={true} />
+        <Login2Form interviewId={null} />
       </div>
     </div>
   );
