@@ -105,7 +105,14 @@ export const useJobForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Create job with 'draft' status
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Nicht authentifiziert');
+      }
+
+      // Create job with 'draft' status and include user_id
       const { data: job, error } = await supabase
         .from('jobs')
         .insert({
@@ -122,7 +129,8 @@ export const useJobForm = () => {
           rejection_email: formData.rejectionEmail,
           automatic_communication: formData.automaticCommunication,
           automatic_redirect: formData.automaticRedirect,
-          status: 'draft'
+          status: 'draft',
+          user_id: user.id // Add user_id to job creation
         })
         .select()
         .single();
