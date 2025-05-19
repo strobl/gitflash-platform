@@ -458,17 +458,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_monthly_revenue: {
-        Args: { year: number }
-        Returns: {
-          month: number
-          revenue: number
-        }[]
-      }
-      get_total_revenue: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      [_ in never]: never
     }
     Enums: {
       conversation_status: "active" | "pending" | "ended" | "failed"
