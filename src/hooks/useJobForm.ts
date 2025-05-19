@@ -1,7 +1,5 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 // Define the job types to match the Figma design
 export type JobType = 'fulltime' | 'parttime' | 'freelance' | 'temporary';
@@ -37,7 +35,6 @@ export interface JobFormErrors {
 }
 
 export const useJobForm = () => {
-  const { toast } = useToast();
   // Initialize form data with default values from Figma design
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -58,7 +55,6 @@ export const useJobForm = () => {
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
   const updateField = <K extends keyof JobFormData>(field: K, value: JobFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -100,7 +96,7 @@ export const useJobForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const submitJob = async (): Promise<string> => {
+  const submitJob = async (): Promise<void> => {
     if (!validateForm()) {
       return Promise.reject('Formular enthält Fehler');
     }
@@ -108,91 +104,33 @@ export const useJobForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Get user session to get the user ID
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1200));
       
-      if (sessionError || !session) {
-        toast({
-          title: "Fehler bei der Authentifizierung",
-          description: "Bitte melden Sie sich an, um fortzufahren.",
-          variant: "destructive",
-        });
-        throw new Error("Authentifizierungsfehler");
-      }
+      // Here would be the actual API call, e.g.:
+      // await supabase
+      //   .from('jobs')
+      //   .insert({
+      //     title: formData.title,
+      //     location: formData.location,
+      //     description: formData.description,
+      //     contract_type: formData.contractType,
+      //     billing_type: formData.billingType,
+      //     hourly_rate_min: formData.hourlyRateMin,
+      //     hourly_rate_max: formData.hourlyRateMax,
+      //     referral_bonus: formData.referralBonus,
+      //     interview: formData.interview,
+      //     form: formData.form,
+      //     rejection_email: formData.rejectionEmail,
+      //     automatic_communication: formData.automaticCommunication,
+      //     automatic_redirect: formData.automaticRedirect,
+      //   });
       
-      const userId = session.user.id;
-      
-      // Insert job into the database with draft status
-      const { data, error } = await supabase
-        .from('jobs')
-        .insert({
-          user_id: userId,
-          title: formData.title,
-          location: formData.location,
-          description: formData.description,
-          contract_type: formData.contractType,
-          billing_type: formData.billingType,
-          hourly_rate_min: formData.hourlyRateMin,
-          hourly_rate_max: formData.hourlyRateMax,
-          referral_bonus: formData.referralBonus,
-          interview: formData.interview,
-          form: formData.form,
-          rejection_email: formData.rejectionEmail,
-          automatic_communication: formData.automaticCommunication,
-          automatic_redirect: formData.automaticRedirect,
-          status: 'draft', // Always set to draft initially
-          is_paid: false, // Mark as not paid yet
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error inserting job:", error);
-        toast({
-          title: "Fehler beim Erstellen des Jobs",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      toast({
-        title: "Job erstellt!",
-        description: "Ihr Job wurde gespeichert. Führen Sie nun die Zahlung durch, um ihn zu veröffentlichen.",
-      });
-      
-      return data.id;
+      return Promise.resolve();
     } catch (error) {
-      console.error("Error in submitJob:", error);
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const createPaymentSession = async (jobId: string) => {
-    try {
-      setIsCreatingPayment(true);
-      
-      const { data, error } = await supabase.functions.invoke('create-payment-session', {
-        body: { jobId }
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return data.url;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Fehler beim Erstellen der Zahlungssession';
-      toast({
-        title: "Fehler bei der Zahlungsinitiierung",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setIsCreatingPayment(false);
     }
   };
 
@@ -204,7 +142,5 @@ export const useJobForm = () => {
     isSubmitting,
     submitJob,
     isSaved,
-    createPaymentSession,
-    isCreatingPayment,
   };
 };

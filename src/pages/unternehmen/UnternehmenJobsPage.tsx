@@ -1,36 +1,16 @@
 
 import React from 'react';
-import { JobsList } from '@/components/unternehmen/jobs/JobsList';
-import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { SharedNavbar } from '@/components/navigation/SharedNavbar';
+import { JobListings } from '@/components/jobs/JobListings';
 
 export default function UnternehmenJobsPage() {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  // Check for authentication on page load
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error || !data.session) {
-        toast({
-          title: "Nicht angemeldet",
-          description: "Bitte melden Sie sich an, um auf die Unternehmensfunktionen zugreifen zu können.",
-          variant: "destructive",
-        });
-        navigate('/login');
-      }
-    };
-    
-    checkAuth();
-  }, [navigate, toast]);
-
   return (
-    <div className="container mx-auto px-4 py-6">
-      <JobsList />
+    <div className="flex flex-col min-h-screen">
+      <SharedNavbar />
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 flex-grow">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Jobanzeigen</h1>
+        <JobListings />
+      </div>
     </div>
   );
 }

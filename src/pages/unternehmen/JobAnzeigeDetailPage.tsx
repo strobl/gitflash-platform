@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
@@ -11,7 +12,6 @@ import { useJobDetail } from '@/hooks/useJobDetail';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { JobDetail as UIJobDetail } from '@/components/unternehmen/JobDetail/types';
 
 export default function JobAnzeigeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -100,15 +100,6 @@ export default function JobAnzeigeDetailPage() {
     );
   }
   
-  // Convert our job data to match the UI JobDetail interface
-  const uiJob: UIJobDetail = {
-    ...job,
-    project: "", // Default empty string for missing properties
-    visibility: "Öffentlich",
-    createdAt: job.created_at,
-    updatedAt: job.updated_at
-  };
-  
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <SharedNavbar />
@@ -116,7 +107,7 @@ export default function JobAnzeigeDetailPage() {
       <div className="container mx-auto py-8 px-4">
         {/* Job Header with Actions */}
         <JobHeader 
-          job={uiJob} 
+          job={job} 
           onEdit={handleEdit} 
           onClose={handleOpenCloseDialog}
           onDuplicate={duplicateJob}
@@ -124,7 +115,7 @@ export default function JobAnzeigeDetailPage() {
         
         {/* Job Meta Information */}
         <JobMetaSection 
-          job={uiJob} 
+          job={job} 
           views={stats?.views || 0} 
           applicants={applicants.length}
         />

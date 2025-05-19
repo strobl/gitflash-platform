@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Search, Filter, Briefcase, Settings, Users, LineChart } from 'lucide-react';
+import { Eye, EyeOff, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listAllInterviews, toggleInterviewVisibility } from '@/services/tavusService';
@@ -8,7 +8,6 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DashboardCard } from '@/components/shared/DashboardCard';
 import {
   Table,
   TableBody,
@@ -141,26 +140,6 @@ export default function AdminDashboard() {
     navigate(`/interviews/${id}`);
   };
 
-  // Admin action card handlers
-  const handleNavigateToJobApprovals = () => {
-    navigate('/admin/jobs/approval');
-  };
-
-  const handleNavigateToUserManagement = () => {
-    // This would link to a user management page if it existed
-    toast.info('Benutzer-Verwaltung ist noch in Entwicklung');
-  };
-
-  const handleNavigateToSystemSettings = () => {
-    // This would link to a settings page if it existed
-    toast.info('System-Einstellungen sind noch in Entwicklung');
-  };
-
-  const handleNavigateToAnalytics = () => {
-    // This would link to an analytics page if it existed
-    toast.info('Analysen sind noch in Entwicklung');
-  };
-
   // Get current page of interviews
   const getCurrentItems = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -184,107 +163,10 @@ export default function AdminDashboard() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Verwalten Sie alle Funktionen der Plattform</p>
+            <p className="text-muted-foreground">Verwalten Sie alle Interviews der Plattform</p>
           </div>
         </div>
 
-        {/* Admin Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <DashboardCard 
-            title="Job-Freigaben"
-            description="Prüfen und verwalten Sie eingereichte Jobs"
-            className="hover:border-gitflash-primary transition-colors"
-            onClick={handleNavigateToJobApprovals}
-          >
-            <div className="flex items-center justify-between">
-              <div className="bg-gitflash-primary/10 rounded-full p-3">
-                <Briefcase className="h-6 w-6 text-gitflash-primary" />
-              </div>
-              <Button 
-                variant="ghost" 
-                className="text-gitflash-primary" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNavigateToJobApprovals();
-                }}
-              >
-                Anzeigen
-              </Button>
-            </div>
-          </DashboardCard>
-          
-          <DashboardCard 
-            title="Benutzer-Verwaltung"
-            description="Benutzer und Berechtigungen verwalten"
-            className="hover:border-gitflash-accent transition-colors"
-            onClick={handleNavigateToUserManagement}
-          >
-            <div className="flex items-center justify-between">
-              <div className="bg-gitflash-accent/10 rounded-full p-3">
-                <Users className="h-6 w-6 text-gitflash-accent" />
-              </div>
-              <Button 
-                variant="ghost" 
-                className="text-gitflash-accent" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNavigateToUserManagement();
-                }}
-              >
-                Anzeigen
-              </Button>
-            </div>
-          </DashboardCard>
-          
-          <DashboardCard 
-            title="System-Einstellungen"
-            description="Konfigurieren Sie die Plattform-Einstellungen"
-            className="hover:border-gitflash-secondary transition-colors"
-            onClick={handleNavigateToSystemSettings}
-          >
-            <div className="flex items-center justify-between">
-              <div className="bg-gitflash-secondary/10 rounded-full p-3">
-                <Settings className="h-6 w-6 text-gitflash-secondary" />
-              </div>
-              <Button 
-                variant="ghost" 
-                className="text-gitflash-secondary" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNavigateToSystemSettings();
-                }}
-              >
-                Anzeigen
-              </Button>
-            </div>
-          </DashboardCard>
-          
-          <DashboardCard 
-            title="Analysen & Berichte"
-            description="Einsichten und Statistiken zur Plattform"
-            className="hover:border-green-500 transition-colors"
-            onClick={handleNavigateToAnalytics}
-          >
-            <div className="flex items-center justify-between">
-              <div className="bg-green-500/10 rounded-full p-3">
-                <LineChart className="h-6 w-6 text-green-500" />
-              </div>
-              <Button 
-                variant="ghost" 
-                className="text-green-500" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNavigateToAnalytics();
-                }}
-              >
-                Anzeigen
-              </Button>
-            </div>
-          </DashboardCard>
-        </div>
-
-        <h2 className="text-xl font-bold mb-6">Interview-Verwaltung</h2>
-        
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>

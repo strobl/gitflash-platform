@@ -29,11 +29,10 @@ import { de } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 type ProfileStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'all';
-type ProfileWithUserName = TalentProfile & { userName: string };
 
 const AdminProfilesListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [profiles, setProfiles] = useState<ProfileWithUserName[]>([]);
+  const [profiles, setProfiles] = useState<TalentProfile[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<ProfileStatus>('all');
   const [isLoading, setIsLoading] = useState(true);
   
@@ -44,71 +43,23 @@ const AdminProfilesListPage: React.FC = () => {
   const fetchProfiles = async () => {
     setIsLoading(true);
     try {
-      // Step 1: Fetch all talent profiles
-      const { data: talentProfilesData, error: profilesError } = await supabase
+      // Fetch profiles with user information
+      const { data, error } = await supabase
         .from('talent_profiles')
-        .select('*')
+        .select('*, profiles:user_id(name)')
         .order('updated_at', { ascending: false });
       
-      if (profilesError) {
-        throw profilesError;
+      if (error) {
+        throw error;
       }
       
-      // Type assertion for talent profiles
-      const talentProfiles = (talentProfilesData || []).map(profile => ({
+      // Type assertion to ensure status matches expected TalentProfile type
+      const typedProfiles = (data || []).map(profile => ({
         ...profile,
         status: profile.status as TalentProfile['status']
       }));
       
-      if (talentProfiles.length === 0) {
-        setProfiles([]);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Step 2: Get all unique user IDs from the profiles
-      const userIds = talentProfiles.map(profile => profile.user_id).filter(Boolean);
-      
-      if (userIds.length === 0) {
-        // No valid user IDs found, set profiles with unknown names
-        const profilesWithUnknownNames = talentProfiles.map(profile => ({
-          ...profile,
-          userName: 'Unbekannt'
-        }));
-        setProfiles(profilesWithUnknownNames);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Step 3: Fetch user names from profiles table
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', userIds);
-      
-      if (usersError) {
-        console.error('Error fetching user profiles:', usersError);
-        // Continue with unknown names for users
-        const profilesWithUnknownNames = talentProfiles.map(profile => ({
-          ...profile,
-          userName: 'Unbekannt'
-        }));
-        setProfiles(profilesWithUnknownNames);
-      } else {
-        // Step 4: Create a map of user IDs to names for quick lookups
-        const userNameMap = new Map();
-        (usersData || []).forEach(user => {
-          userNameMap.set(user.id, user.name);
-        });
-        
-        // Step 5: Merge talent profiles with user names
-        const profilesWithNames = talentProfiles.map(profile => ({
-          ...profile,
-          userName: userNameMap.get(profile.user_id) || 'Unbekannt'
-        }));
-        
-        setProfiles(profilesWithNames);
-      }
+      setProfiles(typedProfiles);
     } catch (error: any) {
       console.error('Error fetching profiles:', error);
       toast.error('Fehler beim Laden der Profile');
@@ -206,7 +157,7 @@ const AdminProfilesListPage: React.FC = () => {
                     <TableRow key={profile.id}>
                       <TableCell className="font-medium">
                         <div className="space-y-1">
-                          <div>{profile.userName}</div>
+                          <div>{(profile as any).profiles?.name || 'Unbekannt'}</div>
                           <div className="text-sm text-muted-foreground truncate">
                             {profile.headline || 'Keine Headline'}
                           </div>

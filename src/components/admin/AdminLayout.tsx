@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-react';
-import { getRoleRedirectPath } from '@/utils/routingUtils';
 
 interface AdminLayoutProps {
   title: string;
@@ -60,3 +59,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     </div>
   );
 };
+
+function getRoleRedirectPath(role?: string): string {
+  switch (role) {
+    case 'user':
+      return '/talent/startseite';
+    case 'business':
+      return '/unternehmen';
+    default:
+      return '/login';
+  }
+}

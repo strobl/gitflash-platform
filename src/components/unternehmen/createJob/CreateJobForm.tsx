@@ -1,12 +1,12 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useJobForm } from '@/hooks/useJobForm';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import TiptapEditor from '@/components/editor/TiptapEditor';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const CreateJobForm: React.FC = () => {
   const navigate = useNavigate();
@@ -17,31 +17,24 @@ export const CreateJobForm: React.FC = () => {
     submitJob,
     errors,
     isSubmitting,
-    isSaved,
-    createPaymentSession,
-    isCreatingPayment
+    isSaved
   } = useJobForm();
 
   const [isApplicationProcessOpen, setIsApplicationProcessOpen] = useState(false);
   const [isRejectionProcessOpen, setIsRejectionProcessOpen] = useState(false);
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmissionError(null);
     
     try {
-      // First save the job to get its ID
-      const jobId = await submitJob();
-      
-      // Now create a payment session for this job
-      const checkoutUrl = await createPaymentSession(jobId);
-      
-      // Redirect to Stripe Checkout
-      window.location.href = checkoutUrl;
+      await submitJob();
+      toast({
+        title: "Erfolg!",
+        description: "Ihre Jobanzeige wurde erfolgreich veröffentlicht.",
+      });
+      navigate("/unternehmen/jobs");
     } catch (error) {
-      setSubmissionError(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
       toast({
         title: "Fehler",
         description: "Es gab ein Problem beim Veröffentlichen der Jobanzeige.",
@@ -61,12 +54,6 @@ export const CreateJobForm: React.FC = () => {
           </div>
         )}
       </div>
-      
-      {submissionError && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{submissionError}</AlertDescription>
-        </Alert>
-      )}
       
       <form onSubmit={handleSubmit} className="w-full">
         {/* Job Title */}
@@ -232,22 +219,9 @@ export const CreateJobForm: React.FC = () => {
           </div>
         </div>
         
-        <div className="text-[#546679] text-[10px] font-normal mt-2 mb-4">
+        <div className="text-[#546679] text-[10px] font-normal mt-2">
           Fügen Sie eine Empfehlungsprämie hinzu: Für jede erfolgreiche
           Vermittlung über diese Anzeige kann ein Bonus vergeben werden.
-        </div>
-        
-        {/* Payment Information */}
-        <div className="bg-blue-50 p-4 rounded-lg text-sm mt-6 mb-4 border border-blue-100">
-          <h3 className="font-bold text-blue-700 mb-2">Zahlungsinformationen</h3>
-          <p className="text-blue-700 mb-2">
-            Für die Veröffentlichung Ihrer Jobanzeige berechnen wir eine einmalige Gebühr von 79,00 €.
-          </p>
-          <ul className="list-disc pl-5 text-blue-700 text-xs space-y-1">
-            <li>Die Zahlung erfolgt sicher über Stripe</li>
-            <li>Nach erfolgreicher Zahlung wird Ihre Jobanzeige zur Prüfung freigeschaltet</li>
-            <li>Sobald die Prüfung abgeschlossen ist, wird Ihre Anzeige veröffentlicht</li>
-          </ul>
         </div>
         
         {/* Collapsible Sections */}
@@ -420,19 +394,12 @@ export const CreateJobForm: React.FC = () => {
         
         <button 
           type="submit"
-          disabled={isSubmitting || isCreatingPayment}
-          className="justify-center items-center flex min-h-9 w-full flex-col overflow-hidden text-sm text-white font-medium text-right bg-[#0A2540] mt-4 px-[25px] py-2.5 rounded-[100px] disabled:opacity-70"
+          disabled={isSubmitting}
+          className="justify-center items-center flex min-h-9 w-full flex-col overflow-hidden text-sm text-white font-medium text-right bg-[#0A2540] mt-4 px-[25px] py-2.5 rounded-[100px] disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isSubmitting || isCreatingPayment ? (
-            <span className="flex items-center">
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {isSubmitting ? "Wird erstellt..." : "Zahlungsvorgang starten..."}
-            </span>
-          ) : (
-            <span className="text-white gap-[5px]">
-              Anzeige für 79,00 € veröffentlichen
-            </span>
-          )}
+          <span className="text-white gap-[5px]">
+            {isSubmitting ? "Wird veröffentlicht..." : "Anzeige veröfentlichen"}
+          </span>
         </button>
       </form>
     </div>

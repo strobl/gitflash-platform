@@ -33,43 +33,23 @@ const AdminProfileDetailPage: React.FC = () => {
   const fetchProfileData = async (profileId: string) => {
     setIsLoading(true);
     try {
-      // Step 1: Fetch profile data without join
+      // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
         .from('talent_profiles')
-        .select('*')
+        .select('*, profiles:user_id(name)')
         .eq('id', profileId)
         .single();
       
       if (profileError) throw profileError;
       
-      // Set profile
-      const typedProfile: TalentProfile = {
+      // Set profile and user name
+      setProfile({
         ...profileData,
         status: profileData.status as TalentProfile['status'] // Type assertion to ensure status matches expected type
-      };
-      setProfile(typedProfile);
+      });
+      setUserName((profileData as any).profiles?.name || 'Unbekannt');
       
-      // Step 2: Fetch user name separately if user_id exists
-      if (profileData.user_id) {
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', profileData.user_id)
-          .single();
-        
-        if (userError) {
-          console.error('Error fetching user data:', userError);
-          setUserName('Unbekannt');
-        } else if (userData) {
-          setUserName(userData.name);
-        } else {
-          setUserName('Unbekannt');
-        }
-      } else {
-        setUserName('Unbekannt');
-      }
-      
-      // Step 3: Fetch experience entries
+      // Fetch experience entries
       const { data: experienceData, error: experienceError } = await supabase
         .from('experience_entries')
         .select('*')
@@ -79,7 +59,7 @@ const AdminProfileDetailPage: React.FC = () => {
       if (experienceError) throw experienceError;
       setExperiences(experienceData || []);
       
-      // Step 4: Fetch education entries
+      // Fetch education entries
       const { data: educationData, error: educationError } = await supabase
         .from('education_entries')
         .select('*')

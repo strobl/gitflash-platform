@@ -28,7 +28,7 @@ const Index: React.FC = () => {
           <div className="w-full mt-16 md:mt-28 lg:mt-32 flex justify-center">
             <div className="px-3 md:px-6 max-w-[1200px] mx-auto">
               <img 
-                src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/image%20(4).webp"
+                src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//image%20(4).webp"
                 alt="GitFlash banner"
                 className="w-full object-cover h-[220px] md:h-[500px]"
               />

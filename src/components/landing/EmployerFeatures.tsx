@@ -69,14 +69,14 @@ export const EmployerFeatures: React.FC = () => {
       <div className="w-full mt-6 md:mt-10 max-w-5xl mx-auto">
         <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6">
           <FeatureCard
-            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild1.png"
+            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild1.png"
             icon="https://cdn.builder.io/api/v1/image/assets/TEMP/07eb9cbd759ff3d187cc52173d8bc326bc989803?placeholderIfAbsent=true"
             label="Suche"
             title="Personal entdecken"
             description="Durchsuchen Sie unser Verzeichnis von Interviews, Lebensläufen und Online-Proflen, um schnell das Personal zu fnden, das exakt zu Ihrer ofenen Stelle passt."
           />
           <FeatureCard
-            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild2.png"
+            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild2.png"
             icon="https://cdn.builder.io/api/v1/image/assets/TEMP/fb9bf6d1d0b548acc6f5d058bbd5fe74dd4624cf?placeholderIfAbsent=true"
             label="Team"
             title="Sofort einstellen"
@@ -85,14 +85,14 @@ export const EmployerFeatures: React.FC = () => {
             }
           />
           <FeatureCard
-            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild3.png"
+            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild3.png"
             icon="https://cdn.builder.io/api/v1/image/assets/TEMP/ade5621d125d422aee04812bc8164cb5901baa59?placeholderIfAbsent=true"
             label="Shortlist"
             title="Intro anfragen"
             description="Vereinbaren Sie mit nur einem Klick ein Kennenlernen mit Personal aus unserem Talent-Pool. Alle gelisteten Personen sind aktiv auf der Suche nach neuen berufichen"
           />
           <FeatureCard
-            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild4.png"
+            image="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild4.png"
             icon="https://cdn.builder.io/api/v1/image/assets/TEMP/07eb9cbd759ff3d187cc52173d8bc326bc989803?placeholderIfAbsent=true"
             label="Zahlungen"
             title="Direkt über GitFlash abrechnen"

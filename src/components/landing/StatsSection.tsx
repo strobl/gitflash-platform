@@ -49,7 +49,7 @@ export const StatsSection: React.FC = () => {
       </div>
       <div className="relative flex w-full flex-col items-stretch mt-6 md:mt-10 max-w-3xl mx-auto">
         <img
-          src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash/bild13.png"
+          src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//bild13.png"
           className="aspect-[1.31] object-contain w-full shadow-[0px_4px_24px_rgba(0,0,0,0.1)] z-0 rounded-2xl"
           alt="Dashboard preview"
         />
