@@ -18,14 +18,14 @@ export default function AdminPage() {
       return;
     }
     
-    if (profile?.role !== 'admin' && profile?.role !== 'operator') {
+    if (profile?.role !== 'operator') {
       toast.error('Sie haben keine Berechtigung für diese Seite');
       navigate('/');
       return;
     }
   }, [user, profile, navigate]);
   
-  if (!user || (profile?.role !== 'admin' && profile?.role !== 'operator')) {
+  if (!user || profile?.role !== 'operator') {
     return null; // Don't render anything while checking permissions
   }
 
