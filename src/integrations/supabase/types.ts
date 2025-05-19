@@ -243,6 +243,8 @@ export type Database = {
       jobs: {
         Row: {
           applicants: number
+          approved_at: string | null
+          approved_by: string | null
           automatic_communication: boolean
           automatic_redirect: boolean
           billing_type: string
@@ -256,7 +258,10 @@ export type Database = {
           interview: string
           location: string
           referral_bonus: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           rejection_email: string | null
+          rejection_reason: string | null
           status: string
           title: string
           updated_at: string | null
@@ -265,6 +270,8 @@ export type Database = {
         }
         Insert: {
           applicants?: number
+          approved_at?: string | null
+          approved_by?: string | null
           automatic_communication?: boolean
           automatic_redirect?: boolean
           billing_type: string
@@ -278,7 +285,10 @@ export type Database = {
           interview?: string
           location: string
           referral_bonus?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           rejection_email?: string | null
+          rejection_reason?: string | null
           status?: string
           title: string
           updated_at?: string | null
@@ -287,6 +297,8 @@ export type Database = {
         }
         Update: {
           applicants?: number
+          approved_at?: string | null
+          approved_by?: string | null
           automatic_communication?: boolean
           automatic_redirect?: boolean
           billing_type?: string
@@ -300,14 +312,32 @@ export type Database = {
           interview?: string
           location?: string
           referral_bonus?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           rejection_email?: string | null
+          rejection_reason?: string | null
           status?: string
           title?: string
           updated_at?: string | null
           user_id?: string
           views?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jobs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
