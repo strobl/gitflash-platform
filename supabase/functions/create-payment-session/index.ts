@@ -90,7 +90,7 @@ serve(async (req) => {
       ],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?job_id=${jobId}`,
-      cancel_url: `${req.headers.get("origin")}/unternehmen/jobs`,
+      cancel_url: `${req.headers.get("origin")}/payment-canceled`,
       client_reference_id: jobId,
       customer_email: user.email,
       metadata: {

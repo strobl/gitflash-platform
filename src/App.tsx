@@ -37,6 +37,8 @@ import TalentErkundenPage from "./pages/talent/erkunden";
 import TalentZahlungenPage from "./pages/talent/zahlungen";
 import AdminProfilesListPage from "./pages/admin/profiles/index";
 import AdminProfileDetailPage from "./pages/admin/profiles/[id]";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCanceledPage from "./pages/PaymentCanceledPage";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,10 @@ const App = () => (
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<Agb />} />
+              
+              {/* Payment Result Pages */}
+              <Route path="/payment-success" element={<PaymentSuccessPage />} />
+              <Route path="/payment-canceled" element={<PaymentCanceledPage />} />
               
               {/* Talent routes */}
               <Route path="/talent" element={<TalentPage />} />
