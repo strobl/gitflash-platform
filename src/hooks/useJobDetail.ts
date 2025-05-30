@@ -150,7 +150,7 @@ export function useJobDetail(jobId: string | undefined) {
       
       const { error } = await supabase
         .from('jobs')
-        .update({ status: dbStatus })
+        .update({ status: dbStatus as any })
         .eq('id', job.id);
 
       if (error) throw error;

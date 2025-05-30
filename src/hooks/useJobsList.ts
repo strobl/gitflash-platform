@@ -72,7 +72,7 @@ export const useJobsList = () => {
       
       const { error } = await supabase
         .from('jobs')
-        .update({ status: dbStatus })
+        .update({ status: dbStatus as any })
         .eq('id', id);
 
       if (error) throw error;
