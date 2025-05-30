@@ -4,7 +4,7 @@ export interface JobDetail {
   title: string;
   location: string;
   project: string;
-  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Geschlossen';
+  status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Archiviert' | 'Geschlossen';
   visibility: 'Öffentlich' | 'Nur intern';
   createdAt: string;
   updatedAt: string;
@@ -17,12 +17,19 @@ export interface Applicant {
   appliedAt: string;
   score: number;
   status: 'Neu' | 'In Bearbeitung' | 'Vorstellungsgespräch' | 'Angebot' | 'Abgelehnt' | 'Eingestellt';
+  profilePic?: string;
 }
 
 export interface JobStats {
   views: number;
   applications: number;
   averageScore: number;
-  viewsOverTime: Array<{ date: string; views: number }>;
-  applicationsOverTime: Array<{ date: string; applications: number }>;
+  viewsOverTime: {
+    date: string;
+    views: number;
+  }[];
+  applicationsOverTime: {
+    date: string;
+    applications: number;
+  }[];
 }
