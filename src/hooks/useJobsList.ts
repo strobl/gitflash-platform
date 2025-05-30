@@ -1,67 +1,82 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Define job item type
 export interface JobItem {
-  id: number;
+  id: string;
   title: string;
   status: 'Aktiv' | 'In Prüfung' | 'Entwurf' | 'Geschlossen';
   applicants: number;
   posted: string;
   views: number;
+  location: string;
+  description: string;
 }
-
-// Mock data for jobs
-const mockJobs: JobItem[] = [
-  { 
-    id: 1, 
-    title: 'Bauleiter:in Hochbau', 
-    status: 'Aktiv', 
-    applicants: 12, 
-    posted: '12.04.2025',
-    views: 345
-  },
-  { 
-    id: 2, 
-    title: 'Jurist:in Baurecht', 
-    status: 'In Prüfung', 
-    applicants: 5, 
-    posted: '10.04.2025',
-    views: 178
-  },
-  { 
-    id: 3, 
-    title: 'BIM-Koordinator:in', 
-    status: 'Entwurf', 
-    applicants: 0, 
-    posted: '08.04.2025',
-    views: 0
-  },
-];
 
 export const useJobsList = () => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Function to fetch jobs from API (mock for now)
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setJobs(mockJobs);
+      const { data: jobsData, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedJobs: JobItem[] = (jobsData || []).map(job => ({
+        id: job.id,
+        title: job.title,
+        status: mapJobStatus(job.status),
+        applicants: job.applicants || 0,
+        posted: new Date(job.created_at).toLocaleDateString('de-DE'),
+        views: job.views || 0,
+        location: job.location,
+        description: job.description
+      }));
+
+      setJobs(formattedJobs);
       setError(null);
     } catch (err) {
+      console.error('Error fetching jobs:', err);
       setError(err instanceof Error ? err : new Error('Unknown error occurred'));
+      toast.error('Fehler beim Laden der Jobanzeigen');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Function to update job status
-  const updateJobStatus = async (id: number, newStatus: JobItem['status']) => {
+  const mapJobStatus = (status: string): JobItem['status'] => {
+    switch (status) {
+      case 'approved':
+        return 'Aktiv';
+      case 'pending':
+        return 'In Prüfung';
+      case 'draft':
+        return 'Entwurf';
+      case 'closed':
+        return 'Geschlossen';
+      default:
+        return 'Entwurf';
+    }
+  };
+
+  const updateJobStatus = async (id: string, newStatus: JobItem['status']) => {
     try {
+      const dbStatus = mapStatusToDb(newStatus);
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: dbStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
       // Optimistic update
       setJobs(prevJobs => 
         prevJobs.map(job => 
@@ -69,36 +84,50 @@ export const useJobsList = () => {
         )
       );
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // In a real app, you would handle the API response here
-      // and revert the optimistic update if it failed
+      toast.success(`Job-Status auf "${newStatus}" geändert`);
     } catch (err) {
-      // Revert optimistic update on error
-      await fetchJobs();
+      console.error('Error updating job status:', err);
+      toast.error('Fehler beim Aktualisieren des Job-Status');
+      await fetchJobs(); // Revert optimistic update
       throw err;
     }
   };
 
-  // Function to delete a job
-  const deleteJob = async (id: number) => {
+  const mapStatusToDb = (status: JobItem['status']): string => {
+    switch (status) {
+      case 'Aktiv':
+        return 'approved';
+      case 'In Prüfung':
+        return 'pending';
+      case 'Entwurf':
+        return 'draft';
+      case 'Geschlossen':
+        return 'closed';
+      default:
+        return 'draft';
+    }
+  };
+
+  const deleteJob = async (id: string) => {
     try {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       // Optimistic update
       setJobs(prevJobs => prevJobs.filter(job => job.id !== id));
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // In a real app, handle API response here
+      toast.success('Jobanzeige gelöscht');
     } catch (err) {
-      // Revert optimistic update on error
-      await fetchJobs();
+      console.error('Error deleting job:', err);
+      toast.error('Fehler beim Löschen der Jobanzeige');
+      await fetchJobs(); // Revert optimistic update
       throw err;
     }
   };
 
-  // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
   }, []);

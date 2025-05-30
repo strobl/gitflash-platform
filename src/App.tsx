@@ -1,107 +1,97 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthContextProvider } from '@/context/AuthContext';
 
-import React, { Suspense, lazy } from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from '@/context/AuthContext';
-import { CameraProvider } from '@/context/CameraContext';
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import Login2 from "./pages/Login2";
-import Profile from "./pages/Profile";
-import InterviewsDesign from "./pages/InterviewsDesign"; 
-import CreateInterview from "./pages/CreateInterview";
-import InterviewDetail from "./pages/InterviewDetail";
-import AdminDashboard from "./pages/AdminDashboard";
-import Uebung from "./pages/Uebung";
-import Impressum from "./pages/Impressum";
-import Datenschutz from "./pages/Datenschutz";
-import Agb from "./pages/Agb";
-import TalentPage from "./pages/TalentPage";
-import { UnternehmenLayout } from "./components/unternehmen/UnternehmenLayout";
-import UnternehmenJobsPage from "./pages/unternehmen/UnternehmenJobsPage";
-import UnternehmenTeamPage from "./pages/unternehmen/UnternehmenTeamPage";
-import UnternehmenAusgabenPage from "./pages/unternehmen/UnternehmenAusgabenPage";
-import UnternehmenSuchePage from "./pages/unternehmen/UnternehmenSuchePage";
-import CreateJobPage from "./pages/unternehmen/CreateJobPage";
-import UnternehmenTalentPage from "./pages/unternehmen/UnternehmenTalentPage";
-import JobAnzeigeDetailPage from "./pages/unternehmen/JobAnzeigeDetailPage";
-import TalentProfilPage from "./pages/talent/profil";
-import TalentStartseitePage from "./pages/talent/startseite";
-import TalentInterviewPage from "./pages/talent/interview";
-import TalentErkundenPage from "./pages/talent/erkunden";
-import TalentZahlungenPage from "./pages/talent/zahlungen";
-import AdminProfilesListPage from "./pages/admin/profiles/index";
-import AdminProfileDetailPage from "./pages/admin/profiles/[id]";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import PaymentCanceledPage from "./pages/PaymentCanceledPage";
+import IndexPage from '@/pages/IndexPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import JobsPage from '@/pages/JobsPage';
+import JobDetailPage from '@/pages/JobDetailPage';
+import JobApplicationPage from '@/pages/JobApplicationPage';
+
+import TalentDashboardPage from '@/pages/talent/TalentDashboardPage';
+import TalentProfilePage from '@/pages/talent/TalentProfilePage';
+import TalentInterviewsPage from '@/pages/talent/TalentInterviewsPage';
+import TalentApplicationsPage from '@/pages/talent/ApplicationsPage';
+
+import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPage';
+import JobCreatePage from '@/pages/unternehmen/JobCreatePage';
+import JobAnzeigeDetailPage from '@/pages/unternehmen/JobAnzeigeDetailPage';
+import ApplicationsPage from '@/pages/unternehmen/ApplicationsPage';
+import UnternehmenInterviewsPage from '@/pages/unternehmen/UnternehmenInterviewsPage';
+import InterviewCreatePage from '@/pages/unternehmen/InterviewCreatePage';
+import ZahlungenPage from '@/pages/unternehmen/ZahlungenPage';
+import TeamPage from '@/pages/unternehmen/TeamPage';
+
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import AdminJobsPage from '@/pages/admin/AdminJobsPage';
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminPaymentsPage from '@/pages/admin/AdminPaymentsPage';
+
+import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
+import PaymentCancelPage from '@/pages/PaymentCancelPage';
+
+import InterviewPage from '@/pages/InterviewPage';
+
+import JobEditPage from '@/pages/unternehmen/JobEditPage';
 
 const queryClient = new QueryClient();
 
-const JobsPage = lazy(() => import('./pages/unternehmen/JobsPage'));
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <CameraProvider>
-        <TooltipProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthContextProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/jobs" element={<JobsPage />} />
+            <Route path="/jobs/:id" element={<JobDetailPage />} />
+            <Route path="/jobs/:id/apply" element={<JobApplicationPage />} />
+            
+            {/* Talent routes */}
+            <Route path="/talent" element={<TalentDashboardPage />} />
+            <Route path="/talent/profile" element={<TalentProfilePage />} />
+            <Route path="/talent/interviews" element={<TalentInterviewsPage />} />
+            <Route path="/talent/applications" element={<TalentApplicationsPage />} />
+            
+            {/* Company routes */}
+            <Route path="/unternehmen" element={<UnternehmenDashboardPage />} />
+            <Route path="/unternehmen/jobs" element={<JobsPage />} />
+            <Route path="/unternehmen/jobs/neu" element={<JobCreatePage />} />
+            <Route path="/unternehmen/jobs/bearbeiten/:id" element={<JobEditPage />} />
+            <Route path="/unternehmen/jobanzeigen/:id" element={<JobAnzeigeDetailPage />} />
+            <Route path="/unternehmen/bewerbungen" element={<ApplicationsPage />} />
+            <Route path="/unternehmen/interviews" element={<UnternehmenInterviewsPage />} />
+            <Route path="/unternehmen/interviews/erstellen" element={<InterviewCreatePage />} />
+            <Route path="/unternehmen/zahlungen" element={<ZahlungenPage />} />
+            <Route path="/unternehmen/team" element={<TeamPage />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/jobs" element={<AdminJobsPage />} />
+            <Route path="/admin/benutzer" element={<AdminUsersPage />} />
+            <Route path="/admin/zahlungen" element={<AdminPaymentsPage />} />
+            
+            {/* Payment routes */}
+            <Route path="/zahlung/erfolgreich" element={<PaymentSuccessPage />} />
+            <Route path="/zahlung/abgebrochen" element={<PaymentCancelPage />} />
+            
+            {/* Interview routes */}
+            <Route path="/interview/:sessionId" element={<InterviewPage />} />
+            
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/login2" element={<Login2 />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/interviews" element={<InterviewsDesign />} />
-              <Route path="/interviews/create" element={<CreateInterview />} />
-              <Route path="/interviews/:id" element={<InterviewDetail />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              
-              {/* New Admin Profile Routes */}
-              <Route path="/admin/profiles" element={<AdminProfilesListPage />} />
-              <Route path="/admin/profiles/:id" element={<AdminProfileDetailPage />} />
-              
-              <Route path="/uebung/:id" element={<Uebung />} />
-              <Route path="/impressum" element={<Impressum />} />
-              <Route path="/datenschutz" element={<Datenschutz />} />
-              <Route path="/agb" element={<Agb />} />
-              
-              {/* Payment Result Pages */}
-              <Route path="/payment-success" element={<PaymentSuccessPage />} />
-              <Route path="/payment-canceled" element={<PaymentCanceledPage />} />
-              
-              {/* Talent routes */}
-              <Route path="/talent" element={<TalentPage />} />
-              <Route path="/talent/startseite" element={<TalentStartseitePage />} />
-              <Route path="/talent/profil" element={<TalentProfilPage />} />
-              <Route path="/talent/interview" element={<TalentInterviewPage />} />
-              <Route path="/talent/erkunden" element={<TalentErkundenPage />} />
-              <Route path="/talent/zahlungen" element={<TalentZahlungenPage />} />
-              
-              {/* Unternehmen routes */}
-              <Route path="/unternehmen" element={<UnternehmenLayout />}>
-                <Route index element={<UnternehmenJobsPage />} />
-                <Route path="team" element={<UnternehmenTeamPage />} />
-                <Route path="ausgaben" element={<UnternehmenAusgabenPage />} />
-                <Route path="suche" element={<UnternehmenSuchePage />} />
-                <Route path="jobs/neu" element={<CreateJobPage />} />
-                <Route path="talent/:id" element={<UnternehmenTalentPage />} />
-                <Route path="jobanzeigen/:id" element={<JobAnzeigeDetailPage />} />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CameraProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </Router>
+      </AuthContextProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

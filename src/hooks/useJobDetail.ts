@@ -1,124 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { JobDetail, Applicant, JobStats } from '@/components/unternehmen/JobDetail/types';
-
-// Mock data for the job
-const mockJobData: Record<string, JobDetail> = {
-  '1': {
-    id: '1',
-    title: 'Bauleiter:in Hochbau',
-    location: 'Neubau Projekt A',
-    project: 'Neubau Projekt A',
-    status: 'Aktiv',
-    visibility: 'Öffentlich',
-    createdAt: '2025-04-12T10:00:00Z',
-    updatedAt: '2025-04-12T10:00:00Z',
-    description: '<h2>Jobbeschreibung</h2><p>Als Bauleiter:in Hochbau sind Sie verantwortlich für die Planung, Koordination und Überwachung von Bauprojekten im Hochbau. Sie arbeiten eng mit Architekten, Ingenieuren und Subunternehmern zusammen, um sicherzustellen, dass Projekte termingerecht und innerhalb des Budgets abgeschlossen werden.</p><h3>Ihre Aufgaben:</h3><ul><li>Koordination und Überwachung der Bauarbeiten</li><li>Sicherstellung der Einhaltung von Qualitäts-, Kosten- und Zeitvorgaben</li><li>Durchführung von Baustellenbesprechungen</li><li>Kommunikation mit Bauherren, Behörden und Nachunternehmern</li></ul>',
-  },
-  '2': {
-    id: '2',
-    title: 'Jurist:in Baurecht',
-    location: 'Sanierung Lager11',
-    project: 'Sanierung Lager11',
-    status: 'In Prüfung',
-    visibility: 'Nur intern',
-    createdAt: '2025-04-10T09:15:00Z',
-    updatedAt: '2025-04-10T09:15:00Z',
-    description: '<h2>Jobbeschreibung</h2><p>Als Jurist:in im Bereich Baurecht werden Sie Teil unseres Rechtsteams mit Fokus auf baurechtliche Fragestellungen. Sie beraten unsere internen Abteilungen und unterstützen bei Vertragsverhandlungen mit Projektpartnern.</p><h3>Ihre Aufgaben:</h3><ul><li>Rechtliche Beratung in allen Fragen des Baurechts</li><li>Erstellung und Prüfung von Verträgen</li><li>Bearbeitung von Mängelansprüchen und Nachträgen</li><li>Unterstützung bei der Durchsetzung von Ansprüchen</li></ul>',
-  },
-};
-
-// Mock applicant data
-const mockApplicants: Record<string, Applicant[]> = {
-  '1': [
-    { id: '101', name: 'Max Mustermann', appliedAt: '2025-05-01T14:30:00Z', score: 85, status: 'In Bearbeitung' },
-    { id: '102', name: 'Laura Schmidt', appliedAt: '2025-04-28T09:15:00Z', score: 92, status: 'Vorstellungsgespräch' },
-    { id: '103', name: 'Thomas Weber', appliedAt: '2025-04-25T16:45:00Z', score: 78, status: 'Neu' },
-    { id: '104', name: 'Anna Fischer', appliedAt: '2025-04-22T11:20:00Z', score: 88, status: 'Angebot' },
-    { id: '105', name: 'Markus Becker', appliedAt: '2025-04-20T08:50:00Z', score: 71, status: 'Abgelehnt' },
-  ],
-  '2': [
-    { id: '201', name: 'Julia Meyer', appliedAt: '2025-05-02T13:10:00Z', score: 90, status: 'Neu' },
-    { id: '202', name: 'Stefan Müller', appliedAt: '2025-04-29T10:45:00Z', score: 83, status: 'In Bearbeitung' },
-    { id: '203', name: 'Claudia Hoffmann', appliedAt: '2025-04-26T15:30:00Z', score: 95, status: 'Vorstellungsgespräch' },
-  ],
-};
-
-// Mock statistics data
-const mockStats: Record<string, JobStats> = {
-  '1': {
-    views: 245,
-    applications: 5,
-    averageScore: 82.8,
-    viewsOverTime: [
-      { date: '2025-04-12', views: 12 },
-      { date: '2025-04-13', views: 18 },
-      { date: '2025-04-14', views: 15 },
-      { date: '2025-04-15', views: 24 },
-      { date: '2025-04-16', views: 32 },
-      { date: '2025-04-17', views: 28 },
-      { date: '2025-04-18', views: 22 },
-      { date: '2025-04-19', views: 19 },
-      { date: '2025-04-20', views: 15 },
-      { date: '2025-04-21', views: 18 },
-      { date: '2025-04-22', views: 21 },
-      { date: '2025-04-23', views: 25 },
-    ],
-    applicationsOverTime: [
-      { date: '2025-04-15', applications: 0 },
-      { date: '2025-04-16', applications: 0 },
-      { date: '2025-04-17', applications: 1 },
-      { date: '2025-04-18', applications: 0 },
-      { date: '2025-04-19', applications: 0 },
-      { date: '2025-04-20', applications: 1 },
-      { date: '2025-04-21', applications: 0 },
-      { date: '2025-04-22', applications: 1 },
-      { date: '2025-04-23', applications: 0 },
-      { date: '2025-04-24', applications: 0 },
-      { date: '2025-04-25', applications: 1 },
-      { date: '2025-04-26', applications: 0 },
-      { date: '2025-04-27', applications: 0 },
-      { date: '2025-04-28', applications: 1 },
-      { date: '2025-04-29', applications: 0 },
-      { date: '2025-04-30', applications: 0 },
-      { date: '2025-05-01', applications: 1 },
-    ],
-  },
-  '2': {
-    views: 156,
-    applications: 3,
-    averageScore: 89.3,
-    viewsOverTime: [
-      { date: '2025-04-10', views: 8 },
-      { date: '2025-04-11', views: 12 },
-      { date: '2025-04-12', views: 10 },
-      { date: '2025-04-13', views: 14 },
-      { date: '2025-04-14', views: 16 },
-      { date: '2025-04-15', views: 19 },
-      { date: '2025-04-16', views: 15 },
-      { date: '2025-04-17', views: 12 },
-      { date: '2025-04-18', views: 10 },
-      { date: '2025-04-19', views: 11 },
-      { date: '2025-04-20', views: 14 },
-      { date: '2025-04-21', views: 15 },
-    ],
-    applicationsOverTime: [
-      { date: '2025-04-18', applications: 0 },
-      { date: '2025-04-19', applications: 0 },
-      { date: '2025-04-20', applications: 0 },
-      { date: '2025-04-21', applications: 0 },
-      { date: '2025-04-22', applications: 0 },
-      { date: '2025-04-23', applications: 0 },
-      { date: '2025-04-24', applications: 1 },
-      { date: '2025-04-25', applications: 0 },
-      { date: '2025-04-26', applications: 1 },
-      { date: '2025-04-27', applications: 0 },
-      { date: '2025-04-28', applications: 0 },
-      { date: '2025-04-29', applications: 1 },
-    ],
-  },
-};
 
 export function useJobDetail(jobId: string | undefined) {
   const [job, setJob] = useState<JobDetail | null>(null);
@@ -139,20 +23,71 @@ export function useJobDetail(jobId: string | undefined) {
       setError(null);
 
       try {
-        // In a real application, this would be an API call
-        // await fetch(`/api/jobs/${jobId}`) etc.
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Fetch job details
+        const { data: jobData, error: jobError } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single();
 
-        if (jobId in mockJobData) {
-          setJob(mockJobData[jobId]);
-          setApplicants(mockApplicants[jobId] || []);
-          setStats(mockStats[jobId] || null);
-        } else {
+        if (jobError) throw jobError;
+
+        if (!jobData) {
           setError("Job nicht gefunden");
+          return;
         }
+
+        // Map database job to JobDetail type
+        const mappedJob: JobDetail = {
+          id: jobData.id,
+          title: jobData.title,
+          location: jobData.location,
+          project: jobData.location, // Using location as project for now
+          status: mapJobStatus(jobData.status),
+          visibility: jobData.is_public ? 'Öffentlich' : 'Nur intern',
+          createdAt: jobData.created_at,
+          updatedAt: jobData.updated_at,
+          description: jobData.description || ''
+        };
+
+        setJob(mappedJob);
+
+        // Fetch applications for this job
+        const { data: applicationsData, error: applicationsError } = await supabase
+          .from('applications')
+          .select('*')
+          .eq('job_id', jobId);
+
+        if (applicationsError) {
+          console.error('Error fetching applications:', applicationsError);
+          // Don't throw error, just set empty array
+          setApplicants([]);
+        } else {
+          // Map applications to Applicant type
+          const mappedApplicants: Applicant[] = (applicationsData || []).map(app => ({
+            id: app.id,
+            name: `Bewerber #${app.talent_id.slice(-8)}`, // Anonymized for now
+            appliedAt: app.created_at,
+            score: Math.floor(Math.random() * 40) + 60, // Mock score for now
+            status: mapApplicationStatus(app.status)
+          }));
+
+          setApplicants(mappedApplicants);
+        }
+
+        // Create mock stats based on job data
+        const mockStats: JobStats = {
+          views: jobData.views || 0,
+          applications: applicationsData?.length || 0,
+          averageScore: 75 + Math.random() * 20, // Mock average score
+          viewsOverTime: generateMockViewsData(jobData.created_at),
+          applicationsOverTime: generateMockApplicationsData(jobData.created_at, applicationsData?.length || 0)
+        };
+
+        setStats(mockStats);
+
       } catch (err) {
+        console.error('Error fetching job details:', err);
         setError("Fehler beim Laden der Jobdaten");
         toast.error("Fehler beim Laden der Jobdaten");
       } finally {
@@ -163,29 +98,109 @@ export function useJobDetail(jobId: string | undefined) {
     fetchJob();
   }, [jobId]);
 
+  const mapJobStatus = (status: string): JobDetail['status'] => {
+    switch (status) {
+      case 'approved':
+        return 'Aktiv';
+      case 'pending':
+        return 'In Prüfung';
+      case 'draft':
+        return 'Entwurf';
+      case 'closed':
+        return 'Geschlossen';
+      default:
+        return 'Entwurf';
+    }
+  };
+
+  const mapApplicationStatus = (status: string): string => {
+    switch (status) {
+      case 'new':
+        return 'Neu';
+      case 'reviewing':
+        return 'In Bearbeitung';
+      case 'interview':
+        return 'Vorstellungsgespräch';
+      case 'offer':
+        return 'Angebot';
+      case 'rejected':
+        return 'Abgelehnt';
+      case 'hired':
+        return 'Eingestellt';
+      default:
+        return 'Neu';
+    }
+  };
+
+  const generateMockViewsData = (createdAt: string) => {
+    const startDate = new Date(createdAt);
+    const data = [];
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      data.push({
+        date: date.toISOString().split('T')[0],
+        views: Math.floor(Math.random() * 30) + 10
+      });
+    }
+    
+    return data;
+  };
+
+  const generateMockApplicationsData = (createdAt: string, totalApplications: number) => {
+    const startDate = new Date(createdAt);
+    const data = [];
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      data.push({
+        date: date.toISOString().split('T')[0],
+        applications: i < totalApplications ? (Math.random() > 0.7 ? 1 : 0) : 0
+      });
+    }
+    
+    return data;
+  };
+
   const updateJobStatus = async (status: JobDetail['status']) => {
     if (!job) return false;
 
     try {
+      const dbStatus = mapStatusToDb(status);
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: dbStatus })
+        .eq('id', job.id);
+
+      if (error) throw error;
+
       // Optimistic UI update
       setJob(prevJob => prevJob ? { ...prevJob, status } : null);
-
-      // In a real application, this would be an API call
-      // await fetch(`/api/jobs/${jobId}`, { 
-      //   method: 'PATCH', 
-      //   body: JSON.stringify({ status }) 
-      // });
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       toast.success(`Job wurde als "${status}" markiert`);
       return true;
     } catch (err) {
-      // Revert optimistic update on failure
-      setJob(mockJobData[job.id]);
+      console.error('Error updating job status:', err);
       toast.error("Statusänderung fehlgeschlagen");
       return false;
+    }
+  };
+
+  const mapStatusToDb = (status: JobDetail['status']): string => {
+    switch (status) {
+      case 'Aktiv':
+        return 'approved';
+      case 'In Prüfung':
+        return 'pending';
+      case 'Entwurf':
+        return 'draft';
+      case 'Geschlossen':
+        return 'closed';
+      default:
+        return 'draft';
     }
   };
 
@@ -193,14 +208,39 @@ export function useJobDetail(jobId: string | undefined) {
     if (!job) return;
     
     try {
-      // In a real application, this would be an API call
-      // await fetch(`/api/jobs/${jobId}/duplicate`);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data: jobData, error: fetchError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', job.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const { error: insertError } = await supabase
+        .from('jobs')
+        .insert({
+          title: `${jobData.title} (Kopie)`,
+          location: jobData.location,
+          description: jobData.description,
+          contract_type: jobData.contract_type,
+          billing_type: jobData.billing_type,
+          hourly_rate_min: jobData.hourly_rate_min,
+          hourly_rate_max: jobData.hourly_rate_max,
+          referral_bonus: jobData.referral_bonus,
+          interview: jobData.interview,
+          form: jobData.form,
+          rejection_email: jobData.rejection_email,
+          automatic_communication: jobData.automatic_communication,
+          automatic_redirect: jobData.automatic_redirect,
+          status: 'draft',
+          user_id: jobData.user_id
+        });
+
+      if (insertError) throw insertError;
       
       toast.success("Job wurde dupliziert");
     } catch (err) {
+      console.error('Error duplicating job:', err);
       toast.error("Duplizieren fehlgeschlagen");
     }
   };
@@ -217,9 +257,6 @@ export function useJobDetail(jobId: string | undefined) {
 }
 
 export function useApplicants() {
-  // Additional hook for applicant-specific operations
-  // This could be expanded for more complex applicant management
-  
   const sortApplicants = (applicants: Applicant[], field: keyof Applicant, direction: 'asc' | 'desc') => {
     return [...applicants].sort((a, b) => {
       if (direction === 'asc') {
