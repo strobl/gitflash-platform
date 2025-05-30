@@ -15,25 +15,17 @@ export default function Login() {
   const redirectParam = searchParams.get('redirect');
   const shouldActivateCamera = searchParams.get('activateCamera') === 'true';
   
-  // Log all parameters for debugging
-  console.log('Login: Parameters received:', {
-    redirect: redirectParam,
-    activateCamera: shouldActivateCamera,
-    isAuthenticated,
-    userRole: profile?.role,
-    isLoading
-  });
-
-  // Show loading state while auth is being determined
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E7E9EC]">
-        <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
-      </div>
-    );
-  }
-  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   useEffect(() => {
+    // Log all parameters for debugging
+    console.log('Login: Parameters received:', {
+      redirect: redirectParam,
+      activateCamera: shouldActivateCamera,
+      isAuthenticated,
+      userRole: profile?.role,
+      isLoading
+    });
+
     // Extract interview ID from redirect URL and store camera activation preference immediately
     if (redirectParam && redirectParam.includes('/uebung/')) {
       // Handle both uppercase and lowercase variations in the URL
@@ -54,7 +46,18 @@ export default function Login() {
         console.error("Login: Failed to extract interview ID from URL:", redirectParam);
       }
     }
-  }, [redirectParam, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled]);
+  }, [redirectParam, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled, isAuthenticated, profile?.role, isLoading]);
+
+  // NOW we can do conditional returns after all hooks are called
+  
+  // Show loading state while auth is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#E7E9EC]">
+        <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+      </div>
+    );
+  }
   
   // Redirect to appropriate dashboard based on role if already authenticated
   if (isAuthenticated && profile) {
