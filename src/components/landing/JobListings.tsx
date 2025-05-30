@@ -1,11 +1,10 @@
 
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faBuilding, 
-  faCity, 
-  faScaleBalanced 
-} from "@fortawesome/free-solid-svg-icons";
+  Building, 
+  MapPin, 
+  Euro 
+} from "lucide-react";
 
 interface JobCardProps {
   icon: React.ReactNode;
@@ -65,20 +64,20 @@ export const JobListings: React.FC = () => {
       <div className="w-full mt-6 md:mt-10 max-w-3xl mx-auto">
         <div className="flex flex-col space-y-4">
           <JobCard
-            icon={<FontAwesomeIcon icon={faBuilding} size="2x" />}
+            icon={<Building size={32} />}
             title="Projektleiter Hochbau"
             location="München"
             salary="85.000 €/Jahr"
           />
           <JobCard
-            icon={<FontAwesomeIcon icon={faCity} size="2x" />}
+            icon={<Building size={32} />}
             title="Projektentwickler Immobilien"
             location="Frankfurt"
             salary="78.000 €/Jahr"
             isRemote={false}
           />
           <JobCard
-            icon={<FontAwesomeIcon icon={faScaleBalanced} size="2x" />}
+            icon={<Euro size={32} />}
             title="Jurist Baurecht"
             location="Remote"
             salary="€350/Std."
