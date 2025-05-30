@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,6 +27,9 @@ import Uebung from '@/pages/Uebung';
 // Talent pages
 import TalentPage from '@/pages/TalentPage';
 import TalentApplicationsPage from '@/pages/talent/ApplicationsPage';
+
+// Public pages
+import Jobs from '@/pages/Jobs';
 
 // Unternehmen pages
 import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPage';
@@ -60,6 +64,9 @@ function App() {
             <Routes>
               {/* Landing page */}
               <Route path="/" element={<Index />} />
+              
+              {/* Public pages */}
+              <Route path="/jobs" element={<Jobs />} />
               
               {/* Auth routes */}
               <Route path="/login" element={<Login />} />
