@@ -248,6 +248,7 @@ export type Database = {
           automatic_communication: boolean
           automatic_redirect: boolean
           billing_type: string
+          company_id: string | null
           contract_type: string
           created_at: string | null
           description: string
@@ -257,13 +258,14 @@ export type Database = {
           id: string
           interview: string
           is_paid: boolean
+          is_public: boolean
           location: string
           referral_bonus: string | null
           rejected_at: string | null
           rejected_by: string | null
           rejection_email: string | null
           rejection_reason: string | null
-          status: string
+          status: Database["public"]["Enums"]["job_status"]
           title: string
           updated_at: string | null
           user_id: string
@@ -276,6 +278,7 @@ export type Database = {
           automatic_communication?: boolean
           automatic_redirect?: boolean
           billing_type: string
+          company_id?: string | null
           contract_type: string
           created_at?: string | null
           description: string
@@ -285,13 +288,14 @@ export type Database = {
           id?: string
           interview?: string
           is_paid?: boolean
+          is_public?: boolean
           location: string
           referral_bonus?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_email?: string | null
           rejection_reason?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["job_status"]
           title: string
           updated_at?: string | null
           user_id: string
@@ -304,6 +308,7 @@ export type Database = {
           automatic_communication?: boolean
           automatic_redirect?: boolean
           billing_type?: string
+          company_id?: string | null
           contract_type?: string
           created_at?: string | null
           description?: string
@@ -313,13 +318,14 @@ export type Database = {
           id?: string
           interview?: string
           is_paid?: boolean
+          is_public?: boolean
           location?: string
           referral_bonus?: string | null
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_email?: string | null
           rejection_reason?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["job_status"]
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -329,6 +335,13 @@ export type Database = {
           {
             foreignKeyName: "jobs_approved_by_fkey"
             columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -469,9 +482,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      increment_job_views: {
+        Args: { _id: string }
+        Returns: undefined
+      }
+      set_job_status: {
+        Args: {
+          _job_id: string
+          _status: Database["public"]["Enums"]["job_status"]
+        }
+        Returns: undefined
+      }
+      toggle_job_public: {
+        Args: { _job_id: string; _public: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       conversation_status: "active" | "pending" | "ended" | "failed"
+      job_status: "draft" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -588,6 +617,7 @@ export const Constants = {
   public: {
     Enums: {
       conversation_status: ["active", "pending", "ended", "failed"],
+      job_status: ["draft", "pending", "approved", "rejected"],
     },
   },
 } as const
