@@ -26,7 +26,7 @@ export const CallToAction: React.FC = () => {
           </div>
         </Link>
         <Link
-          to="/employers"
+          to="/jobs"
           className="flex gap-[5px] text-[#546679] justify-center mt-3 md:mt-0 hover:text-opacity-80 transition-colors"
         >
           <span className="text-[#546679]">Personal fnden</span>
