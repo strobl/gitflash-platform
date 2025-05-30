@@ -1,12 +1,11 @@
 
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faTwitter, 
-  faLinkedin, 
-  faFacebook, 
-  faInstagram 
-} from '@fortawesome/free-brands-svg-icons';
+  Twitter, 
+  Linkedin, 
+  Facebook, 
+  Instagram 
+} from 'lucide-react';
 
 export function Footer() {
   return (
@@ -23,16 +22,16 @@ export function Footer() {
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <FontAwesomeIcon icon={faTwitter} size="lg" />
+                <Twitter className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <FontAwesomeIcon icon={faLinkedin} size="lg" />
+                <Linkedin className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <FontAwesomeIcon icon={faFacebook} size="lg" />
+                <Facebook className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <FontAwesomeIcon icon={faInstagram} size="lg" />
+                <Instagram className="h-6 w-6" />
               </a>
             </div>
           </div>
