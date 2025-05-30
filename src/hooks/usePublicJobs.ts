@@ -25,12 +25,16 @@ export const usePublicJobs = () => {
   const fetchPublicJobs = async () => {
     setIsLoading(true);
     try {
+      console.log('🔍 Fetching active public jobs...');
+      
       const { data: jobsData, error } = await supabase
         .from('jobs')
         .select('*')
         .eq('status', 'approved')
         .eq('is_public', true)
         .order('created_at', { ascending: false });
+
+      console.log('📊 Jobs query result:', { data: jobsData, error });
 
       if (error) throw error;
 
@@ -48,12 +52,13 @@ export const usePublicJobs = () => {
         applicants: job.applicants || 0
       }));
 
+      console.log('✅ Formatted active jobs:', formattedJobs.length, 'jobs found');
       setJobs(formattedJobs);
       setError(null);
     } catch (err) {
-      console.error('Error fetching public jobs:', err);
+      console.error('❌ Error fetching active public jobs:', err);
       setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      toast.error('Fehler beim Laden der Stellenanzeigen');
+      toast.error('Fehler beim Laden der aktiven Stellenanzeigen');
     } finally {
       setIsLoading(false);
     }
