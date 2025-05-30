@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { UnternehmenNavigation } from '@/components/unternehmen/UnternehmenNavigation';
-import { useJobForm } from '@/hooks/useJobForm';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +16,29 @@ import { ArrowLeft } from 'lucide-react';
 export default function JobEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { formData, updateField, isSubmitting, errors } = useJobForm();
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  // Form state
+  const [formData, setFormData] = React.useState({
+    title: '',
+    location: '',
+    description: '',
+    contractType: '',
+    billingType: '',
+    hourlyRateMin: '',
+    hourlyRateMax: '',
+    referralBonus: '$250',
+    interview: 'Keine',
+    form: 'Keins',
+    rejectionEmail: '',
+    automaticCommunication: false,
+    automaticRedirect: false,
+  });
+
+  const updateField = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   useEffect(() => {
     const loadJob = async () => {
@@ -34,34 +54,37 @@ export default function JobEditPage() {
         if (error) throw error;
 
         // Populate form with existing data
-        updateField('title', job.title);
-        updateField('location', job.location);
-        updateField('description', job.description);
-        updateField('contractType', job.contract_type);
-        updateField('billingType', job.billing_type);
-        updateField('hourlyRateMin', job.hourly_rate_min);
-        updateField('hourlyRateMax', job.hourly_rate_max);
-        updateField('referralBonus', job.referral_bonus || '$250');
-        updateField('interview', job.interview);
-        updateField('form', job.form);
-        updateField('rejectionEmail', job.rejection_email || '');
-        updateField('automaticCommunication', job.automatic_communication);
-        updateField('automaticRedirect', job.automatic_redirect);
+        setFormData({
+          title: job.title || '',
+          location: job.location || '',
+          description: job.description || '',
+          contractType: job.contract_type || '',
+          billingType: job.billing_type || '',
+          hourlyRateMin: job.hourly_rate_min || '',
+          hourlyRateMax: job.hourly_rate_max || '',
+          referralBonus: job.referral_bonus || '$250',
+          interview: job.interview || 'Keine',
+          form: job.form || 'Keins',
+          rejectionEmail: job.rejection_email || '',
+          automaticCommunication: job.automatic_communication || false,
+          automaticRedirect: job.automatic_redirect || false,
+        });
       } catch (err) {
         console.error('Error loading job:', err);
         toast.error('Fehler beim Laden der Jobanzeige');
-        navigate('/unternehmen/jobs');
+        navigate('/unternehmen');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadJob();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleSave = async () => {
     if (!id) return;
 
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from('jobs')
@@ -90,6 +113,8 @@ export default function JobEditPage() {
     } catch (err) {
       console.error('Error updating job:', err);
       toast.error('Fehler beim Speichern der Änderungen');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -141,7 +166,6 @@ export default function JobEditPage() {
                     onChange={(e) => updateField('title', e.target.value)}
                     placeholder="z.B. Bauleiter:in Hochbau"
                   />
-                  {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
                 </div>
 
                 <div>
@@ -152,7 +176,6 @@ export default function JobEditPage() {
                     onChange={(e) => updateField('location', e.target.value)}
                     placeholder="z.B. Berlin, Deutschland"
                   />
-                  {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
                 </div>
 
                 <div>
@@ -164,7 +187,6 @@ export default function JobEditPage() {
                     placeholder="Beschreiben Sie die Stelle und Anforderungen..."
                     rows={6}
                   />
-                  {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
