@@ -15,17 +15,17 @@ export default function Login() {
   const redirectParam = searchParams.get('redirect');
   const shouldActivateCamera = searchParams.get('activateCamera') === 'true';
   
+  console.log('🔒 Login Page: Current state:', {
+    redirect: redirectParam,
+    activateCamera: shouldActivateCamera,
+    isAuthenticated,
+    userRole: profile?.role,
+    isLoading,
+    currentUrl: window.location.href
+  });
+  
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   useEffect(() => {
-    // Log all parameters for debugging
-    console.log('Login: Parameters received:', {
-      redirect: redirectParam,
-      activateCamera: shouldActivateCamera,
-      isAuthenticated,
-      userRole: profile?.role,
-      isLoading
-    });
-
     // Extract interview ID from redirect URL and store camera activation preference immediately
     if (redirectParam && redirectParam.includes('/uebung/')) {
       // Handle both uppercase and lowercase variations in the URL
@@ -36,14 +36,14 @@ export default function Login() {
       
       if (parts.length > 1) {
         const interviewId = parts[1];
-        console.log("Login: Storing interview ID from redirect URL:", interviewId);
+        console.log("🎯 Login: Storing interview ID from redirect URL:", interviewId);
         setInterviewRedirectId(interviewId);
         
         // Set auto-activation flag based on URL parameter
-        console.log("Login: Setting auto camera activation to:", shouldActivateCamera);
+        console.log("📹 Login: Setting auto camera activation to:", shouldActivateCamera);
         setAutoActivationEnabled(shouldActivateCamera);
       } else {
-        console.error("Login: Failed to extract interview ID from URL:", redirectParam);
+        console.error("❌ Login: Failed to extract interview ID from URL:", redirectParam);
       }
     }
   }, [redirectParam, shouldActivateCamera, setInterviewRedirectId, setAutoActivationEnabled, isAuthenticated, profile?.role, isLoading]);
@@ -52,6 +52,7 @@ export default function Login() {
   
   // Show loading state while auth is being determined
   if (isLoading) {
+    console.log('⏳ Login: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#E7E9EC]">
         <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
@@ -61,16 +62,26 @@ export default function Login() {
   
   // Redirect to appropriate dashboard based on role if already authenticated
   if (isAuthenticated && profile) {
+    console.log('🔄 Login: User is authenticated, determining redirect...');
+    
     if (redirectParam) {
       // If a redirect param was provided, honor that
-      console.log("Login: User is authenticated, redirecting to specified path:", redirectParam);
+      console.log("🎯 Login: User is authenticated, redirecting to specified path:", redirectParam);
       return <Navigate to={redirectParam} replace />;
     } else {
       // Otherwise use role-based redirect
       const rolePath = getRoleRedirectPath(profile?.role);
-      console.log("Login: User is authenticated, redirecting to role-based path:", rolePath);
+      console.log("🏢 Login: User is authenticated, redirecting to role-based path:", { role: profile?.role, path: rolePath });
       return <Navigate to={rolePath} replace />;
     }
+  }
+  
+  if (isAuthenticated && !profile) {
+    console.log('⚠️ Login: User authenticated but no profile found, staying on login');
+  }
+  
+  if (!isAuthenticated) {
+    console.log('🚫 Login: User not authenticated, showing login form');
   }
   
   return (

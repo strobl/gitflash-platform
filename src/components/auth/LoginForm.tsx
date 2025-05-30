@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCamera } from "@/context/CameraContext";
@@ -37,11 +38,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const [userType, setUserType] = useState<"user" | "business">("user");
   const [name, setName] = useState("");
 
+  console.log('🔒 LoginForm: Current state:', {
+    isRegisterMode,
+    userType,
+    redirectUrl,
+    shouldActivateCamera,
+    profileRole: profile?.role,
+    isLoading
+  });
+
   const handleToggleMode = () => {
     setIsRegisterMode(!isRegisterMode);
   };
 
   const handleSubmit = async () => {
+    console.log('🚀 LoginForm: Submit started:', { isRegisterMode, email, userType });
+    
     try {
       if (!email) {
         toast.error("Bitte E-Mail-Adresse eingeben");
@@ -59,25 +71,29 @@ const LoginForm: React.FC<LoginFormProps> = ({
           return;
         }
         
+        console.log('📝 LoginForm: Starting registration...');
         await register(name, email, password, userType);
         toast.success("Registrierung erfolgreich! Bitte überprüfe deine E-Mails.");
+        console.log('✅ LoginForm: Registration successful');
       } else {
         if (!password) {
           toast.error("Bitte Passwort eingeben");
           return;
         }
         
+        console.log('🔐 LoginForm: Starting login...');
         // Perform login
         await login(email, password);
         toast.success("Login erfolgreich!");
         
-        console.log("LoginForm: Login successful");
+        console.log("✅ LoginForm: Login successful, determining redirect...");
         
         // Determine if we need to redirect to an interview
         let interviewRedirect = false;
         let interviewId = null;
         
         if (redirectUrl && redirectUrl.includes('/uebung/')) {
+          console.log("🎯 LoginForm: Interview redirect detected:", redirectUrl);
           // Extract interview ID from redirectUrl
           interviewId = redirectUrl.split('/uebung/')[1];
           interviewRedirect = true;
@@ -93,21 +109,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
           
           // Navigate to interview page
           setTimeout(() => {
-            console.log("LoginForm: Navigating to interview:", redirectUrl);
+            console.log("🎯 LoginForm: Navigating to interview:", redirectUrl);
             navigate(redirectUrl);
           }, 100);
         } else {
+          console.log("🏢 LoginForm: Standard role-based redirect");
           // Standard role-based redirect
           setTimeout(() => {
             // Get the role from the authenticated user's profile
             const roleBasedPath = getRoleRedirectPath(profile?.role);
-            console.log("LoginForm: Navigating to role-based path:", roleBasedPath);
+            console.log("🏢 LoginForm: Navigating to role-based path:", { role: profile?.role, path: roleBasedPath });
             navigate(roleBasedPath);
           }, 100);
         }
       }
     } catch (error: any) {
-      console.error("Auth error:", error);
+      console.error("❌ LoginForm: Auth error:", error);
       toast.error(error.message || "Ein Fehler ist aufgetreten");
     }
   };

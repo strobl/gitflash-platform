@@ -30,8 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  console.log('🔄 AuthProvider: Current state:', {
+    isAuthenticated: !!user,
+    userEmail: user?.email,
+    profileRole: profile?.role,
+    isLoading,
+    hasSession: !!session
+  });
+
   // Fetch user profile
   const fetchProfile = async (userId: string) => {
+    console.log('📝 AuthContext: Fetching profile for user:', userId);
     try {
       // Use a type assertion to bypass TypeScript type checking for the table name
       const { data, error } = await (supabase
@@ -40,8 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single();
 
+      console.log('📝 AuthContext: Profile fetch result:', { data, error });
+
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ AuthContext: Error fetching profile:', error);
         return null;
       }
 
@@ -52,59 +63,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: data.name,
           role: data.role as 'user' | 'business' | 'operator',
         };
+        console.log('✅ AuthContext: Profile created successfully:', userProfile);
         return userProfile;
       }
 
+      console.log('⚠️ AuthContext: No profile data returned');
       return null;
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('❌ AuthContext: Error in fetchProfile:', error);
       return null;
     }
   };
 
   // Initialize auth state
   useEffect(() => {
+    console.log('🚀 AuthContext: Setting up auth listener...');
+    
     // First, set up auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔔 AuthContext: Auth state changed:', { event, session: !!session, userEmail: session?.user?.email });
+        
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          console.log('👤 AuthContext: User found, fetching profile...');
           // Defer fetching profile with setTimeout to prevent deadlocks
           setTimeout(async () => {
             const profile = await fetchProfile(session.user.id);
+            console.log('📝 AuthContext: Setting profile:', profile);
             setProfile(profile);
           }, 0);
         } else {
+          console.log('🚫 AuthContext: No user, clearing profile');
           setProfile(null);
         }
         
         setIsLoading(false);
+        console.log('✅ AuthContext: Auth state update complete');
       }
     );
 
     // Then check for existing session
+    console.log('🔍 AuthContext: Checking for existing session...');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔍 AuthContext: Existing session check result:', { session: !!session, userEmail: session?.user?.email });
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('👤 AuthContext: Existing user found, fetching profile...');
         fetchProfile(session.user.id).then(profile => {
+          console.log('📝 AuthContext: Initial profile set:', profile);
           setProfile(profile);
         });
       }
       
       setIsLoading(false);
+      console.log('✅ AuthContext: Initial auth check complete');
     });
 
     return () => {
+      console.log('🛑 AuthContext: Cleaning up auth listener');
       subscription.unsubscribe();
     };
   }, []);
 
   // Login with email and password
   const login = async (email: string, password: string) => {
+    console.log('🔐 AuthContext: Login attempt for:', email);
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -112,16 +141,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password
       });
 
+      console.log('🔐 AuthContext: Login result:', { data: !!data, error, userEmail: data?.user?.email });
+
       if (error) throw error;
 
       if (data.user) {
+        console.log('👤 AuthContext: Login successful, fetching profile...');
         const profile = await fetchProfile(data.user.id);
+        console.log('📝 AuthContext: Login profile set:', profile);
         setProfile(profile);
       }
       
       toast.success('Erfolgreich angemeldet');
+      console.log('✅ AuthContext: Login process complete');
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ AuthContext: Login error:', error);
       toast.error(`Fehler beim Anmelden: ${error.message}`);
       throw error;
     } finally {

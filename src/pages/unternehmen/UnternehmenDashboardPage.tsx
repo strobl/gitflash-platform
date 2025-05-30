@@ -9,8 +9,16 @@ import { Navigate } from 'react-router-dom';
 export default function UnternehmenDashboardPage() {
   const { isAuthenticated, profile, isLoading } = useAuth();
   
+  console.log('🏢 UnternehmenDashboard: Current state:', {
+    isAuthenticated,
+    userRole: profile?.role,
+    isLoading,
+    currentUrl: window.location.href
+  });
+  
   // Show loading state
   if (isLoading) {
+    console.log('⏳ UnternehmenDashboard: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
@@ -20,13 +28,17 @@ export default function UnternehmenDashboardPage() {
   
   // Check if user is authenticated
   if (!isAuthenticated) {
+    console.log('🚫 UnternehmenDashboard: User not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
   // Check if user has business role
   if (profile?.role !== 'business' && profile?.role !== 'operator') {
+    console.log('❌ UnternehmenDashboard: User role not authorized:', profile?.role, 'redirecting to talent');
     return <Navigate to="/talent" replace />;
   }
+
+  console.log('✅ UnternehmenDashboard: All checks passed, rendering dashboard');
 
   return (
     <div className="min-h-screen flex flex-col">
