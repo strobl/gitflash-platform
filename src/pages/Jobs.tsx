@@ -10,14 +10,14 @@ import { Search, Briefcase } from 'lucide-react';
 export default function Jobs() {
   const { jobs, isLoading, error } = usePublicJobs();
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [contractFilter, setContractFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('all');
+  const [contractFilter, setContractFilter] = useState('all');
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesContract = !contractFilter || job.contract_type === contractFilter;
+    const matchesLocation = locationFilter === 'all' || job.location.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesContract = contractFilter === 'all' || job.contract_type === contractFilter;
     
     return matchesSearch && matchesLocation && matchesContract;
   });
@@ -83,7 +83,7 @@ export default function Jobs() {
                 <SelectValue placeholder="Ort auswählen" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Alle Orte</SelectItem>
+                <SelectItem value="all">Alle Orte</SelectItem>
                 {uniqueLocations.map(location => (
                   <SelectItem key={location} value={location}>
                     {location}
@@ -97,7 +97,7 @@ export default function Jobs() {
                 <SelectValue placeholder="Vertragsart" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Alle Vertragsarten</SelectItem>
+                <SelectItem value="all">Alle Vertragsarten</SelectItem>
                 {uniqueContracts.map(contract => (
                   <SelectItem key={contract} value={contract}>
                     {contract}
@@ -130,7 +130,7 @@ export default function Jobs() {
               Keine Stellenanzeigen gefunden
             </h3>
             <p className="text-gray-600">
-              {searchTerm || locationFilter || contractFilter
+              {searchTerm || locationFilter !== 'all' || contractFilter !== 'all'
                 ? 'Versuchen Sie andere Suchkriterien.'
                 : 'Derzeit sind keine öffentlichen Stellenanzeigen verfügbar.'
               }
