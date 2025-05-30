@@ -10,6 +10,7 @@ import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPa
 import JobAnzeigeDetailPage from '@/pages/unternehmen/JobAnzeigeDetailPage';
 import JobEditPage from '@/pages/unternehmen/JobEditPage';
 import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
+import AdminDashboard from '@/pages/AdminDashboard';
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,9 @@ function App() {
             
             {/* Talent routes */}
             <Route path="/talent/applications" element={<TalentApplicationsPage />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
             
             {/* Payment routes */}
             <Route path="/zahlung/erfolgreich" element={<PaymentSuccessPage />} />
