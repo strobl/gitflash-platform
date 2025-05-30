@@ -59,7 +59,7 @@ export const useJobsList = () => {
         return 'In Prüfung';
       case 'draft':
         return 'Entwurf';
-      case 'closed':
+      case 'rejected':
         return 'Geschlossen';
       default:
         return 'Entwurf';
@@ -93,7 +93,7 @@ export const useJobsList = () => {
     }
   };
 
-  const mapStatusToDb = (status: JobItem['status']): string => {
+  const mapStatusToDb = (status: JobItem['status']): 'pending' | 'draft' | 'approved' | 'rejected' => {
     switch (status) {
       case 'Aktiv':
         return 'approved';
@@ -102,7 +102,7 @@ export const useJobsList = () => {
       case 'Entwurf':
         return 'draft';
       case 'Geschlossen':
-        return 'closed';
+        return 'rejected';
       default:
         return 'draft';
     }

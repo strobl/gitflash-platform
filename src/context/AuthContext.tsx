@@ -1,229 +1,51 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { getRoleRedirectPath } from '@/utils/routingUtils';
 
-interface UserProfile {
-  id: string;
-  name: string;
-  role: 'user' | 'business' | 'operator';
-  // Add other profile fields as needed
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
-  profile: UserProfile | null;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: (redirectTo?: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: 'user' | 'business' | 'operator') => Promise<void>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  loading: boolean;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch user profile
-  const fetchProfile = async (userId: string) => {
-    try {
-      // Use a type assertion to bypass TypeScript type checking for the table name
-      const { data, error } = await (supabase
-        .from('profiles') as any)
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      // Make sure the returned data matches our UserProfile interface
-      if (data) {
-        const userProfile: UserProfile = {
-          id: data.id,
-          name: data.name,
-          role: data.role as 'user' | 'business' | 'operator',
-        };
-        return userProfile;
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-      return null;
-    }
-  };
-
-  // Initialize auth state
   useEffect(() => {
-    // First, set up auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          // Defer fetching profile with setTimeout to prevent deadlocks
-          setTimeout(async () => {
-            const profile = await fetchProfile(session.user.id);
-            setProfile(profile);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Then check for existing session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then(profile => {
-          setProfile(profile);
-        });
-      }
-      
-      setIsLoading(false);
+      setLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Login with email and password
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        const profile = await fetchProfile(data.user.id);
-        setProfile(profile);
-      }
-      
-      toast.success('Erfolgreich angemeldet');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(`Fehler beim Anmelden: ${error.message}`);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Login with Google
-  const loginWithGoogle = async (redirectTo?: string) => {
-    setIsLoading(true);
-    try {
-      // If a specific URL was provided (like for interviews), use that
-      // Otherwise, we'll handle the redirect after auth in the component
-      const finalRedirectUrl = redirectTo || window.location.origin;
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: finalRedirectUrl
-        }
-      });
-
-      if (error) throw error;
-      
-      // No need for toast here because the page will redirect to Google
-    } catch (error: any) {
-      console.error('Google login error:', error);
-      toast.error(`Fehler beim Google-Login: ${error.message}`);
-      setIsLoading(false);
-      throw error;
-    }
-    // Note: We don't set isLoading to false here as the page will redirect
-  };
-
-  // Register new user
-  const register = async (name: string, email: string, password: string, role: 'user' | 'business' | 'operator') => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role
-          }
-        }
-      });
-
-      if (error) throw error;
-      
-      toast.success('Konto erfolgreich erstellt');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error(`Fehler bei der Registrierung: ${error.message}`);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Logout user
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      toast.success('Erfolgreich abgemeldet');
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      toast.error(`Fehler beim Abmelden: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        login,
-        loginWithGoogle,
-        register,
-        logout,
-        isAuthenticated: !!user,
-        isLoading
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthContextProvider');
   }
   return context;
-}
+};

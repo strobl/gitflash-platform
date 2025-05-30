@@ -52,36 +52,17 @@ export function useJobDetail(jobId: string | undefined) {
 
         setJob(mappedJob);
 
-        // Fetch applications for this job
-        const { data: applicationsData, error: applicationsError } = await supabase
-          .from('applications')
-          .select('*')
-          .eq('job_id', jobId);
-
-        if (applicationsError) {
-          console.error('Error fetching applications:', applicationsError);
-          // Don't throw error, just set empty array
-          setApplicants([]);
-        } else {
-          // Map applications to Applicant type
-          const mappedApplicants: Applicant[] = (applicationsData || []).map(app => ({
-            id: app.id,
-            name: `Bewerber #${app.talent_id.slice(-8)}`, // Anonymized for now
-            appliedAt: app.created_at,
-            score: Math.floor(Math.random() * 40) + 60, // Mock score for now
-            status: mapApplicationStatus(app.status)
-          }));
-
-          setApplicants(mappedApplicants);
-        }
+        // For now, use mock applicants since applications table doesn't exist yet
+        const mockApplicants: Applicant[] = [];
+        setApplicants(mockApplicants);
 
         // Create mock stats based on job data
         const mockStats: JobStats = {
           views: jobData.views || 0,
-          applications: applicationsData?.length || 0,
+          applications: 0, // No applications yet
           averageScore: 75 + Math.random() * 20, // Mock average score
           viewsOverTime: generateMockViewsData(jobData.created_at),
-          applicationsOverTime: generateMockApplicationsData(jobData.created_at, applicationsData?.length || 0)
+          applicationsOverTime: generateMockApplicationsData(jobData.created_at, 0)
         };
 
         setStats(mockStats);
@@ -106,29 +87,10 @@ export function useJobDetail(jobId: string | undefined) {
         return 'In Prüfung';
       case 'draft':
         return 'Entwurf';
-      case 'closed':
+      case 'rejected':
         return 'Geschlossen';
       default:
         return 'Entwurf';
-    }
-  };
-
-  const mapApplicationStatus = (status: string): string => {
-    switch (status) {
-      case 'new':
-        return 'Neu';
-      case 'reviewing':
-        return 'In Bearbeitung';
-      case 'interview':
-        return 'Vorstellungsgespräch';
-      case 'offer':
-        return 'Angebot';
-      case 'rejected':
-        return 'Abgelehnt';
-      case 'hired':
-        return 'Eingestellt';
-      default:
-        return 'Neu';
     }
   };
 
@@ -198,7 +160,7 @@ export function useJobDetail(jobId: string | undefined) {
       case 'Entwurf':
         return 'draft';
       case 'Geschlossen':
-        return 'closed';
+        return 'rejected';
       default:
         return 'draft';
     }

@@ -1,51 +1,23 @@
 
-import { useState, useEffect } from 'react';
-import { Logo } from './navbar/Logo';
-import { DesktopNavigation } from './navbar/DesktopNavigation';
-import { MobileNavigation } from './navbar/MobileNavigation';
-import { AuthButtons } from './navbar/AuthButtons';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
-export function SharedNavbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
+export const SharedNavbar: React.FC = () => {
   return (
-    <header 
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-white bg-opacity-95'
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-gray-200">
+      <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Logo />
-          
-          {/* Desktop Navigation */}
-          <DesktopNavigation />
-          
-          {/* User Menu or Login Button */}
-          <div className="flex items-center">
-            <AuthButtons />
-
-            {/* Mobile Menu Button */}
-            <div className="ml-2">
-              <MobileNavigation />
-            </div>
+          <Link to="/" className="text-xl font-bold text-gitflash-primary">
+            GitFlash
+          </Link>
+          <div className="space-x-4">
+            <Button variant="outline" asChild>
+              <Link to="/login">Anmelden</Link>
+            </Button>
           </div>
         </div>
       </div>
-
-      {/* Horizontal Line */}
-      <div className="w-full h-px bg-gray-200"></div>
-    </header>
+    </nav>
   );
-}
+};
