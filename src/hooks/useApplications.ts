@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import type { ApplicationRow, ApplicationHistoryRow, JobRow, ProfileRow } from '@/types/applications';
 
 export interface ApplicationHistoryItem {
   id: number;
@@ -15,18 +16,7 @@ export interface ApplicationHistoryItem {
   };
 }
 
-export interface Application {
-  id: string;
-  job_id: string;
-  talent_id: string;
-  status: string;
-  cover_letter: string | null;
-  resume_url: string | null;
-  custom_q_a: Record<string, any> | null;
-  version: number;
-  last_activity_at: string;
-  deleted_at: string | null;
-  created_at: string;
+export interface Application extends ApplicationRow {
   job?: {
     title: string;
     location: string;
@@ -52,7 +42,7 @@ export function useApplications(options: UseApplicationsOptions = { type: 'talen
       setError(null);
       
       let query = supabase
-        .from('applications')
+        .from('applications' as any)
         .select(`
           id, job_id, talent_id, status, cover_letter, 
           resume_url, custom_q_a, version, last_activity_at, 
@@ -73,9 +63,9 @@ export function useApplications(options: UseApplicationsOptions = { type: 'talen
       
       if (data) {
         // For each application, fetch its history
-        const appsWithHistory = await Promise.all(data.map(async (app) => {
+        const appsWithHistory = await Promise.all(data.map(async (app: any) => {
           const { data: history, error: historyError } = await supabase
-            .from('application_status_history')
+            .from('application_status_history' as any)
             .select(`
               id, application_id, old_status, new_status, 
               changed_by, notes, changed_at,

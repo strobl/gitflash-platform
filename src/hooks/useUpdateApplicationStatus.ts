@@ -27,7 +27,7 @@ export function useUpdateApplicationStatus() {
       
       // Optimistic locking with version
       const { data, error: updateError } = await supabase
-        .from('applications')
+        .from('applications' as any)
         .update({ 
           status: newStatus,
           // Version will be incremented by the trigger

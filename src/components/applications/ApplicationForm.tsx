@@ -44,7 +44,7 @@ export function ApplicationForm({ jobId, talentId, onSuccess, onCancel }: Applic
       setIsSubmitting(true);
       
       const { data, error } = await supabase
-        .from('applications')
+        .from('applications' as any)
         .insert({
           job_id: jobId,
           talent_id: talentId,
