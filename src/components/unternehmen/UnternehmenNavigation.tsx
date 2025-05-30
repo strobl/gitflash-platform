@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   LayoutDashboard, 
@@ -12,10 +12,18 @@ import {
 
 export function UnternehmenNavigation() {
   const isMobile = useIsMobile();
-  const [activeItem, setActiveItem] = useState('jobs');
+  const { pathname } = useLocation();
 
-  const handleItemClick = (id: string) => {
-    setActiveItem(id);
+  const isActiveNavItem = (path: string) => {
+    if (path === '/unternehmen') {
+      // 'Jobs' active on base and job-related pages, but not on other sections or "Job erstellen"
+      return pathname.startsWith('/unternehmen') 
+        && !pathname.startsWith('/unternehmen/team') 
+        && !pathname.startsWith('/unternehmen/suche') 
+        && !pathname.startsWith('/unternehmen/ausgaben') 
+        && !pathname.startsWith('/unternehmen/jobs/neu');
+    }
+    return pathname.startsWith(path);
   };
 
   const navigationItems = [
@@ -33,12 +41,9 @@ export function UnternehmenNavigation() {
             <NavLink
               key={item.id}
               to={item.path}
-              className={({ isActive }) => 
-                `flex flex-col items-center justify-center py-2 px-3 ${
-                  isActive ? 'text-gitflash-primary' : 'text-gray-500'
-                }`
-              }
-              onClick={() => handleItemClick(item.id)}
+              className={`flex flex-col items-center justify-center py-2 px-3 ${
+                isActiveNavItem(item.path) ? 'text-gitflash-primary' : 'text-gray-500'
+              }`}
             >
               {item.icon}
               <span className="text-xs mt-1">{item.label}</span>
@@ -60,13 +65,11 @@ export function UnternehmenNavigation() {
             <NavLink
               key={item.id}
               to={item.path}
-              className={({ isActive }) =>
-                `group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                  isActive
-                    ? 'bg-gitflash-primary/10 text-gitflash-primary'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                isActiveNavItem(item.path)
+                  ? 'bg-gitflash-primary/10 text-gitflash-primary'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
               {item.icon}
               <span className="ml-3">{item.label}</span>
@@ -75,13 +78,11 @@ export function UnternehmenNavigation() {
           <div className="pt-4">
             <NavLink
               to="/unternehmen/jobs/neu"
-              className={({ isActive }) =>
-                `group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                  isActive
-                    ? 'bg-gitflash-primary/10 text-gitflash-primary'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                isActiveNavItem('/unternehmen/jobs/neu')
+                  ? 'bg-gitflash-primary/10 text-gitflash-primary'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
               <LayoutDashboard className="h-5 w-5 mr-3" />
               <span>Job erstellen</span>

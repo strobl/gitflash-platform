@@ -29,6 +29,10 @@ import TalentApplicationsPage from '@/pages/talent/ApplicationsPage';
 
 // Unternehmen pages
 import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPage';
+import UnternehmenTeamPage from '@/pages/unternehmen/UnternehmenTeamPage';
+import UnternehmenSuchePage from '@/pages/unternehmen/UnternehmenSuchePage';
+import UnternehmenAusgabenPage from '@/pages/unternehmen/UnternehmenAusgabenPage';
+import CreateJobPage from '@/pages/unternehmen/CreateJobPage';
 import JobAnzeigeDetailPage from '@/pages/unternehmen/JobAnzeigeDetailPage';
 import JobEditPage from '@/pages/unternehmen/JobEditPage';
 
@@ -77,6 +81,10 @@ function App() {
             
             {/* Unternehmen routes */}
             <Route path="/unternehmen" element={<UnternehmenDashboardPage />} />
+            <Route path="/unternehmen/team" element={<UnternehmenTeamPage />} />
+            <Route path="/unternehmen/suche" element={<UnternehmenSuchePage />} />
+            <Route path="/unternehmen/ausgaben" element={<UnternehmenAusgabenPage />} />
+            <Route path="/unternehmen/jobs/neu" element={<CreateJobPage />} />
             <Route path="/unternehmen/jobanzeigen/:id" element={<JobAnzeigeDetailPage />} />
             <Route path="/unternehmen/jobs/bearbeiten/:id" element={<JobEditPage />} />
             
