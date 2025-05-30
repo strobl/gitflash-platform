@@ -1,13 +1,12 @@
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faBuilding, 
-  faLocationDot, 
-  faMoneyBillWave, 
-  faBriefcase, 
-  faHandshake,
-  faUsers
-} from '@fortawesome/free-solid-svg-icons';
+  Building, 
+  MapPin, 
+  DollarSign, 
+  Briefcase, 
+  Handshake,
+  Users
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -27,22 +26,22 @@ function JobCard({ title, company, location, salary, type, tags }: JobCardProps)
       
       <div className="space-y-2 mb-4">
         <div className="flex items-center text-gitflash-text">
-          <FontAwesomeIcon icon={faBuilding} className="mr-2 w-4 h-4 text-gitflash-secondary" />
+          <Building className="mr-2 w-4 h-4 text-gitflash-secondary" />
           <span>{company}</span>
         </div>
         
         <div className="flex items-center text-gitflash-text">
-          <FontAwesomeIcon icon={faLocationDot} className="mr-2 w-4 h-4 text-gitflash-secondary" />
+          <MapPin className="mr-2 w-4 h-4 text-gitflash-secondary" />
           <span>{location}</span>
         </div>
         
         <div className="flex items-center text-gitflash-text">
-          <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2 w-4 h-4 text-gitflash-secondary" />
+          <DollarSign className="mr-2 w-4 h-4 text-gitflash-secondary" />
           <span>{salary}</span>
         </div>
         
         <div className="flex items-center text-gitflash-text">
-          <FontAwesomeIcon icon={faBriefcase} className="mr-2 w-4 h-4 text-gitflash-secondary" />
+          <Briefcase className="mr-2 w-4 h-4 text-gitflash-secondary" />
           <span>{type}</span>
         </div>
       </div>
@@ -111,7 +110,7 @@ export function JobListings() {
           <div className="inline-flex items-center justify-center p-8 rounded-lg bg-white shadow-md">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-gitflash-primary/20">
-                <FontAwesomeIcon icon={faHandshake} className="h-8 w-8 text-gitflash-primary" />
+                <Handshake className="h-8 w-8 text-gitflash-primary" />
               </div>
               <div className="text-center md:text-left">
                 <h3 className="text-xl font-bold text-gitflash-primary mb-2">Sind Sie ein Unternehmen?</h3>
