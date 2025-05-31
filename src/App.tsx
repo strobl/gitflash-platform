@@ -13,9 +13,6 @@ import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Login2 from '@/pages/Login2';
 
-// Dashboard pages
-import Dashboard from '@/pages/Dashboard';
-
 // Profile pages
 import Profile from '@/pages/Profile';
 
@@ -74,9 +71,6 @@ function App() {
               {/* Auth routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/login2" element={<Login2 />} />
-              
-              {/* Dashboard routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
               
               {/* Profile routes */}
               <Route path="/profile" element={<Profile />} />
