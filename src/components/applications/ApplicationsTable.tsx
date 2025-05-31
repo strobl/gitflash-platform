@@ -17,12 +17,12 @@ import { de } from 'date-fns/locale';
 import { ApplicationHistoryDialog } from './ApplicationHistoryDialog';
 
 interface ApplicationsTableProps {
-  type: 'talent' | 'recruiter';
+  type: 'talent' | 'business';
   jobId?: string;
 }
 
 export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
-  const { applications, loading, error, refresh } = useApplications({ type, jobId });
+  const { applications, isLoading, error, refetch } = useApplications({ type, jobId });
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   const getStatusBadgeVariant = (status: string) => {
@@ -51,7 +51,7 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
     return statusMap[status] || status;
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex justify-center p-4">Bewerbungen werden geladen...</div>;
   }
 
@@ -59,8 +59,8 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
     return (
       <Card>
         <CardContent className="p-4">
-          <div className="text-destructive">Fehler beim Laden der Bewerbungen: {error}</div>
-          <Button onClick={refresh} className="mt-2">Erneut versuchen</Button>
+          <div className="text-destructive">Fehler beim Laden der Bewerbungen: {error.message || 'Unbekannter Fehler'}</div>
+          <Button onClick={() => refetch()} className="mt-2">Erneut versuchen</Button>
         </CardContent>
       </Card>
     );

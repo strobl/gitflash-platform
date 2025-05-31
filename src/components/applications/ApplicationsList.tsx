@@ -9,11 +9,11 @@ import { useState } from 'react';
 
 interface ApplicationsListProps {
   jobId?: string;
-  type: 'talent' | 'recruiter';
+  type: 'talent' | 'business';
 }
 
 export function ApplicationsList({ jobId, type }: ApplicationsListProps) {
-  const { applications, loading, refresh } = useApplications({ type, jobId });
+  const { applications, isLoading, refetch } = useApplications({ type, jobId });
   const { updateStatus, updating } = useUpdateApplicationStatus();
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null);
 
@@ -26,11 +26,11 @@ export function ApplicationsList({ jobId, type }: ApplicationsListProps) {
     });
     
     if (result) {
-      refresh();
+      refetch();
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
@@ -58,11 +58,11 @@ export function ApplicationsList({ jobId, type }: ApplicationsListProps) {
             <TableHeader>
               <TableRow>
                 {type === 'talent' && <TableHead>Stelle</TableHead>}
-                {type === 'recruiter' && <TableHead>Bewerber</TableHead>}
+                {type === 'business' && <TableHead>Bewerber</TableHead>}
                 <TableHead>Status</TableHead>
                 <TableHead>Eingereicht am</TableHead>
                 <TableHead>Letzte Aktivität</TableHead>
-                {type === 'recruiter' && <TableHead>Aktionen</TableHead>}
+                {type === 'business' && <TableHead>Aktionen</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,7 +76,7 @@ export function ApplicationsList({ jobId, type }: ApplicationsListProps) {
                       </div>
                     </TableCell>
                   )}
-                  {type === 'recruiter' && (
+                  {type === 'business' && (
                     <TableCell>
                       <div className="font-medium">Bewerber #{application.talent_id.slice(-8)}</div>
                     </TableCell>
@@ -90,7 +90,7 @@ export function ApplicationsList({ jobId, type }: ApplicationsListProps) {
                   <TableCell>
                     {new Date(application.last_activity_at).toLocaleDateString('de-DE')}
                   </TableCell>
-                  {type === 'recruiter' && (
+                  {type === 'business' && (
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
