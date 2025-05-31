@@ -12,6 +12,7 @@ const Dashboard: React.FC = () => {
     isAuthenticated,
     userRole: profile?.role,
     isLoading,
+    hasProfile: !!profile,
     currentUrl: window.location.href
   });
   
@@ -24,11 +25,14 @@ const Dashboard: React.FC = () => {
         const redirectPath = getRoleRedirectPath(profile.role);
         console.log('✅ Dashboard: Redirecting to role-specific path:', redirectPath);
         navigate(redirectPath, { replace: true });
+      } else if (isAuthenticated && !profile) {
+        console.log('⚠️ Dashboard: User authenticated but no profile found, redirecting to login for profile creation');
+        navigate("/login", { replace: true });
       }
     }
   }, [navigate, isLoading, isAuthenticated, profile]);
 
-  // Show loading while redirecting
+  // Show loading while auth and profile are being determined
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -47,7 +51,7 @@ const Dashboard: React.FC = () => {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // If no role is set, redirect to login
+  // If authenticated but no profile, redirect to login
   return <Navigate to="/login" replace />;
 };
 

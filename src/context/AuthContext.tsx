@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -36,12 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("AuthProvider: Setting up auth listeners");
     
-    // Fallback timeout - nach 5 Sekunden isLoading auf false setzen
-    const loadingTimeout = setTimeout(() => {
-      console.log("AuthProvider: Loading timeout reached, setting isLoading to false");
-      setIsLoading(false);
-    }, 5000);
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("AuthProvider: Initial session", session?.user?.id || "no session");
@@ -49,12 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
-        clearTimeout(loadingTimeout);
         setIsLoading(false);
       }
     }).catch((error) => {
       console.error("AuthProvider: Error getting initial session:", error);
-      clearTimeout(loadingTimeout);
       setIsLoading(false);
     });
 
@@ -74,13 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       console.log("AuthProvider: Cleaning up subscription");
-      clearTimeout(loadingTimeout);
       subscription?.unsubscribe();
     }
   }, []);
 
   const fetchProfile = async (userId: string) => {
     console.log("AuthProvider: Fetching profile for user", userId);
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -90,17 +81,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('AuthProvider: Error fetching profile:', error);
-        // Auch bei Fehler: isLoading auf false setzen
         setProfile(null);
       } else {
-        console.log("AuthProvider: Profile fetched", data);
+        console.log("AuthProvider: Profile fetched successfully", data);
         setProfile(data);
       }
     } catch (error) {
       console.error('AuthProvider: Error fetching profile:', error);
       setProfile(null);
     } finally {
-      // IMMER isLoading auf false setzen, egal was passiert
+      console.log("AuthProvider: Setting isLoading to false");
       setIsLoading(false);
     }
   };
@@ -171,7 +161,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasUser: !!user, 
     hasProfile: !!profile, 
     isLoading, 
-    isAuthenticated: !!user 
+    isAuthenticated: !!user,
+    profileRole: profile?.role
   });
 
   return (
