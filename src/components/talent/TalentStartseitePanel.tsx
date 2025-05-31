@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
@@ -12,7 +11,7 @@ import { Link } from "react-router-dom";
 
 const TalentStartseitePanel: React.FC = () => {
   const { user, profile } = useAuth();
-  const { profile: talentProfile, isLoading: profileLoading } = useTalentProfile();
+  const { data: talentProfile, isLoading: profileLoading } = useTalentProfile();
   const { applications, loading: applicationsLoading } = useApplications({ type: 'talent' });
   const { jobs: availableJobs, isLoading: jobsLoading } = usePublicJobs();
   

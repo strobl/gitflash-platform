@@ -1,9 +1,8 @@
 
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
-interface UpdateApplicationStatusOptions {
+interface UpdateApplicationStatusParams {
   applicationId: string;
   currentVersion: number;
   newStatus: string;
@@ -11,63 +10,36 @@ interface UpdateApplicationStatusOptions {
 }
 
 export function useUpdateApplicationStatus() {
-  const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  
-  const updateStatus = async ({ 
-    applicationId, 
-    currentVersion, 
-    newStatus, 
-    notes 
-  }: UpdateApplicationStatusOptions) => {
-    try {
-      setUpdating(true);
-      setError(null);
-      
-      // Optimistic locking with version
-      const { data, error: updateError } = await supabase
-        .from('applications' as any)
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ applicationId, newStatus }: UpdateApplicationStatusParams) => {
+      const { data, error } = await supabase
+        .from('applications')
         .update({ 
           status: newStatus,
-          // Version will be incremented by the trigger
+          updated_at: new Date().toISOString()
         })
         .eq('id', applicationId)
-        .eq('version', currentVersion) // Ensure we're updating the version we expect
-        .select('id, status, version');
-        
-      if (updateError) throw new Error(updateError.message);
-      
-      if (!data || data.length === 0) {
-        throw new Error('Optimistic lock failed. The application was updated by another user. Please refresh and try again.');
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating application status:', error);
+        throw error;
       }
-      
-      toast({
-        title: 'Status geändert',
-        description: `Bewerbungsstatus erfolgreich zu "${newStatus}" geändert.`,
-        variant: 'default',
-      });
-      
-      return data[0];
-    } catch (err) {
-      console.error('Error updating application status:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while updating the application');
-      
-      toast({
-        title: 'Fehler',
-        description: err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten',
-        variant: 'destructive',
-      });
-      
-      return null;
-    } finally {
-      setUpdating(false);
-    }
-  };
-  
+
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate applications queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    },
+  });
+
   return {
-    updateStatus,
-    updating,
-    error
+    updateStatus: mutation.mutateAsync,
+    updating: mutation.isPending,
+    error: mutation.error,
   };
 }

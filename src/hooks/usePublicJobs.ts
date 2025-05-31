@@ -2,8 +2,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface PublicJob {
+  id: string;
+  title: string;
+  location: string;
+  description: string;
+  contract_type: string;
+  billing_type: string;
+  hourly_rate_min: string;
+  hourly_rate_max: string;
+  created_at: string;
+  views: number;
+  applicants: number;
+}
+
 export function usePublicJobs() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['public-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -19,7 +33,15 @@ export function usePublicJobs() {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as PublicJob[];
     },
   });
+
+  return {
+    jobs: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
+    ...query
+  };
 }
