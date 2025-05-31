@@ -27,13 +27,10 @@ export function JobList({ jobs, title }: JobListProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
-      {jobs.map((job, index) => (
-        <div key={job.id}>
+    <div className="space-y-4">
+      {jobs.map((job) => (
+        <div key={job.id} className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
           <JobListItem job={job} />
-          {index < jobs.length - 1 && (
-            <div className="border-b border-gray-100 mx-6" />
-          )}
         </div>
       ))}
     </div>
