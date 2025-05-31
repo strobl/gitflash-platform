@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -32,35 +33,57 @@ export const useAdminJobs = () => {
     try {
       console.log('🔍 Fetching all jobs for admin...');
       
-      const { data: jobsData, error } = await supabase
+      // First, get all jobs without profile join
+      const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select(`
-          *,
-          profiles!jobs_user_id_fkey(name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('📊 Admin jobs query result:', { data: jobsData, error });
+      console.log('📊 Jobs query result:', { data: jobsData, error: jobsError });
 
-      if (error) throw error;
+      if (jobsError) throw jobsError;
 
-      const formattedJobs: AdminJob[] = (jobsData || []).map(job => ({
-        id: job.id,
-        title: job.title,
-        location: job.location,
-        description: job.description,
-        contract_type: job.contract_type,
-        billing_type: job.billing_type,
-        hourly_rate_min: job.hourly_rate_min,
-        hourly_rate_max: job.hourly_rate_max,
-        status: job.status,
-        is_public: job.is_public,
-        created_at: job.created_at,
-        views: job.views || 0,
-        applicants: job.applicants || 0,
-        user_id: job.user_id,
-        profiles: job.profiles && job.profiles.length > 0 ? { name: job.profiles[0].name } : null
-      }));
+      let formattedJobs: AdminJob[] = [];
+
+      if (jobsData && jobsData.length > 0) {
+        // Get unique user IDs
+        const userIds = [...new Set(jobsData.map(job => job.user_id))];
+        
+        // Fetch profiles for these users
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+
+        console.log('👤 Profiles query result:', { data: profilesData, error: profilesError });
+
+        // Create a map of user_id to profile
+        const profilesMap = new Map();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            profilesMap.set(profile.id, profile);
+          });
+        }
+
+        // Format jobs with profile information
+        formattedJobs = jobsData.map(job => ({
+          id: job.id,
+          title: job.title,
+          location: job.location,
+          description: job.description,
+          contract_type: job.contract_type,
+          billing_type: job.billing_type,
+          hourly_rate_min: job.hourly_rate_min,
+          hourly_rate_max: job.hourly_rate_max,
+          status: job.status,
+          is_public: job.is_public,
+          created_at: job.created_at,
+          views: job.views || 0,
+          applicants: job.applicants || 0,
+          user_id: job.user_id,
+          profiles: profilesMap.has(job.user_id) ? { name: profilesMap.get(job.user_id).name } : null
+        }));
+      }
 
       console.log('✅ Formatted admin jobs:', formattedJobs.length, 'jobs found');
       setJobs(formattedJobs);
