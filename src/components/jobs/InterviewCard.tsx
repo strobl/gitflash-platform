@@ -11,6 +11,28 @@ interface InterviewCardProps {
   interview: PublicInterview;
 }
 
+// Category images mapping from InterviewsDesign.tsx
+const CATEGORY_IMAGES = {
+  architecture: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=225&fit=crop",
+  law: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=225&fit=crop",
+  engineering: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=225&fit=crop",
+  management: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=225&fit=crop",
+  general: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=225&fit=crop"
+};
+
+// Helper function to determine category based on interview name/context
+const getCategoryForInterview = (interview: PublicInterview): string => {
+  const name = interview.conversation_name.toLowerCase();
+  const context = interview.conversation_context?.toLowerCase() || '';
+  
+  if (name.includes('architekt') || context.includes('architekt')) return 'architecture';
+  if (name.includes('recht') || context.includes('recht') || name.includes('anwalt') || context.includes('anwalt')) return 'law';
+  if (name.includes('ingenieur') || context.includes('ingenieur') || name.includes('bau') || context.includes('statik')) return 'engineering';
+  if (name.includes('projekt') || context.includes('projekt') || name.includes('manage')) return 'management';
+  
+  return 'general';
+};
+
 export function InterviewCard({ interview }: InterviewCardProps) {
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -28,11 +50,13 @@ export function InterviewCard({ interview }: InterviewCardProps) {
   };
 
   const difficulty = getDifficultyLevel(interview.conversation_context || '');
+  const category = getCategoryForInterview(interview);
+  const imageUrl = CATEGORY_IMAGES[category] || CATEGORY_IMAGES.general;
 
   return (
     <article className="bg-white shadow-[0px_12px_32px_rgba(0,0,0,0.08)] w-full overflow-hidden rounded-xl cursor-pointer hover:shadow-lg transition-shadow">
       <img 
-        src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=225&fit=crop" 
+        src={imageUrl} 
         className="aspect-[1.8] object-cover w-full" 
         alt={interview.conversation_name} 
       />
