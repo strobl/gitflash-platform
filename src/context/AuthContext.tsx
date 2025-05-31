@@ -36,6 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("AuthProvider: Setting up auth listeners");
     
+    // Fallback timeout - nach 5 Sekunden isLoading auf false setzen
+    const loadingTimeout = setTimeout(() => {
+      console.log("AuthProvider: Loading timeout reached, setting isLoading to false");
+      setIsLoading(false);
+    }, 5000);
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("AuthProvider: Initial session", session?.user?.id || "no session");
@@ -43,8 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
+        clearTimeout(loadingTimeout);
         setIsLoading(false);
       }
+    }).catch((error) => {
+      console.error("AuthProvider: Error getting initial session:", error);
+      clearTimeout(loadingTimeout);
+      setIsLoading(false);
     });
 
     // Listen for auth changes
@@ -63,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       console.log("AuthProvider: Cleaning up subscription");
+      clearTimeout(loadingTimeout);
       subscription?.unsubscribe();
     }
   }, []);
@@ -78,13 +90,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('AuthProvider: Error fetching profile:', error);
+        // Auch bei Fehler: isLoading auf false setzen
+        setProfile(null);
       } else {
         console.log("AuthProvider: Profile fetched", data);
         setProfile(data);
       }
     } catch (error) {
       console.error('AuthProvider: Error fetching profile:', error);
+      setProfile(null);
     } finally {
+      // IMMER isLoading auf false setzen, egal was passiert
       setIsLoading(false);
     }
   };
