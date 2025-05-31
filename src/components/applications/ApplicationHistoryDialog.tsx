@@ -25,7 +25,7 @@ import { Application } from '@/hooks/useApplications';
 
 interface ApplicationHistoryDialogProps {
   application: Application;
-  userType: 'talent' | 'recruiter';
+  userType: 'talent' | 'business';
   onClose: () => void;
 }
 
@@ -126,7 +126,7 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
             )}
           </div>
           
-          {userType === 'recruiter' && (
+          {userType === 'business' && (
             <div>
               <div className="text-sm font-medium mb-2">Status ändern</div>
               <Select value={newStatus} onValueChange={setNewStatus}>
@@ -151,7 +151,7 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
             Schließen
           </Button>
           
-          {userType === 'recruiter' && (
+          {userType === 'business' && (
             <Button 
               onClick={handleUpdateStatus} 
               disabled={updating || newStatus === application.status}

@@ -82,19 +82,19 @@ export default function ApplicationsPage() {
               </TabsList>
 
               <TabsContent value="all">
-                <ApplicationsList type="recruiter" />
+                <ApplicationsList type="business" />
               </TabsContent>
 
               <TabsContent value="new">
-                <ApplicationsList type="recruiter" />
+                <ApplicationsList type="business" />
               </TabsContent>
 
               <TabsContent value="reviewing">
-                <ApplicationsList type="recruiter" />
+                <ApplicationsList type="business" />
               </TabsContent>
 
               <TabsContent value="interview">
-                <ApplicationsList type="recruiter" />
+                <ApplicationsList type="business" />
               </TabsContent>
             </Tabs>
           </div>
