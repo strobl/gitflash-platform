@@ -32,7 +32,7 @@ export function InterviewCard({ interview }: InterviewCardProps) {
   return (
     <article className="bg-white shadow-[0px_12px_32px_rgba(0,0,0,0.08)] w-full overflow-hidden rounded-xl cursor-pointer hover:shadow-lg transition-shadow">
       <img 
-        src="/lovable-uploads/01ffdd6f-bf0a-4d5f-a208-633a505b4d0f.png" 
+        src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=225&fit=crop" 
         className="aspect-[1.8] object-cover w-full" 
         alt={interview.conversation_name} 
       />
