@@ -1,82 +1,81 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { SharedNavbar } from '@/components/navigation/SharedNavbar';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { TalentNavigation } from '@/components/talent/TalentNavigation';
-import { getRoleRedirectPath } from '@/utils/routingUtils';
+import { Home, User, Search, Briefcase, CreditCard, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface TalentLayoutProps {
-  activeTab: string;
   children: React.ReactNode;
+  activeTab?: string;
 }
 
-export const TalentLayout: React.FC<TalentLayoutProps> = ({ activeTab: initialTab, children }) => {
-  const { user, profile, isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
+export const TalentLayout: React.FC<TalentLayoutProps> = ({ children, activeTab }) => {
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [currentTab, setCurrentTab] = useState(initialTab);
-  
-  // Sync the currentTab state with the location on mount and when location changes
-  useEffect(() => {
-    const pathSegments = location.pathname.split('/');
-    // The last segment should be the tab name
-    const tabFromUrl = pathSegments[pathSegments.length - 1];
-    
-    // Only update if it's different from current tab
-    if (tabFromUrl && tabFromUrl !== currentTab) {
-      setCurrentTab(tabFromUrl);
-    }
-  }, [location.pathname, currentTab]);
-  
-  // If not authenticated, redirect to login
-  if (!isLoading && !isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  // If authenticated but not a talent user, redirect to appropriate area based on role
-  if (!isLoading && isAuthenticated && profile?.role !== 'user') {
-    return <Navigate to={getRoleRedirectPath(profile?.role)} replace />;
-  }
-  
-  // Handle tab change
-  const handleTabChange = (tab: string) => {
-    setCurrentTab(tab);
-  };
-  
-  // Show loading while checking authentication
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
-      </div>
-    );
-  }
-  
+  const { signOut } = useAuth();
+
+  const tabs = [
+    { id: 'startseite', label: 'Startseite', path: '/talent/startseite', icon: Home },
+    { id: 'profil', label: 'Profil', path: '/talent/profil', icon: User },
+    { id: 'erkunden', label: 'Erkunden', path: '/talent/erkunden', icon: Search },
+    { id: 'applications', label: 'Bewerbungen', path: '/talent/applications', icon: Briefcase },
+    { id: 'interviews', label: 'Interviews', path: '/talent/interviews', icon: Briefcase },
+    { id: 'zahlungen', label: 'Zahlungen', path: '/talent/zahlungen', icon: CreditCard },
+  ];
+
+  const currentTab = activeTab || tabs.find(tab => location.pathname === tab.path)?.id || 'startseite';
+
   return (
-    <div className="min-h-screen w-full bg-gray-50">
-      {/* Top Navigation Bar */}
-      <SharedNavbar />
-      
-      {/* Main Layout with Sidebar/Bottom Nav */}
-      <div className="flex w-full">
-        {/* Talent Navigation (Sidebar on desktop, Bottom Nav on mobile) */}
-        <TalentNavigation activeTab={currentTab} onTabChange={handleTabChange} />
-        
-        {/* Main Content Area */}
-        <main className={cn(
-          "flex-1 min-h-screen",
-          isMobile ? "pb-20" : "md:ml-16 lg:ml-64", // Space for navigation
-          "pt-16" // Space for navbar
-        )}>
-          <div className="container max-w-4xl px-4">
-            {children}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link to="/talent/startseite" className="text-xl font-bold text-gitflash-primary">
+                GitFlash
+              </Link>
+            </div>
+            <Button variant="ghost" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Abmelden
+            </Button>
           </div>
-        </main>
-      </div>
+        </div>
+      </header>
+
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-8 overflow-x-auto">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <Link
+                  key={tab.id}
+                  to={tab.path}
+                  className={cn(
+                    "flex items-center px-3 py-4 text-sm font-medium border-b-2 whitespace-nowrap",
+                    isActive
+                      ? "text-gitflash-primary border-gitflash-primary"
+                      : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
+                  )}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto">
+        {children}
+      </main>
     </div>
   );
 };
