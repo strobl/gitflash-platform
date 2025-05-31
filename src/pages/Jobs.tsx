@@ -18,7 +18,6 @@ export default function Jobs() {
   const [locationFilter, setLocationFilter] = useState('all');
   const [contractFilter, setContractFilter] = useState('all');
 
-  // Debug-Logging hinzufügen
   console.log('🏠 Jobs Page Debug:', {
     interviewsLoading,
     interviewsCount: interviews.length,
@@ -94,31 +93,21 @@ export default function Jobs() {
           </div>
 
           {interviews.length > 0 ? (
-            <>
-              <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-                <strong>Debug Info:</strong> {interviews.length} öffentliche Interviews gefunden
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-                {interviews.slice(0, 6).map(interview => (
-                  <InterviewCard key={interview.id} interview={interview} />
-                ))}
-              </div>
-            </>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+              {interviews.slice(0, 6).map(interview => (
+                <InterviewCard key={interview.id} interview={interview} />
+              ))}
+            </div>
           ) : (
-            <>
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <strong>Debug Info:</strong> Keine öffentlichen Interviews gefunden. Hook hat {interviews.length} Interviews zurückgegeben.
-              </div>
-              <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-slate-200">
-                <Play className="w-16 h-16 text-gitflash-accent mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gitflash-primary mb-2">
-                  Bald verfügbar
-                </h3>
-                <p className="text-gitflash-secondary mb-6">
-                  Neue KI-Interview-Übungen werden bald verfügbar sein.
-                </p>
-              </div>
-            </>
+            <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-slate-200">
+              <Play className="w-16 h-16 text-gitflash-accent mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gitflash-primary mb-2">
+                Bald verfügbar
+              </h3>
+              <p className="text-gitflash-secondary mb-6">
+                Neue KI-Interview-Übungen werden bald verfügbar sein.
+              </p>
+            </div>
           )}
 
           <div className="text-center md:hidden">
