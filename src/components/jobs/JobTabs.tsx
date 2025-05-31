@@ -42,11 +42,14 @@ export function JobTabs({ jobs, searchTerm, locationFilter, contractFilter }: Jo
   const newestJobs = sortJobsByNewest(filteredJobs);
   const highestSalaryJobs = sortJobsByHighestSalary(filteredJobs);
 
-  const renderJobGrid = (jobs: PublicJob[]) => (
+  const renderJobList = (jobs: PublicJob[]) => (
     jobs.length > 0 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {jobs.map(job => (
-          <PublicJobCard key={job.id} job={job} />
+      <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+        {jobs.map((job, index) => (
+          <div key={job.id}>
+            <PublicJobCard job={job} />
+            {index < jobs.length - 1 && <div className="border-b border-gray-100" />}
+          </div>
         ))}
       </div>
     ) : (
@@ -88,15 +91,15 @@ export function JobTabs({ jobs, searchTerm, locationFilter, contractFilter }: Jo
       </TabsList>
 
       <TabsContent value="most-hired">
-        {renderJobGrid(mostHiredJobs)}
+        {renderJobList(mostHiredJobs)}
       </TabsContent>
 
       <TabsContent value="newest">
-        {renderJobGrid(newestJobs)}
+        {renderJobList(newestJobs)}
       </TabsContent>
 
       <TabsContent value="highest-salary">
-        {renderJobGrid(highestSalaryJobs)}
+        {renderJobList(highestSalaryJobs)}
       </TabsContent>
     </Tabs>
   );
