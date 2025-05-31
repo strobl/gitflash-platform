@@ -468,18 +468,21 @@ export type Database = {
       }
       profiles: {
         Row: {
+          email: string | null
           id: string
           location: string | null
           name: string
           role: string
         }
         Insert: {
+          email?: string | null
           id: string
           location?: string | null
           name: string
           role: string
         }
         Update: {
+          email?: string | null
           id?: string
           location?: string | null
           name?: string

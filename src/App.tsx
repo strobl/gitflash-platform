@@ -87,6 +87,11 @@ function App() {
               
               {/* Talent routes */}
               <Route path="/talent" element={<TalentPage />} />
+              <Route path="/talent/startseite" element={<TalentPage />} />
+              <Route path="/talent/profil" element={<Profile />} />
+              <Route path="/talent/erkunden" element={<Jobs />} />
+              <Route path="/talent/interviews" element={<InterviewsDesign />} />
+              <Route path="/talent/zahlungen" element={<PaymentSuccessPage />} />
               <Route path="/talent/applications" element={<TalentApplicationsPage />} />
               
               {/* Unternehmen routes */}
