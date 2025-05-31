@@ -43,24 +43,27 @@ export function JobTabs({ jobs, searchTerm, locationFilter, contractFilter }: Jo
 
   return (
     <Tabs defaultValue="most-hired" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-8 bg-white border border-gitflash-accent/20 rounded-xl p-1">
+      <TabsList className="grid w-full grid-cols-3 mb-6 lg:mb-8 bg-white border border-gitflash-accent/20 rounded-xl p-1">
         <TabsTrigger 
           value="most-hired"
-          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300"
+          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-2"
         >
-          Am häufigsten eingestellt
+          <span className="hidden sm:inline">Am häufigsten eingestellt</span>
+          <span className="sm:hidden">Häufigste</span>
         </TabsTrigger>
         <TabsTrigger 
           value="newest"
-          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300"
+          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-2"
         >
-          Neueste Jobs
+          <span className="hidden sm:inline">Neueste Jobs</span>
+          <span className="sm:hidden">Neueste</span>
         </TabsTrigger>
         <TabsTrigger 
           value="highest-salary"
-          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300"
+          className="text-gitflash-secondary data-[state=active]:bg-gitflash-primary data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-2"
         >
-          Höchstes Gehalt
+          <span className="hidden sm:inline">Höchstes Gehalt</span>
+          <span className="sm:hidden">Höchste</span>
         </TabsTrigger>
       </TabsList>
 
