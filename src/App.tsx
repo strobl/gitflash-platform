@@ -30,6 +30,7 @@ import TalentApplicationsPage from '@/pages/talent/ApplicationsPage';
 
 // Public pages
 import Jobs from '@/pages/Jobs';
+import JobDetail from '@/pages/JobDetail';
 
 // Unternehmen pages
 import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPage';
