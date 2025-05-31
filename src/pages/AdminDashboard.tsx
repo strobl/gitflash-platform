@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Search, Filter, Briefcase } from 'lucide-react';
@@ -7,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { listAllInterviews, toggleInterviewVisibility } from '@/services/tavusService';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Navbar } from '@/components/navigation/Navbar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
@@ -42,6 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AdminJobsSection } from '@/components/admin/AdminJobsSection';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 export default function AdminDashboard() {
   const { user, profile, isAuthenticated } = useAuth();
@@ -165,8 +164,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <AdminLayout>
       <div className="container py-8">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
           <div>
@@ -362,6 +360,6 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

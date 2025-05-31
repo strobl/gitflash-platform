@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { UnternehmenNavigation } from '@/components/unternehmen/UnternehmenNavigation';
 import { JobsList } from '@/components/unternehmen/jobs/JobsList';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 export default function UnternehmenDashboardPage() {
   const { isAuthenticated, profile, isLoading } = useAuth();
@@ -41,8 +41,7 @@ export default function UnternehmenDashboardPage() {
   console.log('✅ UnternehmenDashboard: All checks passed, rendering dashboard');
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <SharedNavbar />
+    <DashboardLayout>
       <div className="flex flex-1 overflow-hidden">
         <UnternehmenNavigation />
         <main className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6">
@@ -55,6 +54,6 @@ export default function UnternehmenDashboardPage() {
           </div>
         </main>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
