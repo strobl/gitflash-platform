@@ -6,45 +6,30 @@ interface ApplicationStatusBadgeProps {
 }
 
 export function ApplicationStatusBadge({ status }: ApplicationStatusBadgeProps) {
-  const getVariant = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'new':
-        return 'default';
-      case 'in_review':
+        return { variant: 'blue' as const, label: 'Neu' };
       case 'reviewing':
-        return 'secondary';
+        return { variant: 'warning' as const, label: 'In Bearbeitung' };
       case 'interview':
-        return 'outline';
+        return { variant: 'secondary' as const, label: 'Vorstellungsgespräch' };
       case 'offer':
-        return 'default';
-      case 'hired':
-        return 'default';
+        return { variant: 'success' as const, label: 'Angebot' };
       case 'rejected':
-        return 'destructive';
-      case 'withdrawn':
-        return 'secondary';
+        return { variant: 'destructive' as const, label: 'Abgelehnt' };
+      case 'hired':
+        return { variant: 'success' as const, label: 'Eingestellt' };
       default:
-        return 'default';
+        return { variant: 'outline' as const, label: status };
     }
   };
 
-  const getLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'new': 'Neu',
-      'in_review': 'In Prüfung',
-      'reviewing': 'In Bearbeitung',
-      'interview': 'Interview',
-      'offer': 'Angebot',
-      'hired': 'Eingestellt',
-      'rejected': 'Abgelehnt',
-      'withdrawn': 'Zurückgezogen'
-    };
-    return statusMap[status] || status;
-  };
-
+  const config = getStatusConfig(status);
+  
   return (
-    <Badge variant={getVariant(status) as any}>
-      {getLabel(status)}
+    <Badge variant={config.variant}>
+      {config.label}
     </Badge>
   );
 }
