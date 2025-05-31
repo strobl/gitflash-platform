@@ -9,6 +9,9 @@ import { CameraProvider } from '@/context/CameraContext';
 // Landing page
 import Index from '@/pages/Index';
 
+// Dashboard
+import Dashboard from '@/pages/Dashboard';
+
 // Auth pages
 import Login from '@/pages/Login';
 import Login2 from '@/pages/Login2';
@@ -63,6 +66,9 @@ function App() {
             <Routes>
               {/* Landing page */}
               <Route path="/" element={<Index />} />
+              
+              {/* Dashboard route - redirects based on user role */}
+              <Route path="/dashboard" element={<Dashboard />} />
               
               {/* Public pages */}
               <Route path="/jobs" element={<Jobs />} />
