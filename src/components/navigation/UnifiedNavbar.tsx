@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { X, Menu, LogOut } from "lucide-react";
+import { X, Menu, LogOut, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -104,14 +104,21 @@ export const UnifiedNavbar: React.FC = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-white">
-                  <DropdownMenuLabel>
-                    {profile?.name || "Mein Konto"}
-                    {profile?.role === "operator" && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer w-full flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Mein Konto</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  {profile?.role === "operator" && (
+                    <DropdownMenuLabel>
                       <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
                         Admin
                       </span>
-                    )}
-                  </DropdownMenuLabel>
+                    </DropdownMenuLabel>
+                  )}
+                  
                   <DropdownMenuSeparator />
                   
                   {profile?.role === "user" && (
@@ -163,12 +170,21 @@ export const UnifiedNavbar: React.FC = () => {
             ))}
             
             {isAuthenticated ? (
-              <button 
-                onClick={() => { logout(); setMenuOpen(false); }}
-                className="py-3 text-sm text-red-500 font-medium hover:text-opacity-90 text-left"
-              >
-                Abmelden
-              </button>
+              <>
+                <Link 
+                  to="/profile" 
+                  className="py-3 text-sm text-[#0A2540] font-medium hover:text-opacity-90 border-b border-gray-100" 
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Mein Konto
+                </Link>
+                <button 
+                  onClick={() => { logout(); setMenuOpen(false); }}
+                  className="py-3 text-sm text-red-500 font-medium hover:text-opacity-90 text-left"
+                >
+                  Abmelden
+                </button>
+              </>
             ) : (
               <Link 
                 to="/login" 

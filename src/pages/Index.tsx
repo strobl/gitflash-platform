@@ -19,18 +19,8 @@ const Index: React.FC = () => {
   
   console.log("Index.tsx: Auth state", { isAuthenticated, profile, isLoading });
 
-  // Loading? Show minimal spinner (aber nur kurz)
-  if (isLoading) {
-    console.log("Index.tsx: Showing loading spinner");
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
-      </div>
-    );
-  }
-
-  // Eingeloggt UND Profil vorhanden? → Weiterleiten
-  if (isAuthenticated && profile?.role) {
+  // Eingeloggt UND Profil vorhanden? → Weiterleiten (nur wenn nicht loading)
+  if (!isLoading && isAuthenticated && profile?.role) {
     const redirectPath = getRoleRedirectPath(profile.role);
     console.log("Index.tsx: User authenticated with profile, redirecting to:", redirectPath);
     return <Navigate to={redirectPath} replace />;
@@ -38,8 +28,7 @@ const Index: React.FC = () => {
 
   console.log("Index.tsx: Showing landing page");
 
-  // Alle anderen Fälle: Landing Page anzeigen
-  // (nicht eingeloggt ODER eingeloggt aber kein Profil)
+  // Landing Page anzeigen (auch während Loading für bessere UX)
   return (
     <div className="w-full flex flex-col">
       <div className="bg-white overflow-hidden w-full">
