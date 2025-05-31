@@ -36,16 +36,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Creating application for:', { jobId, name, email });
 
-    // Check if user already exists
-    const { data: existingUser } = await supabaseClient.auth.admin.getUserByEmail(email);
+    // Check if user already exists by looking for profile with this email
+    const { data: existingProfile } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
     
     let userId: string;
     let isNewUser = false;
     let generatedPassword: string | null = null;
 
-    if (existingUser.user) {
+    if (existingProfile) {
       // User exists, we'll need them to login
-      userId = existingUser.user.id;
+      userId = existingProfile.id;
       console.log('User already exists:', userId);
     } else {
       // Create new user account
@@ -68,6 +72,21 @@ const handler = async (req: Request): Promise<Response> => {
 
       userId = newUser.user.id;
       console.log('Created new user:', userId);
+
+      // Create profile entry
+      const { error: profileError } = await supabaseClient
+        .from('profiles')
+        .insert({
+          id: userId,
+          name,
+          role: 'user',
+          email
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw here as user is already created
+      }
     }
 
     // Upload CV if provided
