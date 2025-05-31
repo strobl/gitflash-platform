@@ -13,7 +13,23 @@ import { useAuth } from "@/context/AuthContext";
 import { getRoleRedirectPath } from "@/utils/routingUtils";
 
 const Index: React.FC = () => {
-  const { isAuthenticated, profile, isLoading } = useAuth();
+  // Wrap useAuth in a try-catch to prevent crashes
+  let isAuthenticated = false;
+  let profile = null;
+  let isLoading = false;
+
+  try {
+    const authData = useAuth();
+    isAuthenticated = authData.isAuthenticated;
+    profile = authData.profile;
+    isLoading = authData.isLoading;
+  } catch (error) {
+    console.error("Auth context error:", error);
+    // If auth fails, treat as not authenticated and continue
+    isAuthenticated = false;
+    profile = null;
+    isLoading = false;
+  }
 
   // Loading? Show minimal spinner
   if (isLoading) {
