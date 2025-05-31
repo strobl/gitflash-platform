@@ -26,6 +26,7 @@ import Uebung from '@/pages/Uebung';
 
 // Talent pages
 import TalentPage from '@/pages/TalentPage';
+import TalentStartseitePage from '@/pages/talent/startseite';
 import TalentApplicationsPage from '@/pages/talent/ApplicationsPage';
 
 // Public pages
@@ -87,7 +88,7 @@ function App() {
               
               {/* Talent routes */}
               <Route path="/talent" element={<TalentPage />} />
-              <Route path="/talent/startseite" element={<TalentPage />} />
+              <Route path="/talent/startseite" element={<TalentStartseitePage />} />
               <Route path="/talent/profil" element={<Profile />} />
               <Route path="/talent/erkunden" element={<Jobs />} />
               <Route path="/talent/interviews" element={<InterviewsDesign />} />
