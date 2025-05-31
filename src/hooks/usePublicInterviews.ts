@@ -23,8 +23,8 @@ export const usePublicInterviews = () => {
     try {
       console.log('🎯 Fetching public interviews...');
       
-      // First try to get public interviews
-      let { data, error } = await supabase
+      // Only fetch truly public interviews (is_public = true)
+      const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('is_public', true)
@@ -34,29 +34,14 @@ export const usePublicInterviews = () => {
 
       console.log('📊 Public interviews query result:', { data, error });
 
-      // If no public interviews found, get all active interviews for demo purposes
-      if (!data || data.length === 0) {
-        console.log('🔄 No public interviews found, fetching all active interviews...');
-        const { data: allData, error: allError } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(6);
-        
-        data = allData;
-        error = allError;
-        console.log('📊 All interviews query result:', { data, error });
-      }
-
       if (error) throw error;
 
       setInterviews(data || []);
       setError(null);
     } catch (err) {
-      console.error('❌ Error fetching interviews:', err);
+      console.error('❌ Error fetching public interviews:', err);
       setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      toast.error('Fehler beim Laden der Interviews');
+      toast.error('Fehler beim Laden der öffentlichen Interviews');
     } finally {
       setIsLoading(false);
     }
