@@ -20,7 +20,7 @@ export interface AdminJob {
   user_id: string;
   profiles?: {
     name: string;
-  };
+  } | null;
 }
 
 export const useAdminJobs = () => {
@@ -60,7 +60,7 @@ export const useAdminJobs = () => {
         views: job.views || 0,
         applicants: job.applicants || 0,
         user_id: job.user_id,
-        profiles: job.profiles
+        profiles: job.profiles && job.profiles.length > 0 ? job.profiles[0] : null
       }));
 
       console.log('✅ Formatted admin jobs:', formattedJobs.length, 'jobs found');
@@ -100,7 +100,7 @@ export const useAdminJobs = () => {
     }
   };
 
-  const setJobStatus = async (jobId: string, newStatus: string) => {
+  const setJobStatus = async (jobId: string, newStatus: 'draft' | 'pending' | 'approved' | 'rejected') => {
     try {
       const { error } = await supabase.rpc('set_job_status', {
         _job_id: jobId,
