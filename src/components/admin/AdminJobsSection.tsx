@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAdminJobs } from '@/hooks/useAdminJobs';
 import { Button } from '@/components/ui/button';
@@ -77,7 +76,7 @@ export const AdminJobsSection: React.FC = () => {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
 
-  const handleStatusChange = (jobId: string, newStatus: string) => {
+  const handleStatusChange = (jobId: string, newStatus: 'draft' | 'pending' | 'approved' | 'rejected') => {
     setJobStatus(jobId, newStatus);
   };
 
