@@ -68,11 +68,11 @@ export function JobListItem({ job }: JobListItemProps) {
         
         {isAuthenticated ? (
           <Button asChild size="sm" className="bg-gitflash-primary hover:bg-gitflash-secondary">
-            <Link to={`/jobs/${job.id}/apply`}>Bewerben</Link>
+            <Link to={`/jobs/${job.id}/apply`}>Mehr Details</Link>
           </Button>
         ) : (
           <Button asChild size="sm" className="bg-gitflash-primary hover:bg-gitflash-secondary">
-            <Link to="/login">Anmelden</Link>
+            <Link to="/login">Mehr Details</Link>
           </Button>
         )}
       </div>
