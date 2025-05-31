@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Search, Filter } from 'lucide-react';
+import { Eye, EyeOff, Search, Filter, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { listAllInterviews, toggleInterviewVisibility } from '@/services/tavusService';
@@ -31,9 +32,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { AdminJobsSection } from '@/components/admin/AdminJobsSection';
 
 export default function AdminDashboard() {
   const { user, profile, isAuthenticated } = useAuth();
@@ -163,7 +171,7 @@ export default function AdminDashboard() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Verwalten Sie alle Interviews der Plattform</p>
+            <p className="text-muted-foreground">Verwalten Sie Interviews und Jobs der Plattform</p>
           </div>
         </div>
 
@@ -173,170 +181,186 @@ export default function AdminDashboard() {
           </Alert>
         )}
 
-        {/* Search and Filter Section */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Interviews durchsuchen..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="w-full md:w-[200px]">
-            <Select 
-              value={statusFilter} 
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-full">
-                <div className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <span>Status</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full md:w-[200px]">
-            <Select 
-              value={visibilityFilter} 
-              onValueChange={setVisibilityFilter}
-            >
-              <SelectTrigger className="w-full">
-                <div className="flex items-center">
-                  <Eye className="mr-2 h-4 w-4" />
-                  <span>Sichtbarkeit</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle</SelectItem>
-                <SelectItem value="public">Öffentlich</SelectItem>
-                <SelectItem value="private">Privat</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <Tabs defaultValue="interviews" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="interviews">Interviews</TabsTrigger>
+            <TabsTrigger value="jobs" className="flex items-center space-x-2">
+              <Briefcase className="w-4 h-4" />
+              <span>Jobs</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Interviews werden geladen...</p>
-          </div>
-        ) : filteredInterviews.length === 0 ? (
-          <div className="text-center border rounded-lg p-12 bg-muted/20">
-            <h3 className="text-xl font-semibold mb-2">Keine Interviews gefunden</h3>
-            <p className="text-muted-foreground mb-6">
-              {searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all'
-                ? 'Keine Interviews entsprechen den Suchkriterien.' 
-                : 'Es wurden noch keine Interviews erstellt.'}
-            </p>
-            {(searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all') && (
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                  setVisibilityFilter('all');
-                }}
-              >
-                Filter zurücksetzen
-              </Button>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Erstellt von</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Öffentlich</TableHead>
-                    <TableHead>Erstellt am</TableHead>
-                    <TableHead className="text-right">Aktionen</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {getCurrentItems().map((interview) => (
-                    <TableRow key={interview.id}>
-                      <TableCell>
-                        <div className="font-medium">{interview.conversation_name}</div>
-                      </TableCell>
-                      <TableCell>{interview.profiles?.name || 'Unbekannt'}</TableCell>
-                      <TableCell>
-                        <Badge variant={interview.status === 'active' ? 'success' : 'secondary'}>
-                          {interview.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={interview.is_public}
-                            onCheckedChange={() => handleToggleVisibility(interview.id, interview.is_public)}
-                          />
-                          <Label>{interview.is_public ? 'Ja' : 'Nein'}</Label>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(interview.created_at).toLocaleDateString('de-DE')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleViewInterview(interview.id)}
-                        >
-                          Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <TabsContent value="interviews" className="space-y-6">
+            {/* Search and Filter Section */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Interviews durchsuchen..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="w-full md:w-[200px]">
+                <Select 
+                  value={statusFilter} 
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <div className="flex items-center">
+                      <Filter className="mr-2 h-4 w-4" />
+                      <span>Status</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-[200px]">
+                <Select 
+                  value={visibilityFilter} 
+                  onValueChange={setVisibilityFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <div className="flex items-center">
+                      <Eye className="mr-2 h-4 w-4" />
+                      <span>Sichtbarkeit</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle</SelectItem>
+                    <SelectItem value="public">Öffentlich</SelectItem>
+                    <SelectItem value="private">Privat</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Pagination className="mt-6">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        isActive={currentPage === page}
-                        onClick={() => handlePageChange(page)}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+            {/* Loading State */}
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Interviews werden geladen...</p>
+              </div>
+            ) : filteredInterviews.length === 0 ? (
+              <div className="text-center border rounded-lg p-12 bg-muted/20">
+                <h3 className="text-xl font-semibold mb-2">Keine Interviews gefunden</h3>
+                <p className="text-muted-foreground mb-6">
+                  {searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all'
+                    ? 'Keine Interviews entsprechen den Suchkriterien.' 
+                    : 'Es wurden noch keine Interviews erstellt.'}
+                </p>
+                {(searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all') && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setStatusFilter('all');
+                      setVisibilityFilter('all');
+                    }}
+                  >
+                    Filter zurücksetzen
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Erstellt von</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Öffentlich</TableHead>
+                        <TableHead>Erstellt am</TableHead>
+                        <TableHead className="text-right">Aktionen</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getCurrentItems().map((interview) => (
+                        <TableRow key={interview.id}>
+                          <TableCell>
+                            <div className="font-medium">{interview.conversation_name}</div>
+                          </TableCell>
+                          <TableCell>{interview.profiles?.name || 'Unbekannt'}</TableCell>
+                          <TableCell>
+                            <Badge variant={interview.status === 'active' ? 'default' : 'secondary'}>
+                              {interview.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={interview.is_public}
+                                onCheckedChange={() => handleToggleVisibility(interview.id, interview.is_public)}
+                              />
+                              <Label>{interview.is_public ? 'Ja' : 'Nein'}</Label>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(interview.created_at).toLocaleDateString('de-DE')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewInterview(interview.id)}
+                            >
+                              Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination className="mt-6">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => handlePageChange(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
             )}
-          </>
-        )}
+          </TabsContent>
+
+          <TabsContent value="jobs">
+            <AdminJobsSection />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
