@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePublicJobs } from '@/hooks/usePublicJobs';
+import { ApplicationModal } from '@/components/jobs/ApplicationModal';
 
 export default function JobDetail() {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
   const { jobs } = usePublicJobs();
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
   
   // Find the job by ID
   const job = jobs.find(j => j.id === id);
@@ -110,8 +112,11 @@ export default function JobDetail() {
                   </div>
                 </div>
                 
-                <Button className="bg-gitflash-primary hover:bg-gitflash-secondary text-white px-6 lg:px-8 py-3 lg:py-3 text-base lg:text-lg font-semibold w-full sm:w-auto">
-                  {isAuthenticated ? 'Jetzt bewerben' : 'Anmelden zum Bewerben'}
+                <Button 
+                  onClick={() => setShowApplicationModal(true)}
+                  className="bg-gitflash-primary hover:bg-gitflash-secondary text-white px-6 lg:px-8 py-3 lg:py-3 text-base lg:text-lg font-semibold w-full sm:w-auto"
+                >
+                  Jetzt bewerben
                 </Button>
               </div>
             </CardHeader>
@@ -130,7 +135,6 @@ export default function JobDetail() {
             </CardContent>
           </Card>
 
-          {/* Ihr Profil */}
           <Card className="border-0 shadow-lg bg-white">
             <CardHeader className="pb-3 lg:pb-4">
               <CardTitle className="text-lg lg:text-xl font-bold text-gitflash-primary">Ihr Profil</CardTitle>
@@ -157,7 +161,6 @@ export default function JobDetail() {
             </CardContent>
           </Card>
 
-          {/* Rahmenbedingungen */}
           <Card className="border-0 shadow-lg bg-white">
             <CardHeader className="pb-3 lg:pb-4">
               <CardTitle className="text-lg lg:text-xl font-bold text-gitflash-primary">Rahmenbedingungen</CardTitle>
@@ -199,7 +202,6 @@ export default function JobDetail() {
             </CardContent>
           </Card>
 
-          {/* Vergütung & Abwicklung */}
           <Card className="border-0 shadow-lg bg-white">
             <CardHeader className="pb-3 lg:pb-4">
               <CardTitle className="text-lg lg:text-xl font-bold text-gitflash-primary">Vergütung & Abwicklung</CardTitle>
@@ -231,7 +233,6 @@ export default function JobDetail() {
             </CardContent>
           </Card>
 
-          {/* Über GitFlash */}
           <Card className="border-0 shadow-lg bg-white">
             <CardHeader className="pb-3 lg:pb-4">
               <CardTitle className="text-lg lg:text-xl font-bold text-gitflash-primary">Über GitFlash</CardTitle>
@@ -264,7 +265,6 @@ export default function JobDetail() {
             </CardContent>
           </Card>
 
-          {/* Call-to-Action für Empfehlungen */}
           <Card className="border-0 shadow-lg bg-gradient-to-r from-gitflash-accent to-gitflash-warning text-white">
             <CardContent className="p-6 lg:p-8 text-center">
               <h3 className="text-xl lg:text-2xl font-bold mb-4">Verdienen Sie 400€ durch Empfehlungen</h3>
@@ -281,6 +281,14 @@ export default function JobDetail() {
           </Card>
         </div>
       </main>
+
+      {/* Application Modal */}
+      {showApplicationModal && (
+        <ApplicationModal 
+          job={job} 
+          onClose={() => setShowApplicationModal(false)} 
+        />
+      )}
     </div>
   );
 }
