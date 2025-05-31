@@ -8,7 +8,7 @@ import { JobTabs } from '@/components/jobs/JobTabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Briefcase, TrendingUp, Users, MapPin, Filter, Play, Award, ArrowRight } from 'lucide-react';
+import { Search, Briefcase, MapPin, Filter, Play, Award, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Jobs() {
@@ -52,47 +52,6 @@ export default function Jobs() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gitflash-background to-slate-100">
       <SharedNavbar />
-      
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gitflash-primary via-gitflash-secondary to-gitflash-accent text-white py-20">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Ihre Karriere in der
-            <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-              Baubranche
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
-            Üben Sie mit KI-Interviews und entdecken Sie passende Karrieremöglichkeiten bei führenden Bauunternehmen.
-          </p>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-center mb-2">
-                <Play className="w-8 h-8 text-yellow-300" />
-              </div>
-              <div className="text-3xl font-bold text-white">{interviews.length}+</div>
-              <div className="text-white/80">KI-Interviews</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-center mb-2">
-                <Briefcase className="w-8 h-8 text-yellow-300" />
-              </div>
-              <div className="text-3xl font-bold text-white">{jobs.length}+</div>
-              <div className="text-white/80">Aktuelle Stellen</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="w-8 h-8 text-yellow-300" />
-              </div>
-              <div className="text-3xl font-bold text-white">95%</div>
-              <div className="text-white/80">Erfolgsrate</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* Interview Section */}

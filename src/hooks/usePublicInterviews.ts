@@ -23,7 +23,8 @@ export const usePublicInterviews = () => {
     try {
       console.log('🎯 Fetching public interviews...');
       
-      const { data, error } = await supabase
+      // First try to get public interviews
+      let { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('is_public', true)
@@ -31,7 +32,22 @@ export const usePublicInterviews = () => {
         .order('created_at', { ascending: false })
         .limit(6);
 
-      console.log('📊 Interviews query result:', { data, error });
+      console.log('📊 Public interviews query result:', { data, error });
+
+      // If no public interviews found, get all active interviews for demo purposes
+      if (!data || data.length === 0) {
+        console.log('🔄 No public interviews found, fetching all active interviews...');
+        const { data: allData, error: allError } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(6);
+        
+        data = allData;
+        error = allError;
+        console.log('📊 All interviews query result:', { data, error });
+      }
 
       if (error) throw error;
 
