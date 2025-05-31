@@ -8,6 +8,7 @@ import { JobTabs } from '@/components/jobs/JobTabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Search, Briefcase, MapPin, Filter, Play, Award, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -93,10 +94,18 @@ export default function Jobs() {
           </div>
 
           {interviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-              {interviews.slice(0, 6).map(interview => (
-                <InterviewCard key={interview.id} interview={interview} />
-              ))}
+            <div className="relative">
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-4">
+                  {interviews.slice(0, 3).map(interview => (
+                    <CarouselItem key={interview.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                      <InterviewCard interview={interview} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-slate-200">
@@ -110,7 +119,7 @@ export default function Jobs() {
             </div>
           )}
 
-          <div className="text-center md:hidden">
+          <div className="text-center md:hidden mt-6">
             <Button asChild variant="outline" className="border-gitflash-accent text-gitflash-accent hover:bg-gitflash-accent hover:text-white">
               <Link to="/interviews">
                 Alle ansehen
