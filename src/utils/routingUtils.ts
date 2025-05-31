@@ -9,7 +9,7 @@ export function getRoleRedirectPath(role?: string | null): string {
     case 'business':
       return '/unternehmen';  
     case 'operator':
-      return '/admin/profiles';  // Changed from '/dashboard' to '/admin/profiles'
+      return '/admin';
     default:
       return '/login';  // Fallback to login if no role is defined
   }
