@@ -19,26 +19,19 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wait for auth to finish loading before making decisions
+    // Only redirect if auth is fully loaded and user is authenticated with a role
     if (!isLoading && isAuthenticated && profile?.role) {
-      // Redirect authenticated users to their role-specific dashboard
       const redirectPath = getRoleRedirectPath(profile.role);
       if (redirectPath !== '/login') {
-        navigate(redirectPath, { replace: true });
+        // Use a slight delay to ensure the page renders first
+        setTimeout(() => {
+          navigate(redirectPath, { replace: true });
+        }, 100);
       }
     }
   }, [isLoading, isAuthenticated, profile, navigate]);
 
-  // Show loading while auth is being checked
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
-      </div>
-    );
-  }
-
-  // Show landing page for non-authenticated users or users without a role
+  // Always show the landing page immediately - no loading state
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
