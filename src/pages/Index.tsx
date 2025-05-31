@@ -13,26 +13,15 @@ import { useAuth } from "@/context/AuthContext";
 import { getRoleRedirectPath } from "@/utils/routingUtils";
 
 const Index: React.FC = () => {
-  // Wrap useAuth in a try-catch to prevent crashes
-  let isAuthenticated = false;
-  let profile = null;
-  let isLoading = false;
-
-  try {
-    const authData = useAuth();
-    isAuthenticated = authData.isAuthenticated;
-    profile = authData.profile;
-    isLoading = authData.isLoading;
-  } catch (error) {
-    console.error("Auth context error:", error);
-    // If auth fails, treat as not authenticated and continue
-    isAuthenticated = false;
-    profile = null;
-    isLoading = false;
-  }
+  console.log("Index.tsx: Component rendering");
+  
+  const { isAuthenticated, profile, isLoading } = useAuth();
+  
+  console.log("Index.tsx: Auth state", { isAuthenticated, profile, isLoading });
 
   // Loading? Show minimal spinner
   if (isLoading) {
+    console.log("Index.tsx: Showing loading spinner");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
@@ -42,8 +31,12 @@ const Index: React.FC = () => {
 
   // Eingeloggt? → Sofort weg hier!
   if (isAuthenticated && profile?.role) {
-    return <Navigate to={getRoleRedirectPath(profile.role)} replace />;
+    const redirectPath = getRoleRedirectPath(profile.role);
+    console.log("Index.tsx: User authenticated, redirecting to:", redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
+
+  console.log("Index.tsx: Showing landing page");
 
   // Nicht eingeloggt? → Landing Page
   return (

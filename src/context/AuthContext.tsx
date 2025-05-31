@@ -27,13 +27,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  console.log("AuthProvider: Initializing");
+  
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthProvider: Setting up auth listeners");
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("AuthProvider: Initial session", session?.user?.id || "no session");
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
@@ -45,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("AuthProvider: Auth state changed", event, session?.user?.id || "no user");
         setUser(session?.user ?? null);
         if (session?.user) {
           await fetchProfile(session.user.id);
@@ -55,10 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      console.log("AuthProvider: Cleaning up subscription");
+      subscription?.unsubscribe();
+    }
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    console.log("AuthProvider: Fetching profile for user", userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -67,12 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('AuthProvider: Error fetching profile:', error);
       } else {
+        console.log("AuthProvider: Profile fetched", data);
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('AuthProvider: Error fetching profile:', error);
     } finally {
       setIsLoading(false);
     }
@@ -139,6 +150,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginWithGoogle,
     logout,
   };
+
+  console.log("AuthProvider: Providing context", { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    isLoading, 
+    isAuthenticated: !!user 
+  });
 
   return (
     <AuthContext.Provider value={value}>
