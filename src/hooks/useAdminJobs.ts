@@ -60,7 +60,7 @@ export const useAdminJobs = () => {
         views: job.views || 0,
         applicants: job.applicants || 0,
         user_id: job.user_id,
-        profiles: job.profiles ? { name: job.profiles.name } : null
+        profiles: job.profiles && job.profiles.length > 0 ? { name: job.profiles[0].name } : null
       }));
 
       console.log('✅ Formatted admin jobs:', formattedJobs.length, 'jobs found');
