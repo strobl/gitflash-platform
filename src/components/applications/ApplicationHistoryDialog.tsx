@@ -1,182 +1,170 @@
 
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Application, ApplicationHistoryItem } from '@/hooks/useApplications';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow, format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useUpdateApplicationStatus } from '@/hooks/useUpdateApplicationStatus';
-import { Application } from '@/hooks/useApplications';
 
 interface ApplicationHistoryDialogProps {
   application: Application;
-  userType: 'talent' | 'recruiter';
+  userType: 'talent' | 'business';
   onClose: () => void;
 }
 
 export function ApplicationHistoryDialog({ application, userType, onClose }: ApplicationHistoryDialogProps) {
-  const [isOpen, setIsOpen] = useState(true);
   const [newStatus, setNewStatus] = useState(application.status);
+  const [notes, setNotes] = useState('');
   const { updateStatus, updating } = useUpdateApplicationStatus();
 
-  const handleClose = () => {
-    setIsOpen(false);
-    onClose();
-  };
+  const statusOptions = [
+    { value: 'new', label: 'Neu' },
+    { value: 'in_review', label: 'In Prüfung' },
+    { value: 'interview', label: 'Interview' },
+    { value: 'offer', label: 'Angebot' },
+    { value: 'hired', label: 'Eingestellt' },
+    { value: 'rejected', label: 'Abgelehnt' },
+    { value: 'withdrawn', label: 'Zurückgezogen' }
+  ];
 
-  const handleUpdateStatus = async () => {
-    if (newStatus === application.status) return;
-    
-    const result = await updateStatus({
-      applicationId: application.id,
-      currentVersion: application.version,
-      newStatus
-    });
-    
-    if (result) {
-      handleClose();
+  const handleStatusUpdate = async () => {
+    if (newStatus !== application.status) {
+      await updateStatus({
+        applicationId: application.id,
+        currentVersion: application.version,
+        newStatus,
+        notes: notes || `Status geändert zu ${newStatus}`
+      });
+      onClose();
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'new': 'Neu',
-      'in_review': 'In Prüfung',
-      'interview': 'Interview',
-      'offer': 'Angebot',
-      'hired': 'Eingestellt',
-      'rejected': 'Abgelehnt',
-      'withdrawn': 'Zurückgezogen'
-    };
-    return statusMap[status] || status;
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'new': return 'default';
+      case 'in_review': return 'secondary';
+      case 'interview': return 'outline';
+      case 'offer': return 'default';
+      case 'hired': return 'default';
+      case 'rejected': return 'destructive';
+      case 'withdrawn': return 'secondary';
+      default: return 'default';
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Bewerbungsdetails</DialogTitle>
-          <DialogDescription>
-            {userType === 'talent' 
-              ? `Deine Bewerbung für ${application.job?.title || 'Unbenannte Stelle'}`
-              : `Bewerbung von ${format(new Date(application.created_at), 'PPP', { locale: de })}`}
-          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div>
-            <div className="text-sm font-medium mb-1">Aktueller Status</div>
-            <Badge>{getStatusLabel(application.status)}</Badge>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Stelle</Label>
+              <p className="text-sm">{application.job?.title || 'Unbekannt'}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Status</Label>
+              <Badge variant={getStatusBadgeVariant(application.status) as any}>
+                {statusOptions.find(opt => opt.value === application.status)?.label || application.status}
+              </Badge>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Bewerber</Label>
+              <p className="text-sm">{application.applicant_name}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">E-Mail</Label>
+              <p className="text-sm">{application.applicant_email}</p>
+            </div>
           </div>
-          
+
           {application.cover_letter && (
             <div>
-              <div className="text-sm font-medium mb-1">Anschreiben</div>
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap border rounded-md p-3">
-                {application.cover_letter}
+              <Label className="text-sm font-medium">Anschreiben</Label>
+              <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                <p className="text-sm">{application.cover_letter}</p>
               </div>
             </div>
           )}
-          
-          <Separator />
-          
-          <div>
-            <div className="text-sm font-medium mb-2">Statusverlauf</div>
-            {application.history && application.history.length > 0 ? (
+
+          {userType === 'business' && (
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="font-medium">Status ändern</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="status">Neuer Status</Label>
+                  <Select value={newStatus} onValueChange={setNewStatus}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="notes">Notiz (optional)</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Grund für Statusänderung..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={onClose}>
+                  Abbrechen
+                </Button>
+                <Button 
+                  onClick={handleStatusUpdate}
+                  disabled={updating || newStatus === application.status}
+                >
+                  Status aktualisieren
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {application.history && application.history.length > 0 && (
+            <div className="border-t pt-4">
+              <h3 className="font-medium mb-3">Verlauf</h3>
               <div className="space-y-2">
-                {application.history.map((item) => (
-                  <div key={item.id} className="text-sm">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">
-                          {item.old_status ? `${getStatusLabel(item.old_status)} → ` : ''}
-                          {getStatusLabel(item.new_status)}
-                        </span>
-                        {item.profile?.name && (
-                          <span className="text-muted-foreground"> von {item.profile.name}</span>
-                        )}
-                      </div>
-                      <div className="text-muted-foreground">
+                {application.history.map((item: ApplicationHistoryItem) => (
+                  <div key={item.id} className="text-sm border-l-2 border-gray-200 pl-3">
+                    <div className="flex justify-between items-start">
+                      <span>
+                        Status geändert von "{item.old_status || 'Neu'}" zu "{item.new_status}"
+                      </span>
+                      <span className="text-gray-500 text-xs">
                         {formatDistanceToNow(new Date(item.changed_at), { addSuffix: true, locale: de })}
-                      </div>
+                      </span>
                     </div>
                     {item.notes && (
-                      <div className="text-muted-foreground mt-1 ml-2">{item.notes}</div>
+                      <p className="text-gray-600 mt-1">{item.notes}</p>
                     )}
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">Keine Statusänderungen bisher.</div>
-            )}
-          </div>
-          
-          {userType === 'recruiter' && (
-            <div>
-              <div className="text-sm font-medium mb-2">Status ändern</div>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">Neu</SelectItem>
-                  <SelectItem value="in_review">In Prüfung</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                  <SelectItem value="offer">Angebot</SelectItem>
-                  <SelectItem value="hired">Eingestellt</SelectItem>
-                  <SelectItem value="rejected">Abgelehnt</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           )}
         </div>
-        
-        <DialogFooter className="sm:justify-between">
-          <Button variant="ghost" onClick={handleClose}>
-            Schließen
-          </Button>
-          
-          {userType === 'recruiter' && (
-            <Button 
-              onClick={handleUpdateStatus} 
-              disabled={updating || newStatus === application.status}
-            >
-              {updating ? 'Wird aktualisiert...' : 'Status aktualisieren'}
-            </Button>
-          )}
-          
-          {userType === 'talent' && application.status === 'new' && (
-            <Button 
-              variant="destructive" 
-              onClick={async () => {
-                await updateStatus({
-                  applicationId: application.id,
-                  currentVersion: application.version,
-                  newStatus: 'withdrawn'
-                });
-                handleClose();
-              }}
-              disabled={updating}
-            >
-              Bewerbung zurückziehen
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
