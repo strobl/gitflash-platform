@@ -1,45 +1,46 @@
 
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { BusinessDashboard } from '@/components/dashboard/BusinessDashboard';
-import { Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { Navbar } from '@/components/navigation/Navbar';
 import { getRoleRedirectPath } from '@/utils/routingUtils';
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   const { profile, isAuthenticated, isLoading } = useAuth();
-  
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  // Redirect users with "user" role to their appropriate area
-  if (!isLoading && profile?.role === 'user') {
-    return <Navigate to="/talent/startseite" replace />;
-  }
+  const navigate = useNavigate();
 
-  // Redirect business users to their appropriate area
-  if (!isLoading && profile?.role === 'business') {
-    return <Navigate to="/unternehmen" replace />;
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        navigate('/login', { replace: true });
+        return;
+      }
 
-  // Show loading state while profile is loading
+      if (profile?.role) {
+        const redirectPath = getRoleRedirectPath(profile.role);
+        if (redirectPath !== '/login' && redirectPath !== '/dashboard') {
+          navigate(redirectPath, { replace: true });
+        }
+      }
+    }
+  }, [isAuthenticated, profile, isLoading, navigate]);
+
+  // Show minimal loading while redirecting
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
+        <div className="animate-spin h-8 w-8 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
       </div>
     );
   }
-  
-  // Only operators should reach this point
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="container py-8 flex-1">
-        <BusinessDashboard />
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Weiterleitung...</h1>
+        <p className="text-gray-600">Sie werden zu Ihrem Bereich weitergeleitet.</p>
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

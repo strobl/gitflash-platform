@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SharedNavbar } from '@/components/navigation/SharedNavbar';
+import { UnifiedNavbar } from '@/components/navigation/UnifiedNavbar';
 import { UnternehmenNavigation } from '@/components/unternehmen/UnternehmenNavigation';
 import { ApplicationsList } from '@/components/applications/ApplicationsList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
 export default function ApplicationsPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <SharedNavbar />
+      <UnifiedNavbar />
       <div className="flex flex-1 overflow-hidden">
         <UnternehmenNavigation />
         <main className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6">
