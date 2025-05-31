@@ -2,20 +2,18 @@
 import React, { useState } from 'react';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { usePublicJobs } from '@/hooks/usePublicJobs';
-import { useInterviews } from '@/hooks/useInterviews';
+import { usePublicInterviews } from '@/hooks/usePublicInterviews';
 import { InterviewCard } from '@/components/jobs/InterviewCard';
 import { JobTabs } from '@/components/jobs/JobTabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Briefcase, MapPin, Filter, Play, Award, ArrowRight, Lock } from 'lucide-react';
+import { Search, Briefcase, MapPin, Filter, Play, Award, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
 
 export default function Jobs() {
   const { jobs, isLoading: jobsLoading, error: jobsError } = usePublicJobs();
-  const { interviews, isLoading: interviewsLoading } = useInterviews();
-  const { isAuthenticated, profile } = useAuth();
+  const { interviews, isLoading: interviewsLoading } = usePublicInterviews();
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [contractFilter, setContractFilter] = useState('all');
@@ -56,7 +54,7 @@ export default function Jobs() {
       <SharedNavbar />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Interview Section */}
+        {/* Interview Section - Lead Magnet for all visitors */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center">
@@ -79,22 +77,7 @@ export default function Jobs() {
             </Button>
           </div>
 
-          {!isAuthenticated || profile?.role !== 'business' ? (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-slate-200">
-              <Lock className="w-16 h-16 text-gitflash-accent mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gitflash-primary mb-2">
-                Anmeldung erforderlich
-              </h3>
-              <p className="text-gitflash-secondary mb-6">
-                Melden Sie sich als Unternehmen an, um KI-Interviews zu erstellen und zu verwalten.
-              </p>
-              <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary text-white">
-                <Link to="/login">
-                  Jetzt anmelden
-                </Link>
-              </Button>
-            </div>
-          ) : interviews.length > 0 ? (
+          {interviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               {interviews.slice(0, 6).map(interview => (
                 <InterviewCard key={interview.id} interview={interview} />
@@ -104,16 +87,11 @@ export default function Jobs() {
             <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-slate-200">
               <Play className="w-16 h-16 text-gitflash-accent mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gitflash-primary mb-2">
-                Keine Interviews verfügbar
+                Bald verfügbar
               </h3>
               <p className="text-gitflash-secondary mb-6">
-                Sie haben noch keine KI-Interviews erstellt.
+                Neue KI-Interview-Übungen werden bald verfügbar sein.
               </p>
-              <Button asChild className="bg-gitflash-primary hover:bg-gitflash-secondary text-white">
-                <Link to="/interviews/create">
-                  Erstes Interview erstellen
-                </Link>
-              </Button>
             </div>
           )}
 

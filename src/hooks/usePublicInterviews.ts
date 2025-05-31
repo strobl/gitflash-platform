@@ -21,9 +21,9 @@ export const usePublicInterviews = () => {
   const fetchPublicInterviews = async () => {
     setIsLoading(true);
     try {
-      console.log('🎯 Fetching public interviews...');
+      console.log('🎯 Fetching public interviews for Lead Magnet...');
       
-      // Only fetch truly public interviews (is_public = true)
+      // Only fetch truly public interviews (is_public = true) for all visitors
       const { data, error } = await supabase
         .from('conversations')
         .select('*')

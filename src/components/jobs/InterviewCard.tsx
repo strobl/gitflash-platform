@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Play, Users, Award } from 'lucide-react';
-import { Interview } from '@/hooks/useInterviews';
+import { PublicInterview } from '@/hooks/usePublicInterviews';
 import { Link } from 'react-router-dom';
 
 interface InterviewCardProps {
-  interview: Interview;
+  interview: PublicInterview;
 }
 
 export function InterviewCard({ interview }: InterviewCardProps) {
@@ -18,10 +18,10 @@ export function InterviewCard({ interview }: InterviewCardProps) {
   };
 
   const getDifficultyLevel = (context: string) => {
-    if (context.toLowerCase().includes('senior') || context.toLowerCase().includes('expert')) {
+    if (context?.toLowerCase().includes('senior') || context?.toLowerCase().includes('expert')) {
       return { level: 'Schwer', color: 'bg-red-500' };
     }
-    if (context.toLowerCase().includes('junior') || context.toLowerCase().includes('einsteiger')) {
+    if (context?.toLowerCase().includes('junior') || context?.toLowerCase().includes('einsteiger')) {
       return { level: 'Leicht', color: 'bg-green-500' };
     }
     return { level: 'Mittel', color: 'bg-yellow-500' };
