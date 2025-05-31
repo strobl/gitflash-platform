@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SharedNavbar } from '@/components/navigation/SharedNavbar';
 import { Button } from '@/components/ui/button';
@@ -12,55 +12,38 @@ import {
   Clock, 
   Building2, 
   Users, 
-  Eye,
   ArrowLeft,
-  Share2,
-  Bookmark
+  Star,
+  CheckCircle,
+  Banknote
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { ApplicationModal } from '@/components/jobs/ApplicationModal';
+import { usePublicJobs } from '@/hooks/usePublicJobs';
 
 export default function JobDetail() {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const { jobs } = usePublicJobs();
   
-  // Mock job data - in real app, fetch from useJobDetail hook
-  const job = {
-    id: id,
-    title: "Senior Projektmanager Hochbau",
-    location: "München, Bayern",
-    description: "Wir suchen einen erfahrenen Projektmanager für anspruchsvolle Hochbauprojekte. Sie übernehmen die Verantwortung für komplexe Bauprojekte von der Planung bis zur Übergabe und koordinieren alle beteiligten Gewerke.",
-    contract_type: "Vollzeit",
-    billing_type: "Festanstellung",
-    hourly_rate_min: "65",
-    hourly_rate_max: "85",
-    created_at: new Date().toISOString(),
-    views: 234,
-    applicants: 12,
-    company: "BauExzellenz GmbH",
-    requirements: [
-      "Abgeschlossenes Studium im Bauwesen oder vergleichbare Qualifikation",
-      "Mindestens 5 Jahre Berufserfahrung im Projektmanagement",
-      "Erfahrung mit HOAI und VOB",
-      "Sicherer Umgang mit MS Project und CAD-Software",
-      "Führungserfahrung und Teamgeist"
-    ],
-    responsibilities: [
-      "Leitung komplexer Hochbauprojekte von A-Z",
-      "Koordination aller Projektbeteiligten",
-      "Termin-, Kosten- und Qualitätskontrolle",
-      "Kommunikation mit Bauherren und Behörden",
-      "Führung des Projektteams"
-    ],
-    benefits: [
-      "Attraktives Gehalt + Bonussystem",
-      "30 Tage Urlaub",
-      "Flexible Arbeitszeiten",
-      "Weiterbildungsmöglichkeiten",
-      "Firmenfahrzeug"
-    ]
-  };
+  // Find the job by ID
+  const job = jobs.find(j => j.id === id);
+
+  if (!job) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gitflash-background to-slate-100">
+        <SharedNavbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-gitflash-primary mb-2">Job nicht gefunden</h2>
+            <p className="text-gitflash-secondary">Diese Stellenanzeige existiert nicht oder wurde entfernt.</p>
+            <Button asChild className="mt-4">
+              <Link to="/jobs">Zurück zu Jobs</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const formatSalary = (min: string, max: string) => {
     if (min === '0' && max === '0') return 'Nach Vereinbarung';
@@ -76,7 +59,7 @@ export default function JobDetail() {
     <div className="min-h-screen bg-gradient-to-br from-gitflash-background to-slate-100">
       <SharedNavbar />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6 text-sm">
           <Link to="/jobs" className="flex items-center text-gitflash-accent hover:text-gitflash-primary transition-colors">
@@ -87,192 +70,216 @@ export default function JobDetail() {
           <span className="text-gitflash-text">Stellendetails</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Header Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-3xl font-bold text-gitflash-primary mb-2">
-                      {job.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-4 text-gitflash-secondary">
-                      <div className="flex items-center">
-                        <Building2 className="w-5 h-5 mr-2 text-gitflash-accent" />
-                        <span className="font-medium">{job.company}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-2 text-gitflash-accent" />
-                        <span>{job.location}</span>
-                      </div>
+        <div className="space-y-8">
+          {/* Header Card */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader className="pb-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <CardTitle className="text-3xl font-bold text-gitflash-primary mb-3">
+                    {job.title}
+                  </CardTitle>
+                  
+                  <div className="flex flex-wrap items-center gap-6 text-gitflash-secondary mb-4">
+                    <div className="flex items-center">
+                      <Building2 className="w-5 h-5 mr-2 text-gitflash-accent" />
+                      <span className="font-medium">GitFlash</span>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-2 text-gitflash-accent" />
+                      <span>{job.location}</span>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <Clock className="w-5 h-5 mr-2 text-gitflash-accent" />
+                      <span>Veröffentlicht: {formatDate(job.created_at)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Bookmark className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-200">
-                  <div className="flex items-center">
-                    <Briefcase className="w-5 h-5 mr-2 text-gitflash-accent" />
-                    <Badge variant="secondary" className="bg-gitflash-light text-gitflash-primary">
-                      {job.contract_type}
+                  <div className="flex items-center gap-4">
+                    <Badge variant="secondary" className="bg-gitflash-light text-gitflash-primary px-3 py-1">
+                      {job.contract_type === 'fulltime' ? 'Vollzeit' : job.contract_type}
                     </Badge>
-                  </div>
-                  <div className="flex items-center">
-                    <DollarSign className="w-5 h-5 mr-2 text-gitflash-success" />
-                    <span className="font-bold text-gitflash-primary">
-                      {formatSalary(job.hourly_rate_min, job.hourly_rate_max)}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-gitflash-secondary">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>Veröffentlicht: {formatDate(job.created_at)}</span>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Job Description */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl text-gitflash-primary">Stellenbeschreibung</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gitflash-text leading-relaxed">{job.description}</p>
-              </CardContent>
-            </Card>
-
-            {/* Requirements */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl text-gitflash-primary">Anforderungen</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {job.requirements.map((req, index) => (
-                    <li key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-gitflash-accent rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span className="text-gitflash-text">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Responsibilities */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl text-gitflash-primary">Aufgaben</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {job.responsibilities.map((resp, index) => (
-                    <li key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-gitflash-success rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span className="text-gitflash-text">{resp}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Benefits */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl text-gitflash-primary">Was wir bieten</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {job.benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-gitflash-warning rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span className="text-gitflash-text">{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Apply Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-gitflash-primary to-gitflash-secondary text-white sticky top-8">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Jetzt bewerben</h3>
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-2" />
-                      Bewerbungen
-                    </span>
-                    <span className="font-bold">{job.applicants}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Aufrufe
-                    </span>
-                    <span className="font-bold">{job.views}</span>
+                    
+                    <div className="flex items-center text-gitflash-primary font-bold text-lg">
+                      <DollarSign className="w-5 h-5 mr-1" />
+                      <span>{formatSalary(job.hourly_rate_min, job.hourly_rate_max)}</span>
+                    </div>
                   </div>
                 </div>
                 
-                {isAuthenticated ? (
-                  <Button 
-                    onClick={() => setShowApplicationModal(true)}
-                    className="w-full bg-white text-gitflash-primary hover:bg-gitflash-light transition-colors font-bold"
-                  >
-                    Jetzt bewerben
-                  </Button>
-                ) : (
-                  <Button asChild className="w-full bg-white text-gitflash-primary hover:bg-gitflash-light transition-colors font-bold">
-                    <Link to="/login">
-                      Anmelden zum Bewerben
-                    </Link>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                <Button className="bg-gitflash-primary hover:bg-gitflash-secondary text-white px-8 py-3 text-lg font-semibold">
+                  {isAuthenticated ? 'Jetzt bewerben' : 'Anmelden zum Bewerben'}
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
 
-            {/* Company Info */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg text-gitflash-primary">Über das Unternehmen</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gitflash-light rounded-lg flex items-center justify-center mr-4">
-                    <Building2 className="w-6 h-6 text-gitflash-primary" />
-                  </div>
+          {/* Über die Rolle */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gitflash-primary">Über die Rolle</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div 
+                className="text-gitflash-text leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: job.description }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Ihr Profil */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gitflash-primary">Ihr Profil</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-gitflash-success mt-0.5 mr-3 flex-shrink-0" />
+                  <span className="text-gitflash-text">Erfahrung in der Baubranche von Vorteil</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-gitflash-success mt-0.5 mr-3 flex-shrink-0" />
+                  <span className="text-gitflash-text">Kommunikationsstärke und Teamgeist</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-gitflash-success mt-0.5 mr-3 flex-shrink-0" />
+                  <span className="text-gitflash-text">Zuverlässigkeit und Eigeninitiative</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-gitflash-success mt-0.5 mr-3 flex-shrink-0" />
+                  <span className="text-gitflash-text">Flexibilität bei Arbeitszeiten</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Rahmenbedingungen */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gitflash-primary">Rahmenbedingungen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <Briefcase className="w-5 h-5 text-gitflash-accent mr-3" />
                   <div>
-                    <h4 className="font-bold text-gitflash-primary">{job.company}</h4>
-                    <p className="text-sm text-gitflash-secondary">Bauunternehmen</p>
+                    <span className="font-medium text-gitflash-primary">Vertragsart: </span>
+                    <span className="text-gitflash-text">{job.contract_type === 'fulltime' ? 'Vollzeit' : job.contract_type}</span>
                   </div>
                 </div>
-                <p className="text-sm text-gitflash-text">
-                  Ein führendes Bauunternehmen mit über 20 Jahren Erfahrung in komplexen Hochbauprojekten.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                
+                <div className="flex items-center">
+                  <MapPin className="w-5 h-5 text-gitflash-accent mr-3" />
+                  <div>
+                    <span className="font-medium text-gitflash-primary">Arbeitsort: </span>
+                    <span className="text-gitflash-text">{job.location}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Clock className="w-5 h-5 text-gitflash-accent mr-3" />
+                  <div>
+                    <span className="font-medium text-gitflash-primary">Abrechnung: </span>
+                    <span className="text-gitflash-text">{job.billing_type}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Users className="w-5 h-5 text-gitflash-accent mr-3" />
+                  <div>
+                    <span className="font-medium text-gitflash-primary">Teamgröße: </span>
+                    <span className="text-gitflash-text">5-10 Personen</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vergütung & Abwicklung */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gitflash-primary">Vergütung & Abwicklung</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gitflash-light rounded-lg">
+                  <div className="flex items-center">
+                    <Banknote className="w-6 h-6 text-gitflash-success mr-3" />
+                    <div>
+                      <div className="font-bold text-gitflash-primary text-lg">
+                        {formatSalary(job.hourly_rate_min, job.hourly_rate_max)}
+                      </div>
+                      <div className="text-sm text-gitflash-secondary">Stundenlohn</div>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="bg-gitflash-success text-white">
+                    Wettbewerbsfähig
+                  </Badge>
+                </div>
+                
+                <ul className="space-y-2 text-sm text-gitflash-text">
+                  <li>• Pünktliche Auszahlung alle 2 Wochen</li>
+                  <li>• Automatische Zeiterfassung über GitFlash</li>
+                  <li>• Sichere Abwicklung über unsere Plattform</li>
+                  <li>• Transparente Abrechnung ohne versteckte Kosten</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Über GitFlash */}
+          <Card className="border-0 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gitflash-primary">Über GitFlash</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gitflash-text leading-relaxed mb-4">
+                GitFlash ist die führende Plattform für Bauprofis und verbindet qualifizierte Talente mit Top-Arbeitgebern in der Baubranche. 
+                Wir sorgen für transparente, sichere und schnelle Vermittlung von Projekten und Festanstellungen.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="text-center p-4 bg-gitflash-light rounded-lg">
+                  <div className="text-2xl font-bold text-gitflash-primary">1000+</div>
+                  <div className="text-sm text-gitflash-secondary">Aktive Talente</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gitflash-light rounded-lg">
+                  <div className="text-2xl font-bold text-gitflash-primary">500+</div>
+                  <div className="text-sm text-gitflash-secondary">Erfolgreiche Projekte</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gitflash-light rounded-lg">
+                  <div className="text-2xl font-bold text-gitflash-primary">4.8</div>
+                  <div className="text-sm text-gitflash-secondary flex items-center justify-center">
+                    <Star className="w-4 h-4 text-gitflash-warning mr-1" />
+                    Bewertung
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Call-to-Action für Empfehlungen */}
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-gitflash-accent to-gitflash-warning text-white">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-2xl font-bold mb-4">Verdienen Sie 400€ durch Empfehlungen</h3>
+              <p className="text-lg mb-6 opacity-90">
+                Kennen Sie jemanden, der perfekt für diese Position wäre? Empfehlen Sie uns qualifizierte Kandidaten und erhalten Sie eine Prämie von 400€.
+              </p>
+              <Button 
+                variant="secondary" 
+                className="bg-white text-gitflash-primary hover:bg-gitflash-light font-bold px-8 py-3"
+              >
+                Jetzt empfehlen
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
-
-      {/* Application Modal */}
-      {showApplicationModal && (
-        <ApplicationModal
-          job={job}
-          onClose={() => setShowApplicationModal(false)}
-        />
-      )}
     </div>
   );
 }

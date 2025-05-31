@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MapPin, DollarSign, Briefcase, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,15 +65,9 @@ export function JobListItem({ job }: JobListItemProps) {
           </div>
         </div>
         
-        {isAuthenticated ? (
-          <Button asChild size="sm" className="bg-gitflash-primary hover:bg-gitflash-secondary">
-            <Link to={`/jobs/${job.id}/apply`}>Mehr Details</Link>
-          </Button>
-        ) : (
-          <Button asChild size="sm" className="bg-gitflash-primary hover:bg-gitflash-secondary">
-            <Link to="/login">Mehr Details</Link>
-          </Button>
-        )}
+        <Button asChild size="sm" className="bg-gitflash-primary hover:bg-gitflash-secondary">
+          <Link to={`/jobs/${job.id}`}>Mehr Details</Link>
+        </Button>
       </div>
     </div>
   );

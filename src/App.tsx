@@ -68,6 +68,7 @@ function App() {
               
               {/* Public pages */}
               <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetail />} />
               
               {/* Auth routes */}
               <Route path="/login" element={<Login />} />
