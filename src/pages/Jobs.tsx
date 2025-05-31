@@ -103,8 +103,8 @@ export default function Jobs() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                <CarouselPrevious className="left-0 md:hidden" />
+                <CarouselNext className="right-0 md:hidden" />
               </Carousel>
             </div>
           ) : (
