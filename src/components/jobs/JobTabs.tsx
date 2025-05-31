@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { PublicJobCard } from './PublicJobCard';
+import { JobList } from './JobList';
 import { PublicJob } from '@/hooks/usePublicJobs';
-import { Briefcase } from 'lucide-react';
 
 interface JobTabsProps {
   jobs: PublicJob[];
@@ -42,31 +41,6 @@ export function JobTabs({ jobs, searchTerm, locationFilter, contractFilter }: Jo
   const newestJobs = sortJobsByNewest(filteredJobs);
   const highestSalaryJobs = sortJobsByHighestSalary(filteredJobs);
 
-  const renderJobList = (jobs: PublicJob[]) => (
-    jobs.length > 0 ? (
-      <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
-        {jobs.map((job, index) => (
-          <div key={job.id}>
-            <PublicJobCard job={job} />
-            {index < jobs.length - 1 && <div className="border-b border-gray-100" />}
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-16">
-        <div className="bg-white rounded-2xl p-12 shadow-lg border border-slate-200 max-w-lg mx-auto">
-          <Briefcase className="w-16 h-16 text-gitflash-accent mx-auto mb-6" />
-          <h3 className="text-2xl font-bold text-gitflash-primary mb-4">
-            Keine Stellenanzeigen gefunden
-          </h3>
-          <p className="text-gitflash-secondary">
-            Versuchen Sie andere Suchkriterien oder entfernen Sie Filter.
-          </p>
-        </div>
-      </div>
-    )
-  );
-
   return (
     <Tabs defaultValue="most-hired" className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-8 bg-white border border-gitflash-accent/20 rounded-xl p-1">
@@ -90,17 +64,19 @@ export function JobTabs({ jobs, searchTerm, locationFilter, contractFilter }: Jo
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="most-hired">
-        {renderJobList(mostHiredJobs)}
-      </TabsContent>
+      <div className="space-y-4">
+        <TabsContent value="most-hired">
+          <JobList jobs={mostHiredJobs} title="Am häufigsten eingestellt" />
+        </TabsContent>
 
-      <TabsContent value="newest">
-        {renderJobList(newestJobs)}
-      </TabsContent>
+        <TabsContent value="newest">
+          <JobList jobs={newestJobs} title="Neueste Jobs" />
+        </TabsContent>
 
-      <TabsContent value="highest-salary">
-        {renderJobList(highestSalaryJobs)}
-      </TabsContent>
+        <TabsContent value="highest-salary">
+          <JobList jobs={highestSalaryJobs} title="Höchstes Gehalt" />
+        </TabsContent>
+      </div>
     </Tabs>
   );
 }

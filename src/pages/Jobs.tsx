@@ -70,7 +70,7 @@ export default function Jobs() {
       <SharedNavbar />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Interview Section - Lead Magnet for all visitors */}
+        {/* Interview Section */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center">
