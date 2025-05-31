@@ -37,7 +37,7 @@ export const useAdminJobs = () => {
         .from('jobs')
         .select(`
           *,
-          profiles(name)
+          profiles!jobs_user_id_fkey(name)
         `)
         .order('created_at', { ascending: false });
 
