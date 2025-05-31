@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,10 @@ import { Input } from '@/components/ui/input';
 import { PublicJob } from '@/hooks/usePublicJobs';
 import { Upload, Link as LinkIcon, ArrowRight, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCreateApplication } from '@/hooks/useCreateApplication';
+import { LoginPrompt } from './LoginPrompt';
+import { SuccessModal } from './SuccessModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ApplicationModalProps {
   job: PublicJob;
@@ -19,7 +22,16 @@ export function ApplicationModal({ job, onClose }: ApplicationModalProps) {
     link: ''
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<{
+    name: string;
+    email: string;
+    password?: string;
+    isNewUser: boolean;
+  } | null>(null);
+
+  const { createApplication, isSubmitting } = useCreateApplication();
 
   const formatSalary = (min: string, max: string) => {
     if (min === '0' && max === '0') return 'Nach Vereinbarung';
@@ -65,20 +77,94 @@ export function ApplicationModal({ job, onClose }: ApplicationModalProps) {
       return;
     }
 
-    setIsSubmitting(true);
-    
-    try {
-      // TODO: Implement actual application submission to backend
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      
-      toast.success('Bewerbung erfolgreich gesendet!');
-      onClose();
-    } catch (error) {
-      toast.error('Fehler beim Senden der Bewerbung. Bitte versuchen Sie es erneut.');
-    } finally {
-      setIsSubmitting(false);
+    const result = await createApplication({
+      jobId: job.id,
+      name: formData.name,
+      email: formData.email,
+      linkedinProfile: formData.link || undefined,
+      cvFile: cvFile || undefined
+    });
+
+    if (result.success && result.user) {
+      if (result.user.isNewUser) {
+        // New user created - auto login and show success
+        if (result.user.generatedPassword) {
+          try {
+            await supabase.auth.signInWithPassword({
+              email: formData.email,
+              password: result.user.generatedPassword
+            });
+          } catch (error) {
+            console.error('Auto-login failed:', error);
+          }
+        }
+        
+        setSuccessData({
+          name: formData.name,
+          email: formData.email,
+          password: result.user.generatedPassword,
+          isNewUser: true
+        });
+        setShowSuccessModal(true);
+      } else {
+        // Existing user - need login
+        setShowLoginPrompt(true);
+      }
+    } else {
+      toast.error(result.error || 'Fehler beim Senden der Bewerbung. Bitte versuchen Sie es erneut.');
     }
   };
+
+  const handleLoginSuccess = async (userId: string) => {
+    // After successful login, create the application
+    setShowLoginPrompt(false);
+    
+    const result = await createApplication({
+      jobId: job.id,
+      name: formData.name,
+      email: formData.email,
+      linkedinProfile: formData.link || undefined,
+      cvFile: cvFile || undefined
+    });
+
+    if (result.success) {
+      setSuccessData({
+        name: formData.name,
+        email: formData.email,
+        isNewUser: false
+      });
+      setShowSuccessModal(true);
+    } else {
+      toast.error('Fehler beim Senden der Bewerbung. Bitte versuchen Sie es erneut.');
+    }
+  };
+
+  const handleFinalClose = () => {
+    setShowSuccessModal(false);
+    onClose();
+  };
+
+  if (showLoginPrompt) {
+    return (
+      <LoginPrompt
+        email={formData.email}
+        onClose={() => setShowLoginPrompt(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    );
+  }
+
+  if (showSuccessModal && successData) {
+    return (
+      <SuccessModal
+        name={successData.name}
+        email={successData.email}
+        password={successData.password}
+        isNewUser={successData.isNewUser}
+        onClose={handleFinalClose}
+      />
+    );
+  }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -133,7 +219,7 @@ export function ApplicationModal({ job, onClose }: ApplicationModalProps) {
             <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               type="url"
-              placeholder="LinkedIn/In..."
+              placeholder="LinkedIn/Portfolio..."
               value={formData.link}
               onChange={(e) => handleInputChange('link', e.target.value)}
               className="w-full h-12 pl-10 text-base border-gray-200 focus:border-gitflash-primary"
