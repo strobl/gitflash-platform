@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Play, Users, Award } from 'lucide-react';
-import { PublicInterview } from '@/hooks/usePublicInterviews';
+import { Interview } from '@/hooks/useInterviews';
 import { Link } from 'react-router-dom';
 
 interface InterviewCardProps {
-  interview: PublicInterview;
+  interview: Interview;
 }
 
 export function InterviewCard({ interview }: InterviewCardProps) {
