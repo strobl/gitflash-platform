@@ -1,52 +1,58 @@
 
-import React from "react";
-import { Header } from "@/components/landing/Header";
-import { Hero } from "@/components/landing/Hero";
-import { JobListings } from "@/components/landing/JobListings";
-import { VideoCallSection } from "@/components/landing/VideoCallSection";
-import { StatsSection } from "@/components/landing/StatsSection";
-import { EmployerFeatures } from "@/components/landing/EmployerFeatures";
-import { CallToAction } from "@/components/landing/CallToAction";
-import { Footer } from "@/components/landing/Footer";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { getRoleRedirectPath } from '@/utils/routingUtils';
+import { HeroSection } from '@/components/home/HeroSection';
+import { BenefitsSection } from '@/components/home/BenefitsSection';
+import { FeaturesSection } from '@/components/home/FeaturesSection';
+import { VideoCallSection } from '@/components/home/VideoCallSection';
+import { StatsSection } from '@/components/home/StatsSection';
+import { JobListings } from '@/components/home/JobListings';
+import { CallToActionSection } from '@/components/home/CallToActionSection';
+import { Footer } from '@/components/home/Footer';
+import { BannerSection } from '@/components/home/BannerSection';
+import { Navbar } from '@/components/navigation/Navbar';
 
-const Index: React.FC = () => {
-  return (
-    <div className="w-full flex flex-col">
-      <div className="bg-white overflow-hidden w-full">
-        <div className="w-full">
-          <div className="bg-white flex w-full flex-col overflow-hidden items-center">
-            <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
-              <Header />
-              {/* Added more vertical spacing between navbar and hero section */}
-              <div className="pt-16 md:pt-28 lg:pt-32">
-                <Hero />
-              </div>
-            </div>
-          </div>
-          
-          {/* Added margin between hero and banner image */}
-          <div className="w-full mt-16 md:mt-28 lg:mt-32 flex justify-center">
-            <div className="px-3 md:px-6 max-w-[1200px] mx-auto">
-              <img 
-                src="https://gehhxwqlhzsesxzqleks.supabase.co/storage/v1/object/public/gitflash//image%20(4).webp"
-                alt="GitFlash banner"
-                className="w-full object-cover h-[220px] md:h-[500px]"
-              />
-            </div>
-          </div>
-          
-          <JobListings />
-          <VideoCallSection />
-          <StatsSection />
-          <EmployerFeatures />
-          <CallToAction />
-          <div className="max-w-6xl w-full px-6 lg:px-8 mx-auto">
-            <Footer />
-          </div>
-        </div>
+export default function Index() {
+  const { isAuthenticated, isLoading, profile } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Wait for auth to finish loading before making decisions
+    if (!isLoading && isAuthenticated && profile?.role) {
+      // Redirect authenticated users to their role-specific dashboard
+      const redirectPath = getRoleRedirectPath(profile.role);
+      if (redirectPath !== '/login') {
+        navigate(redirectPath, { replace: true });
+      }
+    }
+  }, [isLoading, isAuthenticated, profile, navigate]);
+
+  // Show loading while auth is being checked
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-10 w-10 border-4 border-gitflash-primary/20 border-t-gitflash-primary rounded-full"></div>
       </div>
+    );
+  }
+
+  // Show landing page for non-authenticated users or users without a role
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <HeroSection />
+        <BannerSection />
+        <BenefitsSection />
+        <FeaturesSection />
+        <VideoCallSection />
+        <StatsSection />
+        <JobListings />
+        <CallToActionSection />
+      </main>
+      <Footer />
     </div>
   );
-};
-
-export default Index;
+}
