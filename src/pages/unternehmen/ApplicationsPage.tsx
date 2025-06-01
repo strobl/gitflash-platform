@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { UnifiedNavbar } from '@/components/navigation/UnifiedNavbar';
 import { UnternehmenNavigation } from '@/components/unternehmen/UnternehmenNavigation';
-import { ApplicationsList } from '@/components/applications/ApplicationsList';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ApplicationsFilter } from '@/components/applications/ApplicationsFilter';
+import { Card, CardContent } from '@/components/ui/card';
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useApplicationsWithStats } from '@/hooks/useApplicationsWithStats';
 
 export default function ApplicationsPage() {
+  const { stats, loading } = useApplicationsWithStats();
+
   return (
     <div className="min-h-screen flex flex-col">
       <UnifiedNavbar />
@@ -28,7 +29,9 @@ export default function ApplicationsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Neue Bewerbungen</p>
-                      <p className="text-2xl font-semibold text-blue-600">12</p>
+                      <p className="text-2xl font-semibold text-blue-600">
+                        {loading ? '...' : stats.new}
+                      </p>
                     </div>
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
@@ -40,7 +43,9 @@ export default function ApplicationsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">In Bearbeitung</p>
-                      <p className="text-2xl font-semibold text-yellow-600">5</p>
+                      <p className="text-2xl font-semibold text-yellow-600">
+                        {loading ? '...' : stats.reviewing + stats.interview}
+                      </p>
                     </div>
                     <Clock className="h-8 w-8 text-yellow-600" />
                   </div>
@@ -52,7 +57,9 @@ export default function ApplicationsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Eingestellt</p>
-                      <p className="text-2xl font-semibold text-green-600">8</p>
+                      <p className="text-2xl font-semibold text-green-600">
+                        {loading ? '...' : stats.hired}
+                      </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
@@ -64,7 +71,9 @@ export default function ApplicationsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Abgelehnt</p>
-                      <p className="text-2xl font-semibold text-red-600">15</p>
+                      <p className="text-2xl font-semibold text-red-600">
+                        {loading ? '...' : stats.rejected}
+                      </p>
                     </div>
                     <XCircle className="h-8 w-8 text-red-600" />
                   </div>
@@ -72,31 +81,8 @@ export default function ApplicationsPage() {
               </Card>
             </div>
 
-            {/* Applications List */}
-            <Tabs defaultValue="all" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="all">Alle Bewerbungen</TabsTrigger>
-                <TabsTrigger value="new">Neue</TabsTrigger>
-                <TabsTrigger value="reviewing">In Bearbeitung</TabsTrigger>
-                <TabsTrigger value="interview">Vorstellungsgespräch</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="all">
-                <ApplicationsList type="business" />
-              </TabsContent>
-
-              <TabsContent value="new">
-                <ApplicationsList type="business" />
-              </TabsContent>
-
-              <TabsContent value="reviewing">
-                <ApplicationsList type="business" />
-              </TabsContent>
-
-              <TabsContent value="interview">
-                <ApplicationsList type="business" />
-              </TabsContent>
-            </Tabs>
+            {/* Applications List with Filters */}
+            <ApplicationsFilter type="business" stats={stats} />
           </div>
         </main>
       </div>
