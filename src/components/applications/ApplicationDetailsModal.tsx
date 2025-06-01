@@ -63,6 +63,27 @@ export function ApplicationDetailsModal({
     }
   };
 
+  const handleResumeDownload = () => {
+    if (!application.resume_url) {
+      toast.error('Lebenslauf nicht verfügbar');
+      return;
+    }
+
+    // Create a temporary link element to trigger download
+    const link = document.createElement('a');
+    link.href = application.resume_url;
+    link.download = `Lebenslauf_${application.applicant_name.replace(/\s+/g, '_')}.pdf`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Download gestartet');
+  };
+
   const getStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
       'new': 'Neu',
@@ -157,11 +178,14 @@ export function ApplicationDetailsModal({
             <div>
               <Label className="font-medium">Lebenslauf</Label>
               <div className="mt-2">
-                <Button variant="outline" size="sm" asChild>
-                  <a href={application.resume_url} target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Lebenslauf herunterladen
-                  </a>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleResumeDownload}
+                  className="hover:bg-gray-50"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Lebenslauf herunterladen
                 </Button>
               </div>
             </div>
