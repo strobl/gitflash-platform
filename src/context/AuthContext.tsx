@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Nur für initiale App-Load
 
   useEffect(() => {
     console.log("AuthProvider: Setting up auth listeners");
@@ -40,10 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("AuthProvider: Initial session", session?.user?.id || "no session");
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setIsLoading(false);
+        // Profile im Hintergrund laden, blockiert nicht die UI
+        fetchProfileInBackground(session.user.id);
       }
+      setIsLoading(false); // Auth-Check ist fertig
     }).catch((error) => {
       console.error("AuthProvider: Error getting initial session:", error);
       setIsLoading(false);
@@ -54,11 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         console.log("AuthProvider: Auth state changed", event, session?.user?.id || "no user");
         setUser(session?.user ?? null);
+        
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          // Profile im Hintergrund laden
+          fetchProfileInBackground(session.user.id);
         } else {
           setProfile(null);
-          setIsLoading(false);
         }
       }
     );
@@ -69,9 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
-    console.log("AuthProvider: Fetching profile for user", userId);
-    setIsLoading(true);
+  // Profile-Fetch blockiert NICHT die UI
+  const fetchProfileInBackground = async (userId: string) => {
+    console.log("AuthProvider: Fetching profile in background for user", userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -81,20 +83,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('AuthProvider: Error fetching profile:', error);
-        setProfile(null);
       } else {
         console.log("AuthProvider: Profile fetched successfully", data);
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('AuthProvider: Error fetching profile:', error);
+    }
+  };
+
+  // Expliziter Profile-Fetch für Login (gibt Profile zurück)
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    console.log("AuthProvider: Fetching profile for login", userId);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('AuthProvider: Error fetching profile:', error);
+        return null;
+      } else {
+        console.log("AuthProvider: Profile fetched for login", data);
         setProfile(data);
         return data;
       }
     } catch (error) {
       console.error('AuthProvider: Error fetching profile:', error);
-      setProfile(null);
-    } finally {
-      console.log("AuthProvider: Setting isLoading to false");
-      setIsLoading(false);
+      return null;
     }
-    return null;
   };
 
   const login = async (email: string, password: string): Promise<Profile | null> => {
@@ -118,7 +137,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const fetched = await fetchProfile(currentUser.id);
       return fetched;
     }
-    setProfile(null);
     return null;
   };
 
@@ -166,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     isAuthenticated: !!user,
-    isLoading,
+    isLoading, // Nur true beim allerersten App-Start
     signOut,
     login,
     register,

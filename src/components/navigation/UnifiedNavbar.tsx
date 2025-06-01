@@ -26,8 +26,17 @@ export const UnifiedNavbar: React.FC = () => {
   };
   
   const getInitials = () => {
-    if (!profile?.name) return "U";
-    return profile.name.split(" ").map(n => n[0]).join("").toUpperCase();
+    if (profile?.name) {
+      return profile.name.split(" ").map(n => n[0]).join("").toUpperCase();
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return "U";
+  };
+  
+  const getDisplayName = () => {
+    return profile?.name || user?.email || "Benutzer";
   };
   
   const isInterviewsActive = location.pathname.includes("/interviews");
@@ -40,12 +49,14 @@ export const UnifiedNavbar: React.FC = () => {
       { label: "Für Unternehmen", path: "/unternehmen/suche", isActive: false }
     ];
     
-    if (!isAuthenticated || !profile) {
+    if (!isAuthenticated) {
       return publicItems;
     }
     
-    // Authenticated navigation based on role
-    switch (profile?.role) {
+    // Authenticated navigation based on role (mit Fallback wenn Profile noch lädt)
+    const role = profile?.role || 'user'; // Fallback auf 'user'
+    
+    switch (role) {
       case 'user': // Talent
         return [
           { label: "Startseite", path: "/talent/startseite", isActive: location.pathname === "/talent/startseite" },
@@ -72,17 +83,17 @@ export const UnifiedNavbar: React.FC = () => {
   
   const navigationItems = getNavigationItems();
   
-  // Determine what to show in the auth section
+  // Einfache Logik: Nur initial loading = Spinner
   const renderAuthSection = () => {
-    // Show loading spinner while authentication state is loading
+    // Nur beim allerersten App-Load einen Spinner zeigen
     if (isLoading) {
       return (
         <div className="animate-spin h-6 w-6 border-2 border-[#0A2540]/20 border-t-[#0A2540] rounded-full"></div>
       );
     }
     
-    // Show user menu if authenticated AND profile exists
-    if (isAuthenticated && profile) {
+    // Authentifiziert = User Menu (sofort, auch ohne Profile)
+    if (isAuthenticated) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -96,6 +107,15 @@ export const UnifiedNavbar: React.FC = () => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white">
+            <DropdownMenuLabel>
+              {getDisplayName()}
+              {profile?.role === "operator" && (
+                <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
+                  Admin
+                </span>
+              )}
+            </DropdownMenuLabel>
+            
             <DropdownMenuItem asChild>
               <Link to="/profile" className="cursor-pointer w-full flex items-center">
                 <User className="mr-2 h-4 w-4" />
@@ -103,23 +123,15 @@ export const UnifiedNavbar: React.FC = () => {
               </Link>
             </DropdownMenuItem>
             
-            {profile?.role === "operator" && (
-              <DropdownMenuLabel>
-                <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
-                  Admin
-                </span>
-              </DropdownMenuLabel>
-            )}
-            
             <DropdownMenuSeparator />
             
-            {profile?.role === "user" && (
+            {(!profile || profile.role === "user") && (
               <DropdownMenuItem asChild>
                 <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
               </DropdownMenuItem>
             )}
             
-            {(profile?.role === "business" || profile?.role === "operator") && (
+            {profile && (profile.role === "business" || profile.role === "operator") && (
               <DropdownMenuItem asChild>
                 <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
               </DropdownMenuItem>
@@ -135,7 +147,7 @@ export const UnifiedNavbar: React.FC = () => {
       );
     }
     
-    // Show login button for unauthenticated users or users without profile
+    // Nicht authentifiziert = Login Button
     return (
       <Button asChild className="bg-[#0A2540] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-white">
         <Link to="/login">Log In</Link>
@@ -199,7 +211,7 @@ export const UnifiedNavbar: React.FC = () => {
               <div className="py-3 flex justify-center">
                 <div className="animate-spin h-5 w-5 border-2 border-[#0A2540]/20 border-t-[#0A2540] rounded-full"></div>
               </div>
-            ) : isAuthenticated && profile ? (
+            ) : isAuthenticated ? (
               <>
                 <Link 
                   to="/profile" 
