@@ -14,13 +14,6 @@ export const UnifiedNavbar: React.FC = () => {
   const location = useLocation();
   const { user, profile, logout, isAuthenticated, isLoading } = useAuth();
   
-  console.log("UnifiedNavbar: Current state", { 
-    isAuthenticated, 
-    hasProfile: !!profile, 
-    isLoading,
-    profileRole: profile?.role 
-  });
-  
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
@@ -53,8 +46,8 @@ export const UnifiedNavbar: React.FC = () => {
       return publicItems;
     }
     
-    // Authenticated navigation based on role (mit Fallback wenn Profile noch lädt)
-    const role = profile?.role || 'user'; // Fallback auf 'user'
+    // Authenticated navigation based on role
+    const role = profile?.role || 'user';
     
     switch (role) {
       case 'user': // Talent
@@ -83,16 +76,15 @@ export const UnifiedNavbar: React.FC = () => {
   
   const navigationItems = getNavigationItems();
   
-  // Einfache Logik: Nur initial loading = Spinner
   const renderAuthSection = () => {
-    // Nur beim allerersten App-Load einen Spinner zeigen
+    // Show loading only during initial app load
     if (isLoading) {
       return (
         <div className="animate-spin h-6 w-6 border-2 border-[#0A2540]/20 border-t-[#0A2540] rounded-full"></div>
       );
     }
     
-    // Authentifiziert = User Menu (sofort, auch ohne Profile)
+    // Authenticated = User Menu
     if (isAuthenticated) {
       return (
         <DropdownMenu>
@@ -147,7 +139,7 @@ export const UnifiedNavbar: React.FC = () => {
       );
     }
     
-    // Nicht authentifiziert = Login Button
+    // Not authenticated = Login Button
     return (
       <Button asChild className="bg-[#0A2540] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-white">
         <Link to="/login">Log In</Link>

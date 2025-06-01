@@ -27,53 +27,37 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  console.log("AuthProvider: Initializing");
-  
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Nur für initiale App-Load
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("AuthProvider: Setting up auth listeners");
-    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("AuthProvider: Initial session", session?.user?.id || "no session");
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Profile im Hintergrund laden, blockiert nicht die UI
-        fetchProfileInBackground(session.user.id);
+        fetchProfile(session.user.id);
       }
-      setIsLoading(false); // Auth-Check ist fertig
-    }).catch((error) => {
-      console.error("AuthProvider: Error getting initial session:", error);
       setIsLoading(false);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("AuthProvider: Auth state changed", event, session?.user?.id || "no user");
+      (event, session) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Profile im Hintergrund laden
-          fetchProfileInBackground(session.user.id);
+          fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
       }
     );
 
-    return () => {
-      console.log("AuthProvider: Cleaning up subscription");
-      subscription?.unsubscribe();
-    }
+    return () => subscription?.unsubscribe();
   }, []);
 
-  // Profile-Fetch blockiert NICHT die UI
-  const fetchProfileInBackground = async (userId: string) => {
-    console.log("AuthProvider: Fetching profile in background for user", userId);
+  const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -81,38 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) {
-        console.error('AuthProvider: Error fetching profile:', error);
-      } else {
-        console.log("AuthProvider: Profile fetched successfully", data);
+      if (!error && data) {
         setProfile(data);
       }
     } catch (error) {
-      console.error('AuthProvider: Error fetching profile:', error);
-    }
-  };
-
-  // Expliziter Profile-Fetch für Login (gibt Profile zurück)
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
-    console.log("AuthProvider: Fetching profile for login", userId);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('AuthProvider: Error fetching profile:', error);
-        return null;
-      } else {
-        console.log("AuthProvider: Profile fetched for login", data);
-        setProfile(data);
-        return data;
-      }
-    } catch (error) {
-      console.error('AuthProvider: Error fetching profile:', error);
-      return null;
+      // Ignore profile fetch errors to prevent app crashes
     }
   };
 
@@ -134,8 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(currentUser);
 
     if (currentUser) {
-      const fetched = await fetchProfile(currentUser.id);
-      return fetched;
+      await fetchProfile(currentUser.id);
+      return profile;
     }
     return null;
   };
@@ -171,7 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error signing out:', error);
       throw error;
     }
   };
@@ -184,21 +140,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     isAuthenticated: !!user,
-    isLoading, // Nur true beim allerersten App-Start
+    isLoading,
     signOut,
     login,
     register,
     loginWithGoogle,
     logout,
   };
-
-  console.log("AuthProvider: Providing context", { 
-    hasUser: !!user, 
-    hasProfile: !!profile, 
-    isLoading, 
-    isAuthenticated: !!user,
-    profileRole: profile?.role
-  });
 
   return (
     <AuthContext.Provider value={value}>
