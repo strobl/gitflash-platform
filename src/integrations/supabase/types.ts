@@ -9,6 +9,82 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      application_actions: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          application_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          application_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          application_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_actions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_notifications: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          id: string
+          message: string
+          notification_type: string
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           applicant_email: string
@@ -16,11 +92,15 @@ export type Database = {
           cover_letter: string | null
           created_at: string | null
           id: string
+          interview_scheduled_at: string | null
           job_id: string
+          last_notification_sent: string | null
           linkedin_profile: string | null
+          offer_response_deadline: string | null
           resume_url: string | null
           status: string
           talent_id: string
+          talent_response: string | null
           updated_at: string | null
         }
         Insert: {
@@ -29,11 +109,15 @@ export type Database = {
           cover_letter?: string | null
           created_at?: string | null
           id?: string
+          interview_scheduled_at?: string | null
           job_id: string
+          last_notification_sent?: string | null
           linkedin_profile?: string | null
+          offer_response_deadline?: string | null
           resume_url?: string | null
           status?: string
           talent_id: string
+          talent_response?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -42,11 +126,15 @@ export type Database = {
           cover_letter?: string | null
           created_at?: string | null
           id?: string
+          interview_scheduled_at?: string | null
           job_id?: string
+          last_notification_sent?: string | null
           linkedin_profile?: string | null
+          offer_response_deadline?: string | null
           resume_url?: string | null
           status?: string
           talent_id?: string
+          talent_response?: string | null
           updated_at?: string | null
         }
         Relationships: [

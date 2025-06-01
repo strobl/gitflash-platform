@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApplications, Application } from '@/hooks/useApplications';
+import { useRealtimeApplications } from '@/hooks/useRealtimeApplications';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,9 @@ export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: Appl
   const { applications, isLoading, error, refetch } = useApplications({ type, jobId });
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
+  // Setup realtime updates
+  useRealtimeApplications();
+
   // Filter applications based on status and search term
   const filteredApplications = useMemo(() => {
     let filtered = applications;
@@ -54,7 +58,11 @@ export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: Appl
       'new': 'Neu',
       'reviewing': 'In Prüfung', 
       'interview': 'Interview',
+      'interview_scheduled': 'Interview geplant',
       'offer': 'Angebot',
+      'offer_pending': 'Angebot ausstehend',
+      'offer_accepted': 'Angebot angenommen',
+      'offer_declined': 'Angebot abgelehnt',
       'hired': 'Eingestellt',
       'rejected': 'Abgelehnt'
     };
@@ -66,7 +74,11 @@ export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: Appl
       case 'new': return 'bg-blue-100 text-blue-800';
       case 'reviewing': return 'bg-yellow-100 text-yellow-800';
       case 'interview': return 'bg-purple-100 text-purple-800';
+      case 'interview_scheduled': return 'bg-purple-200 text-purple-900';
       case 'offer': return 'bg-green-100 text-green-800';
+      case 'offer_pending': return 'bg-green-200 text-green-900';
+      case 'offer_accepted': return 'bg-emerald-100 text-emerald-800';
+      case 'offer_declined': return 'bg-orange-100 text-orange-800';
       case 'hired': return 'bg-teal-100 text-teal-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';

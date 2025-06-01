@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/applications/NotificationBell";
 
 export const UnifiedNavbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -88,55 +89,60 @@ export const UnifiedNavbar: React.FC = () => {
     // Authenticated = User Menu
     if (isAuthenticated) {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="relative h-10 w-10 rounded-full overflow-hidden focus:outline-none">
-              <Avatar>
-                <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-[#0A2540] text-white">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-white">
-            <DropdownMenuLabel>
-              {getDisplayName()}
-              {profile?.role === "operator" && (
-                <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
-                  Admin
-                </span>
+        <div className="flex items-center gap-2">
+          {/* Notification Bell for authenticated users */}
+          <NotificationBell />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="relative h-10 w-10 rounded-full overflow-hidden focus:outline-none">
+                <Avatar>
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback className="bg-[#0A2540] text-white">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-white">
+              <DropdownMenuLabel>
+                {getDisplayName()}
+                {profile?.role === "operator" && (
+                  <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
+                    Admin
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="cursor-pointer w-full flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Mein Konto</span>
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              {(!profile || profile.role === "user") && (
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
+                </DropdownMenuItem>
               )}
-            </DropdownMenuLabel>
-            
-            <DropdownMenuItem asChild>
-              <Link to="/profile" className="cursor-pointer w-full flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                <span>Mein Konto</span>
-              </Link>
-            </DropdownMenuItem>
-            
-            <DropdownMenuSeparator />
-            
-            {(!profile || profile.role === "user") && (
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
+              
+              {profile && (profile.role === "business" || profile.role === "operator") && (
+                <DropdownMenuItem asChild>
+                  <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Abmelden</span>
               </DropdownMenuItem>
-            )}
-            
-            {profile && (profile.role === "business" || profile.role === "operator") && (
-              <DropdownMenuItem asChild>
-                <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
-              </DropdownMenuItem>
-            )}
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Abmelden</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     }
     

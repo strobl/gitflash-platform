@@ -24,6 +24,7 @@ import { de } from 'date-fns/locale';
 import { Download, Mail, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { TalentActionButtons } from './TalentActionButtons';
 
 interface ApplicationDetailsModalProps {
   application: Application | null;
@@ -153,7 +154,11 @@ export function ApplicationDetailsModal({
       'new': 'Neu',
       'reviewing': 'In Prüfung',
       'interview': 'Interview',
+      'interview_scheduled': 'Interview geplant',
       'offer': 'Angebot',
+      'offer_pending': 'Angebot ausstehend',
+      'offer_accepted': 'Angebot angenommen',
+      'offer_declined': 'Angebot abgelehnt',
       'hired': 'Eingestellt',
       'rejected': 'Abgelehnt'
     };
@@ -165,7 +170,11 @@ export function ApplicationDetailsModal({
       case 'new': return 'bg-blue-100 text-blue-800';
       case 'reviewing': return 'bg-yellow-100 text-yellow-800';
       case 'interview': return 'bg-purple-100 text-purple-800';
+      case 'interview_scheduled': return 'bg-purple-200 text-purple-900';
       case 'offer': return 'bg-green-100 text-green-800';
+      case 'offer_pending': return 'bg-green-200 text-green-900';
+      case 'offer_accepted': return 'bg-emerald-100 text-emerald-800';
+      case 'offer_declined': return 'bg-orange-100 text-orange-800';
       case 'hired': return 'bg-teal-100 text-teal-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -190,6 +199,16 @@ export function ApplicationDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Talent Action Buttons */}
+          {userType === 'talent' && (
+            <div className="border-t pt-4">
+              <Label className="font-medium">Verfügbare Aktionen</Label>
+              <div className="mt-2">
+                <TalentActionButtons application={application} />
+              </div>
+            </div>
+          )}
+
           {/* Bewerberinformationen */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -283,7 +302,11 @@ export function ApplicationDetailsModal({
                     <SelectItem value="new">Neu</SelectItem>
                     <SelectItem value="reviewing">In Prüfung</SelectItem>
                     <SelectItem value="interview">Interview</SelectItem>
+                    <SelectItem value="interview_scheduled">Interview geplant</SelectItem>
                     <SelectItem value="offer">Angebot</SelectItem>
+                    <SelectItem value="offer_pending">Angebot ausstehend</SelectItem>
+                    <SelectItem value="offer_accepted">Angebot angenommen</SelectItem>
+                    <SelectItem value="offer_declined">Angebot abgelehnt</SelectItem>
                     <SelectItem value="hired">Eingestellt</SelectItem>
                     <SelectItem value="rejected">Abgelehnt</SelectItem>
                   </SelectContent>

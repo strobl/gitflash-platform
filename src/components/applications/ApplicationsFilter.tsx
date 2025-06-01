@@ -30,7 +30,7 @@ export function ApplicationsFilter({ type, jobId, stats }: ApplicationsFilterPro
 
       {/* Tabs with Status Filters */}
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="all">
             Alle {stats && `(${stats.total})`}
           </TabsTrigger>
@@ -48,6 +48,9 @@ export function ApplicationsFilter({ type, jobId, stats }: ApplicationsFilterPro
           </TabsTrigger>
           <TabsTrigger value="hired">
             Eingestellt {stats && `(${stats.hired})`}
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Abgelehnt {stats && `(${stats.rejected})`}
           </TabsTrigger>
         </TabsList>
 
@@ -73,6 +76,10 @@ export function ApplicationsFilter({ type, jobId, stats }: ApplicationsFilterPro
 
         <TabsContent value="hired">
           <ApplicationsList type={type} jobId={jobId} statusFilter="hired" searchTerm={searchTerm} />
+        </TabsContent>
+
+        <TabsContent value="rejected">
+          <ApplicationsList type={type} jobId={jobId} statusFilter="rejected" searchTerm={searchTerm} />
         </TabsContent>
       </Tabs>
     </div>
