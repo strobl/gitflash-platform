@@ -17,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   signOut: () => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<Profile | null>;
   register: (name: string, email: string, password: string, role: string) => Promise<void>;
   loginWithGoogle: (redirectUrl?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     console.log("AuthProvider: Fetching profile for user", userId);
     setIsLoading(true);
     try {
@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.log("AuthProvider: Profile fetched successfully", data);
         setProfile(data);
+        return data;
       }
     } catch (error) {
       console.error('AuthProvider: Error fetching profile:', error);
@@ -93,9 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("AuthProvider: Setting isLoading to false");
       setIsLoading(false);
     }
+    return null;
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<Profile | null> => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -103,6 +105,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      throw userError;
+    }
+
+    const currentUser = userData.user;
+    setUser(currentUser);
+
+    if (currentUser) {
+      const fetched = await fetchProfile(currentUser.id);
+      return fetched;
+    }
+    setProfile(null);
+    return null;
   };
 
   const register = async (name: string, email: string, password: string, role: string) => {

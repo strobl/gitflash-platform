@@ -32,7 +32,11 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Create a `.env.local` file and add your Supabase credentials
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_ANON_KEY=<your-anon-key>
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
@@ -59,6 +63,14 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+
+### Linting
+
+Install dependencies with `npm install` and then run:
+
+```sh
+npm run lint
+```
 
 ## How can I deploy this project?
 
