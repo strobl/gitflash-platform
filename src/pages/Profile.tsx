@@ -5,7 +5,7 @@ import { ProfileForm } from '@/components/talent/ProfileForm';
 import { Button } from '@/components/ui/button';
 
 export default function Profile() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -13,7 +13,7 @@ export default function Profile() {
   }
   
   // Redirect to dashboard if not a talent (user role)
-  if (user?.role !== 'user') {
+  if (profile?.role !== 'user') {
     return <Navigate to="/dashboard" replace />;
   }
   
