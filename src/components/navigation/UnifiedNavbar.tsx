@@ -58,17 +58,17 @@ export const UnifiedNavbar: React.FC = () => {
           { label: "Bewerbungen", path: "/talent/applications", isActive: location.pathname === "/talent/applications" }
         ];
       case 'business': // Unternehmen
+      case 'operator': // Admin (kann auch Unternehmen-Features nutzen)
         return [
           { label: "Dashboard", path: "/unternehmen", isActive: location.pathname === "/unternehmen" },
           { label: "Bewerbungen", path: "/unternehmen/bewerbungen", isActive: location.pathname === "/unternehmen/bewerbungen" },
           { label: "Suche", path: "/unternehmen/suche", isActive: location.pathname === "/unternehmen/suche" },
           { label: "Team", path: "/unternehmen/team", isActive: location.pathname === "/unternehmen/team" },
-          { label: "Ausgaben", path: "/unternehmen/ausgaben", isActive: location.pathname === "/unternehmen/ausgaben" }
-        ];
-      case 'operator': // Admin
-        return [
-          { label: "Admin", path: "/admin", isActive: location.pathname === "/admin" },
-          { label: "Profile", path: "/admin/profiles", isActive: location.pathname === "/admin/profiles" }
+          { label: "Ausgaben", path: "/unternehmen/ausgaben", isActive: location.pathname === "/unternehmen/ausgaben" },
+          // Admin-spezifische Navigation hinzufügen, wenn operator
+          ...(role === 'operator' ? [
+            { label: "Admin", path: "/admin", isActive: location.pathname === "/admin" }
+          ] : [])
         ];
       default:
         return publicItems;
