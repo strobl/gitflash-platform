@@ -15,103 +15,61 @@ export interface Application {
   resume_url?: string;
   created_at: string;
   updated_at: string;
-  last_activity_at: string;
-  version: number;
+  interview_scheduled_at?: string;
+  offer_response_deadline?: string;
+  talent_response?: string;
+  last_notification_sent?: string;
   job?: {
     id: string;
     title: string;
     location: string;
-    description: string;
-    hourly_rate_min: string;
-    hourly_rate_max: string;
-  };
-  history?: ApplicationHistoryItem[];
-}
-
-export interface ApplicationHistoryItem {
-  id: string;
-  application_id: string;
-  old_status: string | null;
-  new_status: string;
-  changed_by: string;
-  notes: string | null;
-  changed_at: string;
-  profile?: {
-    name: string;
+    user_id: string;
   };
 }
 
-interface UseApplicationsOptions {
+interface UseApplicationsParams {
   type: 'talent' | 'business';
   jobId?: string;
 }
 
-export function useApplications(options: UseApplicationsOptions) {
+export function useApplications({ type, jobId }: UseApplicationsParams) {
   const { user } = useAuth();
 
-  const query = useQuery({
-    queryKey: ['applications', options.type, user?.id, options.jobId],
+  return useQuery({
+    queryKey: ['applications', type, jobId, user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
-      let supabaseQuery = supabase
+      let query = supabase
         .from('applications')
         .select(`
           *,
-          job:jobs(
-            id,
-            title,
-            location,
-            description,
-            hourly_rate_min,
-            hourly_rate_max
-          )
-        `);
+          job:jobs(id, title, location, user_id)
+        `)
+        .order('created_at', { ascending: false });
 
-      if (options.type === 'talent') {
-        supabaseQuery = supabaseQuery.eq('talent_id', user.id);
-      } else {
-        // For business users, get applications for their jobs
-        if (options.jobId) {
-          supabaseQuery = supabaseQuery.eq('job_id', options.jobId);
+      if (type === 'talent') {
+        query = query.eq('talent_id', user.id);
+      } else if (type === 'business') {
+        if (jobId) {
+          query = query.eq('job_id', jobId);
         } else {
-          // Get applications for all jobs posted by this business user
-          const { data: userJobs } = await supabase
-            .from('jobs')
-            .select('id')
-            .eq('user_id', user.id);
-          
-          if (userJobs && userJobs.length > 0) {
-            const jobIds = userJobs.map(job => job.id);
-            supabaseQuery = supabaseQuery.in('job_id', jobIds);
-          } else {
-            return [];
-          }
+          // Get applications for all jobs created by this business user
+          query = query.filter('job.user_id', 'eq', user.id);
         }
       }
 
-      const { data, error } = await supabaseQuery
-        .order('created_at', { ascending: false });
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching applications:', error);
         throw error;
       }
 
-      return (data || []).map(app => ({
-        ...app,
-        last_activity_at: app.updated_at,
-        version: 1,
-      })) as Application[];
+      return data as Application[];
     },
     enabled: !!user?.id,
   });
-
-  return {
-    applications: query.data || [],
-    loading: query.isLoading,
-    error: query.error,
-    refresh: query.refetch,
-    ...query
-  };
 }

@@ -4,45 +4,40 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ApplicationStats {
+  total: number;
   new: number;
   reviewing: number;
   interview: number;
   offer: number;
   hired: number;
   rejected: number;
-  total: number;
 }
 
-export function useApplicationsWithStats(jobId?: string) {
+export function useApplicationsWithStats(type: 'talent' | 'business', jobId?: string) {
   const { user } = useAuth();
 
-  const query = useQuery({
-    queryKey: ['applications-stats', user?.id, jobId],
-    queryFn: async (): Promise<ApplicationStats> => {
-      if (!user?.id) return { new: 0, reviewing: 0, interview: 0, offer: 0, hired: 0, rejected: 0, total: 0 };
+  return useQuery({
+    queryKey: ['applications-stats', type, jobId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
-      let supabaseQuery = supabase
+      let query = supabase
         .from('applications')
-        .select('status');
+        .select('status, job:jobs!inner(user_id)');
 
-      if (jobId) {
-        supabaseQuery = supabaseQuery.eq('job_id', jobId);
-      } else {
-        // Get applications for all jobs posted by this business user
-        const { data: userJobs } = await supabase
-          .from('jobs')
-          .select('id')
-          .eq('user_id', user.id);
-        
-        if (userJobs && userJobs.length > 0) {
-          const jobIds = userJobs.map(job => job.id);
-          supabaseQuery = supabaseQuery.in('job_id', jobIds);
+      if (type === 'talent') {
+        query = query.eq('talent_id', user.id);
+      } else if (type === 'business') {
+        if (jobId) {
+          query = query.eq('job_id', jobId);
         } else {
-          return { new: 0, reviewing: 0, interview: 0, offer: 0, hired: 0, rejected: 0, total: 0 };
+          query = query.eq('job.user_id', user.id);
         }
       }
 
-      const { data, error } = await supabaseQuery;
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching application stats:', error);
@@ -50,30 +45,17 @@ export function useApplicationsWithStats(jobId?: string) {
       }
 
       const stats: ApplicationStats = {
-        new: 0,
-        reviewing: 0,
-        interview: 0,
-        offer: 0,
-        hired: 0,
-        rejected: 0,
-        total: data?.length || 0
+        total: data.length,
+        new: data.filter(app => app.status === 'new').length,
+        reviewing: data.filter(app => app.status === 'reviewing').length,
+        interview: data.filter(app => ['interview', 'interview_scheduled'].includes(app.status)).length,
+        offer: data.filter(app => ['offer', 'offer_pending', 'offer_accepted', 'offer_declined'].includes(app.status)).length,
+        hired: data.filter(app => app.status === 'hired').length,
+        rejected: data.filter(app => app.status === 'rejected').length,
       };
-
-      data?.forEach(app => {
-        if (app.status in stats) {
-          stats[app.status as keyof ApplicationStats]++;
-        }
-      });
 
       return stats;
     },
     enabled: !!user?.id,
   });
-
-  return {
-    stats: query.data || { new: 0, reviewing: 0, interview: 0, offer: 0, hired: 0, rejected: 0, total: 0 },
-    loading: query.isLoading,
-    error: query.error,
-    ...query
-  };
 }

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -51,16 +52,15 @@ export function ApplicationDetailsModal({
     try {
       await updateStatus({
         applicationId: application.id,
-        currentVersion: application.version,
         newStatus,
         notes
       });
       
-      toast.success('Status erfolgreich aktualisiert');
       setNotes('');
+      setNewStatus('');
       onClose();
     } catch (error) {
-      toast.error('Fehler beim Aktualisieren des Status');
+      console.error('Status update failed:', error);
     }
   };
 
@@ -70,82 +70,12 @@ export function ApplicationDetailsModal({
       return;
     }
 
-    console.log('Attempting to download resume from URL:', application.resume_url);
-
     try {
-      // Extract bucket and path from the resume_url
-      const url = new URL(application.resume_url);
-      const pathParts = url.pathname.split('/');
-      
-      let bucketName = '';
-      let filePath = '';
-      
-      // Handle different URL structures
-      if (application.resume_url.includes('/storage/v1/object/public/')) {
-        // Public URL format: .../storage/v1/object/public/bucket_name/file_path
-        const publicIndex = pathParts.indexOf('public');
-        if (publicIndex !== -1 && publicIndex + 1 < pathParts.length) {
-          bucketName = pathParts[publicIndex + 1];
-          filePath = pathParts.slice(publicIndex + 2).join('/');
-        }
-      } else if (application.resume_url.includes('/storage/v1/object/')) {
-        // Private URL format: .../storage/v1/object/bucket_name/file_path
-        const objectIndex = pathParts.indexOf('object');
-        if (objectIndex !== -1 && objectIndex + 1 < pathParts.length) {
-          bucketName = pathParts[objectIndex + 1];
-          filePath = pathParts.slice(objectIndex + 2).join('/');
-        }
-      }
-
-      console.log('Extracted bucket:', bucketName, 'path:', filePath);
-
-      if (!bucketName || !filePath) {
-        console.error('Could not extract bucket and path from URL');
-        // Fallback: try direct download
-        window.open(application.resume_url, '_blank');
-        toast.success('Download geöffnet');
-        return;
-      }
-
-      // Try to download using Supabase storage API
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .download(filePath);
-
-      if (error) {
-        console.error('Supabase storage download error:', error);
-        // Fallback: try direct download
-        window.open(application.resume_url, '_blank');
-        toast.success('Download geöffnet');
-        return;
-      }
-
-      // Create blob URL and download
-      const blob = new Blob([data], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `Lebenslauf_${application.applicant_name.replace(/\s+/g, '_')}.pdf`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up blob URL
-      URL.revokeObjectURL(blobUrl);
-      
-      toast.success('Download gestartet');
+      window.open(application.resume_url, '_blank');
+      toast.success('Download geöffnet');
     } catch (error) {
       console.error('Download error:', error);
-      // Final fallback: try opening in new tab
-      try {
-        window.open(application.resume_url, '_blank');
-        toast.success('Download geöffnet');
-      } catch (fallbackError) {
-        console.error('Fallback download error:', fallbackError);
-        toast.error('Download fehlgeschlagen. Bitte versuchen Sie es später erneut.');
-      }
+      toast.error('Download fehlgeschlagen');
     }
   };
 
@@ -199,7 +129,6 @@ export function ApplicationDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Talent Action Buttons */}
           {userType === 'talent' && (
             <div className="border-t pt-4">
               <Label className="font-medium">Verfügbare Aktionen</Label>
@@ -209,7 +138,6 @@ export function ApplicationDetailsModal({
             </div>
           )}
 
-          {/* Bewerberinformationen */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="font-medium">Name</Label>
@@ -226,7 +154,6 @@ export function ApplicationDetailsModal({
             </div>
           </div>
 
-          {/* LinkedIn Profil */}
           {application.linkedin_profile && (
             <div>
               <Label className="font-medium">LinkedIn Profil</Label>
@@ -246,7 +173,6 @@ export function ApplicationDetailsModal({
             </div>
           )}
 
-          {/* Anschreiben */}
           {application.cover_letter && (
             <div>
               <Label className="font-medium">Anschreiben</Label>
@@ -256,7 +182,6 @@ export function ApplicationDetailsModal({
             </div>
           )}
 
-          {/* Lebenslauf */}
           {application.resume_url && (
             <div>
               <Label className="font-medium">Lebenslauf</Label>
@@ -274,7 +199,6 @@ export function ApplicationDetailsModal({
             </div>
           )}
 
-          {/* Bewerbungsdatum */}
           <div>
             <Label className="font-medium">Eingereicht</Label>
             <p className="text-sm text-gray-600">
@@ -289,7 +213,6 @@ export function ApplicationDetailsModal({
             </p>
           </div>
 
-          {/* Status-Management (nur für Business User) */}
           {userType === 'business' && (
             <div className="border-t pt-4">
               <Label className="font-medium">Status ändern</Label>
