@@ -38,6 +38,7 @@ import UnternehmenDashboardPage from '@/pages/unternehmen/UnternehmenDashboardPa
 import UnternehmenTeamPage from '@/pages/unternehmen/UnternehmenTeamPage';
 import UnternehmenSuchePage from '@/pages/unternehmen/UnternehmenSuchePage';
 import UnternehmenAusgabenPage from '@/pages/unternehmen/UnternehmenAusgabenPage';
+import UnternehmenApplicationsPage from '@/pages/unternehmen/ApplicationsPage';
 import CreateJobPage from '@/pages/unternehmen/CreateJobPage';
 import JobAnzeigeDetailPage from '@/pages/unternehmen/JobAnzeigeDetailPage';
 import JobEditPage from '@/pages/unternehmen/JobEditPage';
@@ -97,6 +98,7 @@ function App() {
               
               {/* Unternehmen routes */}
               <Route path="/unternehmen" element={<UnternehmenDashboardPage />} />
+              <Route path="/unternehmen/bewerbungen" element={<UnternehmenApplicationsPage />} />
               <Route path="/unternehmen/team" element={<UnternehmenTeamPage />} />
               <Route path="/unternehmen/suche" element={<UnternehmenSuchePage />} />
               <Route path="/unternehmen/ausgaben" element={<UnternehmenAusgabenPage />} />

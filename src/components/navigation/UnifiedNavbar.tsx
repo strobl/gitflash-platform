@@ -60,6 +60,7 @@ export const UnifiedNavbar: React.FC = () => {
       case 'business': // Unternehmen
         return [
           { label: "Dashboard", path: "/unternehmen", isActive: location.pathname === "/unternehmen" },
+          { label: "Bewerbungen", path: "/unternehmen/bewerbungen", isActive: location.pathname === "/unternehmen/bewerbungen" },
           { label: "Suche", path: "/unternehmen/suche", isActive: location.pathname === "/unternehmen/suche" },
           { label: "Team", path: "/unternehmen/team", isActive: location.pathname === "/unternehmen/team" },
           { label: "Ausgaben", path: "/unternehmen/ausgaben", isActive: location.pathname === "/unternehmen/ausgaben" }

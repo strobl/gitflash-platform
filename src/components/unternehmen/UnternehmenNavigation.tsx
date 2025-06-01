@@ -8,6 +8,7 @@ import {
   Users, 
   Search, 
   FileText,
+  UserCheck,
 } from 'lucide-react';
 
 export function UnternehmenNavigation() {
@@ -21,6 +22,7 @@ export function UnternehmenNavigation() {
         && !pathname.startsWith('/unternehmen/team') 
         && !pathname.startsWith('/unternehmen/suche') 
         && !pathname.startsWith('/unternehmen/ausgaben') 
+        && !pathname.startsWith('/unternehmen/bewerbungen')
         && !pathname.startsWith('/unternehmen/jobs/neu');
     }
     return pathname.startsWith(path);
@@ -28,6 +30,7 @@ export function UnternehmenNavigation() {
 
   const navigationItems = [
     { id: 'jobs', label: 'Jobs', icon: <Briefcase className="h-5 w-5" />, path: '/unternehmen' },
+    { id: 'bewerbungen', label: 'Bewerbungen', icon: <UserCheck className="h-5 w-5" />, path: '/unternehmen/bewerbungen' },
     { id: 'team', label: 'Team', icon: <Users className="h-5 w-5" />, path: '/unternehmen/team' },
     { id: 'suche', label: 'Talentsuche', icon: <Search className="h-5 w-5" />, path: '/unternehmen/suche' },
     { id: 'ausgaben', label: 'Ausgaben', icon: <FileText className="h-5 w-5" />, path: '/unternehmen/ausgaben' },
