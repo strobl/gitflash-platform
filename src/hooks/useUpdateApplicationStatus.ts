@@ -16,12 +16,6 @@ export function useUpdateApplicationStatus() {
     mutationFn: async ({ applicationId, newStatus, notes }: UpdateApplicationStatusParams) => {
       console.log('Updating application status:', { applicationId, newStatus, notes });
       
-      // First check permissions using our debug function
-      const { data: permissionCheck } = await supabase
-        .rpc('check_application_update_permission', { app_id: applicationId });
-      
-      console.log('Permission check result:', permissionCheck);
-      
       // Update the application status
       const { data, error } = await supabase
         .from('applications')
