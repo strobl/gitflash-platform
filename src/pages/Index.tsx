@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Navigate } from "react-router-dom";
 import { UnifiedNavbar } from "@/components/navigation/UnifiedNavbar";
 import { Hero } from "@/components/landing/Hero";
 import { JobListings } from "@/components/landing/JobListings";
@@ -9,26 +8,11 @@ import { StatsSection } from "@/components/landing/StatsSection";
 import { EmployerFeatures } from "@/components/landing/EmployerFeatures";
 import { CallToAction } from "@/components/landing/CallToAction";
 import { Footer } from "@/components/landing/Footer";
-import { useAuth } from "@/context/AuthContext";
-import { getRoleRedirectPath } from "@/utils/routingUtils";
 
 const Index: React.FC = () => {
-  console.log("Index.tsx: Component rendering");
-  
-  const { isAuthenticated, profile, isLoading } = useAuth();
-  
-  console.log("Index.tsx: Auth state", { isAuthenticated, profile, isLoading });
+  console.log("Index.tsx: Rendering landing page for all users");
 
-  // Eingeloggt UND Profil vorhanden? → Weiterleiten (nur wenn nicht loading)
-  if (!isLoading && isAuthenticated && profile?.role) {
-    const redirectPath = getRoleRedirectPath(profile.role);
-    console.log("Index.tsx: User authenticated with profile, redirecting to:", redirectPath);
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  console.log("Index.tsx: Showing landing page");
-
-  // Landing Page anzeigen (auch während Loading für bessere UX)
+  // Landing Page für ALLE (eingeloggt oder nicht)
   return (
     <div className="w-full flex flex-col">
       <div className="bg-white overflow-hidden w-full">
