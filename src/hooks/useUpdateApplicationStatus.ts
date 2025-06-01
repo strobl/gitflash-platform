@@ -16,6 +16,13 @@ export function useUpdateApplicationStatus() {
     mutationFn: async ({ applicationId, newStatus, notes }: UpdateApplicationStatusParams) => {
       console.log('Updating application status:', { applicationId, newStatus, notes });
       
+      // First check permissions using our debug function
+      const { data: permissionCheck } = await supabase
+        .rpc('check_application_update_permission', { app_id: applicationId });
+      
+      console.log('Permission check result:', permissionCheck);
+      
+      // Update the application status
       const { data, error } = await supabase
         .from('applications')
         .update({ 
@@ -23,12 +30,15 @@ export function useUpdateApplicationStatus() {
           updated_at: new Date().toISOString()
         })
         .eq('id', applicationId)
-        .select()
-        .maybeSingle();
+        .select(`
+          *,
+          job:jobs(id, title, user_id)
+        `)
+        .single();
 
       if (error) {
         console.error('Error updating application status:', error);
-        throw error;
+        throw new Error(`Fehler beim Status-Update: ${error.message}`);
       }
 
       if (!data) {
@@ -49,17 +59,19 @@ export function useUpdateApplicationStatus() {
         'offer_accepted': 'Angebot angenommen',
         'offer_declined': 'Angebot abgelehnt',
         'hired': 'Eingestellt',
-        'rejected': 'Abgelehnt'
+        'rejected': 'Abgelehnt',
+        'withdrawn': 'Zurückgezogen'
       };
 
-      toast.success(`Status zu "${statusLabels[data.status] || data.status}" geändert`);
+      toast.success(`Status erfolgreich zu "${statusLabels[data.status] || data.status}" geändert`);
       
+      // Invalidate all application-related queries
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['applications-stats'] });
     },
     onError: (error: any) => {
       console.error('Failed to update application status:', error);
-      toast.error('Fehler beim Aktualisieren des Status: ' + (error.message || 'Unbekannter Fehler'));
+      toast.error(error.message || 'Unbekannter Fehler beim Status-Update');
     },
   });
 

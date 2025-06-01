@@ -21,6 +21,7 @@ export function useApplicationActions() {
         throw new Error('Benutzer nicht authentifiziert');
       }
 
+      // Insert the action
       const { data, error } = await supabase
         .from('application_actions')
         .insert({
@@ -34,10 +35,10 @@ export function useApplicationActions() {
 
       if (error) {
         console.error('Error creating application action:', error);
-        throw error;
+        throw new Error(`Fehler beim Erstellen der Aktion: ${error.message}`);
       }
 
-      // Also update the application status if needed
+      // Update the application status based on action type
       let newStatus = null;
       switch (actionType) {
         case 'accept_offer':
@@ -80,7 +81,7 @@ export function useApplicationActions() {
     },
     onError: (error: any) => {
       console.error('Application action failed:', error);
-      toast.error('Fehler beim Ausführen der Aktion: ' + (error.message || 'Unbekannter Fehler'));
+      toast.error(error.message || 'Fehler beim Ausführen der Aktion');
     }
   });
 

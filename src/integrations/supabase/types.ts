@@ -619,6 +619,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_application_update_permission: {
+        Args: { app_id: string }
+        Returns: Json
+      }
       get_monthly_revenue: {
         Args: { year: number }
         Returns: {

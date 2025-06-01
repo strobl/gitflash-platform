@@ -1,175 +1,155 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Check, X, MessageSquare } from 'lucide-react';
+import { useUpdateApplicationStatus } from '@/hooks/useUpdateApplicationStatus';
 import { useApplicationActions } from '@/hooks/useApplicationActions';
 import { Application } from '@/hooks/useApplications';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { CheckCircle, XCircle, MessageSquare } from 'lucide-react';
 
 interface TalentActionButtonsProps {
   application: Application;
 }
 
 export function TalentActionButtons({ application }: TalentActionButtonsProps) {
+  const { updateStatus, updating } = useUpdateApplicationStatus();
   const { createAction, isCreatingAction } = useApplicationActions();
-  const [declineReason, setDeclineReason] = useState('');
-  const [isDeclineDialogOpen, setIsDeclineDialogOpen] = useState(false);
-
-  const handleScheduleInterview = async () => {
-    await createAction({
-      applicationId: application.id,
-      actionType: 'schedule_interview',
-      actionData: { message: 'Ich bin bereit für ein Interview. Bitte teilen Sie mir mögliche Termine mit.' }
-    });
-  };
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   const handleAcceptOffer = async () => {
-    await createAction({
-      applicationId: application.id,
-      actionType: 'accept_offer',
-      actionData: { accepted_at: new Date().toISOString() }
-    });
-  };
-
-  const handleDeclineOffer = async () => {
-    await createAction({
-      applicationId: application.id,
-      actionType: 'decline_offer',
-      actionData: { reason: declineReason, declined_at: new Date().toISOString() }
-    });
-    setIsDeclineDialogOpen(false);
-    setDeclineReason('');
-  };
-
-  const handleRequestFeedback = async () => {
-    await createAction({
-      applicationId: application.id,
-      actionType: 'request_feedback',
-      actionData: { message: 'Ich würde gerne Feedback zu meiner Bewerbung erhalten.' }
-    });
-  };
-
-  const getActionButtons = () => {
-    switch (application.status) {
-      case 'interview':
-        return (
-          <Button
-            onClick={handleScheduleInterview}
-            disabled={isCreatingAction}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Interview planen
-          </Button>
-        );
-
-      case 'offer':
-      case 'offer_pending':
-        return (
-          <div className="flex gap-2">
-            <Button
-              onClick={handleAcceptOffer}
-              disabled={isCreatingAction}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Angebot annehmen
-            </Button>
-            
-            <Dialog open={isDeclineDialogOpen} onOpenChange={setIsDeclineDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-                  <X className="mr-2 h-4 w-4" />
-                  Ablehnen
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Angebot ablehnen</DialogTitle>
-                  <DialogDescription>
-                    Möchten Sie uns mitteilen, warum Sie das Angebot ablehnen?
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="decline-reason">Grund (optional)</Label>
-                    <Textarea
-                      id="decline-reason"
-                      value={declineReason}
-                      onChange={(e) => setDeclineReason(e.target.value)}
-                      placeholder="Zum Beispiel: Gehalt entspricht nicht meinen Vorstellungen..."
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsDeclineDialogOpen(false)}>
-                      Abbrechen
-                    </Button>
-                    <Button 
-                      onClick={handleDeclineOffer}
-                      disabled={isCreatingAction}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Angebot ablehnen
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        );
-
-      case 'rejected':
-        return (
-          <Button
-            onClick={handleRequestFeedback}
-            disabled={isCreatingAction}
-            variant="outline"
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Feedback anfragen
-          </Button>
-        );
-
-      case 'offer_accepted':
-        return (
-          <Badge className="bg-green-100 text-green-800">
-            Angebot angenommen
-          </Badge>
-        );
-
-      case 'offer_declined':
-        return (
-          <Badge className="bg-red-100 text-red-800">
-            Angebot abgelehnt
-          </Badge>
-        );
-
-      case 'interview_scheduled':
-        return (
-          <Badge className="bg-blue-100 text-blue-800">
-            <Calendar className="mr-1 h-3 w-3" />
-            Interview geplant
-          </Badge>
-        );
-
-      default:
-        return null;
+    try {
+      await createAction({
+        applicationId: application.id,
+        actionType: 'accept_offer',
+        actionData: { message: 'Angebot angenommen' }
+      });
+    } catch (error) {
+      console.error('Error accepting offer:', error);
     }
   };
 
+  const handleDeclineOffer = async () => {
+    try {
+      await createAction({
+        applicationId: application.id,
+        actionType: 'decline_offer', 
+        actionData: { message: 'Angebot abgelehnt' }
+      });
+    } catch (error) {
+      console.error('Error declining offer:', error);
+    }
+  };
+
+  const handleRequestFeedback = async () => {
+    try {
+      await createAction({
+        applicationId: application.id,
+        actionType: 'request_feedback',
+        actionData: { message: 'Feedback angefordert' }
+      });
+    } catch (error) {
+      console.error('Error requesting feedback:', error);
+    }
+  };
+
+  const handleWithdrawApplication = async () => {
+    try {
+      await updateStatus({
+        applicationId: application.id,
+        newStatus: 'withdrawn'
+      });
+      setShowWithdrawDialog(false);
+    } catch (error) {
+      console.error('Error withdrawing application:', error);
+    }
+  };
+
+  const canAcceptOffer = ['offer', 'offer_pending'].includes(application.status);
+  const canDeclineOffer = ['offer', 'offer_pending'].includes(application.status);
+  const canWithdraw = ['new', 'reviewing'].includes(application.status);
+  const canRequestFeedback = ['rejected'].includes(application.status);
+
+  if (!canAcceptOffer && !canDeclineOffer && !canWithdraw && !canRequestFeedback) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      {getActionButtons()}
+    <div className="flex flex-wrap gap-2">
+      {canAcceptOffer && (
+        <Button
+          onClick={handleAcceptOffer}
+          disabled={isCreatingAction}
+          variant="default"
+          size="sm"
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Angebot annehmen
+        </Button>
+      )}
+
+      {canDeclineOffer && (
+        <Button
+          onClick={handleDeclineOffer}
+          disabled={isCreatingAction}
+          variant="outline"
+          size="sm"
+        >
+          <XCircle className="h-4 w-4 mr-1" />
+          Angebot ablehnen
+        </Button>
+      )}
+
+      {canRequestFeedback && (
+        <Button
+          onClick={handleRequestFeedback}
+          disabled={isCreatingAction}
+          variant="outline"
+          size="sm"
+        >
+          <MessageSquare className="h-4 w-4 mr-1" />
+          Feedback anfragen
+        </Button>
+      )}
+
+      {canWithdraw && (
+        <AlertDialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              Bewerbung zurückziehen
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Bewerbung zurückziehen?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Sind Sie sicher, dass Sie diese Bewerbung zurückziehen möchten? 
+                Diese Aktion kann nicht rückgängig gemacht werden.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleWithdrawApplication}
+                disabled={updating}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {updating ? 'Wird zurückgezogen...' : 'Zurückziehen'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

@@ -42,6 +42,8 @@ export function useApplications({ type, jobId }: UseApplicationsParams) {
         throw new Error('User not authenticated');
       }
 
+      console.log('Fetching applications for:', { type, jobId, userId: user.id });
+
       let query = supabase
         .from('applications')
         .select(`
@@ -54,10 +56,11 @@ export function useApplications({ type, jobId }: UseApplicationsParams) {
         query = query.eq('talent_id', user.id);
       } else if (type === 'business') {
         if (jobId) {
+          // For specific job applications
           query = query.eq('job_id', jobId);
         } else {
-          // Get applications for all jobs created by this business user
-          query = query.filter('job.user_id', 'eq', user.id);
+          // For all business applications, we need to filter via the job relationship
+          // Since RLS handles the filtering, we don't need additional where clauses
         }
       }
 
@@ -68,6 +71,7 @@ export function useApplications({ type, jobId }: UseApplicationsParams) {
         throw error;
       }
 
+      console.log('Applications fetched successfully:', data?.length || 0, 'applications');
       return data as Application[];
     },
     enabled: !!user?.id,
