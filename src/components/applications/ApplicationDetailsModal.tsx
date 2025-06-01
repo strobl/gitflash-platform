@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -24,6 +23,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Download, Mail, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ApplicationDetailsModalProps {
   application: Application | null;
@@ -63,25 +63,89 @@ export function ApplicationDetailsModal({
     }
   };
 
-  const handleResumeDownload = () => {
+  const handleResumeDownload = async () => {
     if (!application.resume_url) {
       toast.error('Lebenslauf nicht verfügbar');
       return;
     }
 
-    // Create a temporary link element to trigger download
-    const link = document.createElement('a');
-    link.href = application.resume_url;
-    link.download = `Lebenslauf_${application.applicant_name.replace(/\s+/g, '_')}.pdf`;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    
-    // Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Download gestartet');
+    console.log('Attempting to download resume from URL:', application.resume_url);
+
+    try {
+      // Extract bucket and path from the resume_url
+      const url = new URL(application.resume_url);
+      const pathParts = url.pathname.split('/');
+      
+      let bucketName = '';
+      let filePath = '';
+      
+      // Handle different URL structures
+      if (application.resume_url.includes('/storage/v1/object/public/')) {
+        // Public URL format: .../storage/v1/object/public/bucket_name/file_path
+        const publicIndex = pathParts.indexOf('public');
+        if (publicIndex !== -1 && publicIndex + 1 < pathParts.length) {
+          bucketName = pathParts[publicIndex + 1];
+          filePath = pathParts.slice(publicIndex + 2).join('/');
+        }
+      } else if (application.resume_url.includes('/storage/v1/object/')) {
+        // Private URL format: .../storage/v1/object/bucket_name/file_path
+        const objectIndex = pathParts.indexOf('object');
+        if (objectIndex !== -1 && objectIndex + 1 < pathParts.length) {
+          bucketName = pathParts[objectIndex + 1];
+          filePath = pathParts.slice(objectIndex + 2).join('/');
+        }
+      }
+
+      console.log('Extracted bucket:', bucketName, 'path:', filePath);
+
+      if (!bucketName || !filePath) {
+        console.error('Could not extract bucket and path from URL');
+        // Fallback: try direct download
+        window.open(application.resume_url, '_blank');
+        toast.success('Download geöffnet');
+        return;
+      }
+
+      // Try to download using Supabase storage API
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .download(filePath);
+
+      if (error) {
+        console.error('Supabase storage download error:', error);
+        // Fallback: try direct download
+        window.open(application.resume_url, '_blank');
+        toast.success('Download geöffnet');
+        return;
+      }
+
+      // Create blob URL and download
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `Lebenslauf_${application.applicant_name.replace(/\s+/g, '_')}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+      
+      toast.success('Download gestartet');
+    } catch (error) {
+      console.error('Download error:', error);
+      // Final fallback: try opening in new tab
+      try {
+        window.open(application.resume_url, '_blank');
+        toast.success('Download geöffnet');
+      } catch (fallbackError) {
+        console.error('Fallback download error:', fallbackError);
+        toast.error('Download fehlgeschlagen. Bitte versuchen Sie es später erneut.');
+      }
+    }
   };
 
   const getStatusLabel = (status: string) => {
