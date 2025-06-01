@@ -12,7 +12,14 @@ export const UnifiedNavbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { user, profile, logout, isAuthenticated } = useAuth();
+  const { user, profile, logout, isAuthenticated, isLoading } = useAuth();
+  
+  console.log("UnifiedNavbar: Current state", { 
+    isAuthenticated, 
+    hasProfile: !!profile, 
+    isLoading,
+    profileRole: profile?.role 
+  });
   
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -33,7 +40,7 @@ export const UnifiedNavbar: React.FC = () => {
       { label: "Für Unternehmen", path: "/unternehmen/suche", isActive: false }
     ];
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !profile) {
       return publicItems;
     }
     
@@ -65,6 +72,77 @@ export const UnifiedNavbar: React.FC = () => {
   
   const navigationItems = getNavigationItems();
   
+  // Determine what to show in the auth section
+  const renderAuthSection = () => {
+    // Show loading spinner while authentication state is loading
+    if (isLoading) {
+      return (
+        <div className="animate-spin h-6 w-6 border-2 border-[#0A2540]/20 border-t-[#0A2540] rounded-full"></div>
+      );
+    }
+    
+    // Show user menu if authenticated AND profile exists
+    if (isAuthenticated && profile) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative h-10 w-10 rounded-full overflow-hidden focus:outline-none">
+              <Avatar>
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="bg-[#0A2540] text-white">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-white">
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="cursor-pointer w-full flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Mein Konto</span>
+              </Link>
+            </DropdownMenuItem>
+            
+            {profile?.role === "operator" && (
+              <DropdownMenuLabel>
+                <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
+                  Admin
+                </span>
+              </DropdownMenuLabel>
+            )}
+            
+            <DropdownMenuSeparator />
+            
+            {profile?.role === "user" && (
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
+              </DropdownMenuItem>
+            )}
+            
+            {(profile?.role === "business" || profile?.role === "operator") && (
+              <DropdownMenuItem asChild>
+                <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
+              </DropdownMenuItem>
+            )}
+            
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Abmelden</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+    
+    // Show login button for unauthenticated users or users without profile
+    return (
+      <Button asChild className="bg-[#0A2540] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-white">
+        <Link to="/login">Log In</Link>
+      </Button>
+    );
+  };
+  
   return (
     <header className="flex w-full items-center justify-between bg-white sm:px-6 md:px-8 py-2.5 px-[12px] border-b border-gray-200">
       <div className="flex items-center gap-2">
@@ -90,62 +168,9 @@ export const UnifiedNavbar: React.FC = () => {
             </Link>
           ))}
 
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="relative h-10 w-10 rounded-full overflow-hidden focus:outline-none">
-                    <Avatar>
-                      <AvatarImage src={user?.user_metadata?.avatar_url} />
-                      <AvatarFallback className="bg-[#0A2540] text-white">
-                        {getInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-white">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer w-full flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Mein Konto</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  {profile?.role === "operator" && (
-                    <DropdownMenuLabel>
-                      <span className="ml-2 text-xs bg-[#0A2540] text-white px-2 py-0.5 rounded-full">
-                        Admin
-                      </span>
-                    </DropdownMenuLabel>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  
-                  {profile?.role === "user" && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer w-full">Profil bearbeiten</Link>
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {(profile?.role === "business" || profile?.role === "operator") && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/interviews/create" className="cursor-pointer w-full">Interview erstellen</Link>
-                    </DropdownMenuItem>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-500">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Abmelden</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <Button asChild className="bg-[#0A2540] hover:bg-opacity-90 transition-all duration-300 hover:brightness-105 text-white">
-              <Link to="/login">Log In</Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            {renderAuthSection()}
+          </div>
         </div>
       )}
 
@@ -169,7 +194,12 @@ export const UnifiedNavbar: React.FC = () => {
               </Link>
             ))}
             
-            {isAuthenticated ? (
+            {/* Mobile Auth Section */}
+            {isLoading ? (
+              <div className="py-3 flex justify-center">
+                <div className="animate-spin h-5 w-5 border-2 border-[#0A2540]/20 border-t-[#0A2540] rounded-full"></div>
+              </div>
+            ) : isAuthenticated && profile ? (
               <>
                 <Link 
                   to="/profile" 
