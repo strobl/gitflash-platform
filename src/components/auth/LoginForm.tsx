@@ -82,10 +82,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
         }
         
         console.log('🔐 LoginForm: Starting login...');
-        // Perform login
-        await login(email, password);
+        // Perform login and wait for profile to be fetched
+        const loggedInProfile = await login(email, password);
         toast.success("Login erfolgreich!");
-        
+
         console.log("✅ LoginForm: Login successful, determining redirect...");
         
         // Determine if we need to redirect to an interview
@@ -117,8 +117,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
           // Standard role-based redirect
           setTimeout(() => {
             // Get the role from the authenticated user's profile
-            const roleBasedPath = getRoleRedirectPath(profile?.role);
-            console.log("🏢 LoginForm: Navigating to role-based path:", { role: profile?.role, path: roleBasedPath });
+            const roleBasedPath = getRoleRedirectPath((loggedInProfile || profile)?.role);
+            console.log("🏢 LoginForm: Navigating to role-based path:", { role: (loggedInProfile || profile)?.role, path: roleBasedPath });
             navigate(roleBasedPath);
           }, 100);
         }
