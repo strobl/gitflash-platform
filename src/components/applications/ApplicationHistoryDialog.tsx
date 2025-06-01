@@ -42,23 +42,24 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
   const handleUpdateStatus = async () => {
     if (newStatus === application.status) return;
     
-    const result = await updateStatus({
+    await updateStatus({
       applicationId: application.id,
-      currentVersion: application.version,
       newStatus
     });
     
-    if (result) {
-      handleClose();
-    }
+    handleClose();
   };
 
   const getStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
       'new': 'Neu',
-      'in_review': 'In Prüfung',
+      'reviewing': 'In Prüfung',
       'interview': 'Interview',
+      'interview_scheduled': 'Interview geplant',
       'offer': 'Angebot',
+      'offer_pending': 'Angebot ausstehend',
+      'offer_accepted': 'Angebot angenommen',
+      'offer_declined': 'Angebot abgelehnt',
       'hired': 'Eingestellt',
       'rejected': 'Abgelehnt',
       'withdrawn': 'Zurückgezogen'
@@ -74,7 +75,7 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
           <DialogDescription>
             {userType === 'talent' 
               ? `Deine Bewerbung für ${application.job?.title || 'Unbenannte Stelle'}`
-              : `Bewerbung von ${format(new Date(application.created_at), 'PPP', { locale: de })}`}
+              : `Bewerbung von ${application.applicant_name}`}
           </DialogDescription>
         </DialogHeader>
         
@@ -96,34 +97,10 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
           <Separator />
           
           <div>
-            <div className="text-sm font-medium mb-2">Statusverlauf</div>
-            {application.history && application.history.length > 0 ? (
-              <div className="space-y-2">
-                {application.history.map((item) => (
-                  <div key={item.id} className="text-sm">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">
-                          {item.old_status ? `${getStatusLabel(item.old_status)} → ` : ''}
-                          {getStatusLabel(item.new_status)}
-                        </span>
-                        {item.profile?.name && (
-                          <span className="text-muted-foreground"> von {item.profile.name}</span>
-                        )}
-                      </div>
-                      <div className="text-muted-foreground">
-                        {formatDistanceToNow(new Date(item.changed_at), { addSuffix: true, locale: de })}
-                      </div>
-                    </div>
-                    {item.notes && (
-                      <div className="text-muted-foreground mt-1 ml-2">{item.notes}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">Keine Statusänderungen bisher.</div>
-            )}
+            <div className="text-sm font-medium mb-2">Bewerbung eingereicht</div>
+            <div className="text-sm text-muted-foreground">
+              {formatDistanceToNow(new Date(application.created_at), { addSuffix: true, locale: de })}
+            </div>
           </div>
           
           {userType === 'business' && (
@@ -135,9 +112,13 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="new">Neu</SelectItem>
-                  <SelectItem value="in_review">In Prüfung</SelectItem>
+                  <SelectItem value="reviewing">In Prüfung</SelectItem>
                   <SelectItem value="interview">Interview</SelectItem>
+                  <SelectItem value="interview_scheduled">Interview geplant</SelectItem>
                   <SelectItem value="offer">Angebot</SelectItem>
+                  <SelectItem value="offer_pending">Angebot ausstehend</SelectItem>
+                  <SelectItem value="offer_accepted">Angebot angenommen</SelectItem>
+                  <SelectItem value="offer_declined">Angebot abgelehnt</SelectItem>
                   <SelectItem value="hired">Eingestellt</SelectItem>
                   <SelectItem value="rejected">Abgelehnt</SelectItem>
                 </SelectContent>
@@ -166,7 +147,6 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
               onClick={async () => {
                 await updateStatus({
                   applicationId: application.id,
-                  currentVersion: application.version,
                   newStatus: 'withdrawn'
                 });
                 handleClose();

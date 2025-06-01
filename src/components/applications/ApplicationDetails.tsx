@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ApplicationStatusBadge } from './ApplicationStatusBadge';
-import type { Application, ApplicationHistoryItem } from '@/hooks/useApplications';
+import type { Application } from '@/hooks/useApplications';
 
 interface ApplicationDetailsProps {
   application: Application;
@@ -77,41 +77,6 @@ export function ApplicationDetails({ application, onStatusUpdate, userType }: Ap
           )}
         </CardContent>
       </Card>
-
-      {/* Status History */}
-      {application.history && application.history.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Status-Verlauf</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {application.history.map((historyItem) => (
-                <div key={historyItem.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <ApplicationStatusBadge status={historyItem.new_status} />
-                      {historyItem.old_status && (
-                        <>
-                          <span className="text-sm text-gray-400">von</span>
-                          <ApplicationStatusBadge status={historyItem.old_status} />
-                        </>
-                      )}
-                    </div>
-                    {historyItem.notes && (
-                      <p className="text-sm text-gray-600 mt-1">{historyItem.notes}</p>
-                    )}
-                  </div>
-                  <div className="text-right text-sm text-gray-500">
-                    <div>{new Date(historyItem.changed_at).toLocaleDateString('de-DE')}</div>
-                    <div>{historyItem.profile?.name || 'System'}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Actions for Recruiters */}
       {userType === 'recruiter' && onStatusUpdate && (

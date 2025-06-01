@@ -26,7 +26,7 @@ interface ApplicationsListProps {
 }
 
 export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: ApplicationsListProps) {
-  const { applications, isLoading, error, refetch } = useApplications({ type, jobId });
+  const { data: applications = [], isLoading, error, refetch } = useApplications({ type, jobId });
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   // Setup realtime updates

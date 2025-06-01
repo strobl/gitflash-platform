@@ -22,13 +22,13 @@ interface ApplicationsTableProps {
 }
 
 export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
-  const { applications, isLoading, error, refetch } = useApplications({ type, jobId });
+  const { data: applications = [], isLoading, error, refetch } = useApplications({ type, jobId });
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'new': return 'default';
-      case 'in_review': return 'secondary';
+      case 'reviewing': return 'secondary';
       case 'interview': return 'outline';
       case 'offer': return 'blue';
       case 'hired': return 'success';
@@ -41,7 +41,7 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
   const getStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
       'new': 'Neu',
-      'in_review': 'In Prüfung',
+      'reviewing': 'In Prüfung',
       'interview': 'Interview',
       'offer': 'Angebot',
       'hired': 'Eingestellt',
@@ -87,9 +87,9 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{type === 'talent' ? 'Stelle' : 'Datum'}</TableHead>
+                <TableHead>{type === 'talent' ? 'Stelle' : 'Bewerber'}</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Letzte Änderung</TableHead>
+                <TableHead>Eingereicht</TableHead>
                 <TableHead className="text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
@@ -99,7 +99,7 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
                   <TableCell>
                     {type === 'talent' 
                       ? application.job?.title || 'Unbenannte Stelle' 
-                      : formatDistanceToNow(new Date(application.created_at), { addSuffix: true, locale: de })}
+                      : application.applicant_name}
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(application.status) as any}>
@@ -107,7 +107,7 @@ export function ApplicationsTable({ type, jobId }: ApplicationsTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {formatDistanceToNow(new Date(application.last_activity_at), { addSuffix: true, locale: de })}
+                    {formatDistanceToNow(new Date(application.created_at), { addSuffix: true, locale: de })}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button 

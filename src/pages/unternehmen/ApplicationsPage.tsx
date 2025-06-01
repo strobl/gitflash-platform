@@ -5,7 +5,7 @@ import { ApplicationsFilter } from '@/components/applications/ApplicationsFilter
 import { useApplicationsWithStats } from '@/hooks/useApplicationsWithStats';
 
 export default function UnternehmenApplicationsPage() {
-  const { stats, isLoading } = useApplicationsWithStats('business');
+  const { data: stats, isLoading } = useApplicationsWithStats('business');
 
   return (
     <div className="min-h-screen flex flex-col">
