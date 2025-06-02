@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Eye, FileText, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { useOffers } from '@/hooks/useOffers';
 import { CreateOfferDialog } from './CreateOfferDialog';
+import { QuickOfferDialog } from './QuickOfferDialog';
 import { OfferViewDialog } from './OfferViewDialog';
 import { Application } from '@/hooks/useApplications';
 
@@ -15,6 +16,7 @@ interface BusinessOfferActionsProps {
 export function BusinessOfferActions({ application }: BusinessOfferActionsProps) {
   const { data: offers = [] } = useOffers({ applicationId: application.id });
   const [showCreateOffer, setShowCreateOffer] = useState(false);
+  const [showQuickOffer, setShowQuickOffer] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   
   const activeOffer = offers.find(offer => !['withdrawn', 'expired'].includes(offer.status));
@@ -78,15 +80,35 @@ export function BusinessOfferActions({ application }: BusinessOfferActionsProps)
           </Button>
         </div>
       ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowCreateOffer(true)}
-          className="w-full"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Angebot erstellen
-        </Button>
+        <div className="space-y-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowQuickOffer(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Schnelles Angebot
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreateOffer(true)}
+            className="w-full"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Detailliertes Angebot
+          </Button>
+        </div>
+      )}
+      
+      {showQuickOffer && (
+        <QuickOfferDialog
+          application={application}
+          isOpen={showQuickOffer}
+          onClose={() => setShowQuickOffer(false)}
+        />
       )}
       
       {showCreateOffer && (
