@@ -538,6 +538,203 @@ export type Database = {
           },
         ]
       }
+      offer_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          changes: Json | null
+          id: string
+          new_status: string
+          notes: string | null
+          offer_id: string
+          old_status: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          changes?: Json | null
+          id?: string
+          new_status: string
+          notes?: string | null
+          offer_id: string
+          old_status?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          changes?: Json | null
+          id?: string
+          new_status?: string
+          notes?: string | null
+          offer_id?: string
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_history_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_templates: {
+        Row: {
+          additional_terms: string | null
+          benefits: string | null
+          contract_type: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean | null
+          position_title: string | null
+          salary_type: string | null
+          template_name: string
+          updated_at: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          additional_terms?: string | null
+          benefits?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean | null
+          position_title?: string | null
+          salary_type?: string | null
+          template_name: string
+          updated_at?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          additional_terms?: string | null
+          benefits?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean | null
+          position_title?: string | null
+          salary_type?: string | null
+          template_name?: string
+          updated_at?: string | null
+          working_hours?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          additional_terms: string | null
+          application_id: string
+          benefits: string | null
+          contract_type: string
+          counter_offer_allowed: boolean | null
+          created_at: string | null
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_negotiable: boolean | null
+          location: string | null
+          position_title: string
+          remote_work_allowed: boolean | null
+          responded_at: string | null
+          response_deadline: string | null
+          response_message: string | null
+          salary_amount: number | null
+          salary_currency: string | null
+          salary_type: string
+          start_date: string | null
+          status: string
+          updated_at: string | null
+          viewed_at: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          additional_terms?: string | null
+          application_id: string
+          benefits?: string | null
+          contract_type: string
+          counter_offer_allowed?: boolean | null
+          created_at?: string | null
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_negotiable?: boolean | null
+          location?: string | null
+          position_title: string
+          remote_work_allowed?: boolean | null
+          responded_at?: string | null
+          response_deadline?: string | null
+          response_message?: string | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          salary_type: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+          viewed_at?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          additional_terms?: string | null
+          application_id?: string
+          benefits?: string | null
+          contract_type?: string
+          counter_offer_allowed?: boolean | null
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_negotiable?: boolean | null
+          location?: string | null
+          position_title?: string
+          remote_work_allowed?: boolean | null
+          responded_at?: string | null
+          response_deadline?: string | null
+          response_message?: string | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          salary_type?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+          viewed_at?: string | null
+          working_hours?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number

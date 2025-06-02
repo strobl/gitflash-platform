@@ -24,7 +24,8 @@ import { useUpdateApplicationStatus } from '@/hooks/useUpdateApplicationStatus';
 import { useApplicationHistory } from '@/hooks/useApplicationHistory';
 import { Application } from '@/hooks/useApplications';
 import { ApplicationStatusBadge } from './ApplicationStatusBadge';
-import { TalentActionButtons } from './TalentActionButtons';
+import { TalentOfferActions } from './TalentOfferActions';
+import { BusinessOfferActions } from './BusinessOfferActions';
 
 interface ApplicationHistoryDialogProps {
   application: Application;
@@ -140,33 +141,44 @@ export function ApplicationHistoryDialog({ application, userType, onClose }: App
           </div>
           
           {userType === 'business' && (
-            <div>
-              <div className="text-sm font-medium mb-2">Status ändern</div>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">Neu</SelectItem>
-                  <SelectItem value="reviewing">In Prüfung</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                  <SelectItem value="interview_scheduled">Interview geplant</SelectItem>
-                  <SelectItem value="offer">Angebot</SelectItem>
-                  <SelectItem value="offer_pending">Angebot ausstehend</SelectItem>
-                  <SelectItem value="offer_accepted">Angebot angenommen</SelectItem>
-                  <SelectItem value="offer_declined">Angebot abgelehnt</SelectItem>
-                  <SelectItem value="hired">Eingestellt</SelectItem>
-                  <SelectItem value="rejected">Abgelehnt</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <>
+              <Separator />
+              <div>
+                <div className="text-sm font-medium mb-2">Angebot verwalten</div>
+                <BusinessOfferActions application={application} />
+              </div>
+              
+              <div>
+                <div className="text-sm font-medium mb-2">Status ändern</div>
+                <Select value={newStatus} onValueChange={setNewStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">Neu</SelectItem>
+                    <SelectItem value="reviewing">In Prüfung</SelectItem>
+                    <SelectItem value="interview">Interview</SelectItem>
+                    <SelectItem value="interview_scheduled">Interview geplant</SelectItem>
+                    <SelectItem value="offer">Angebot</SelectItem>
+                    <SelectItem value="offer_pending">Angebot ausstehend</SelectItem>
+                    <SelectItem value="offer_accepted">Angebot angenommen</SelectItem>
+                    <SelectItem value="offer_declined">Angebot abgelehnt</SelectItem>
+                    <SelectItem value="hired">Eingestellt</SelectItem>
+                    <SelectItem value="rejected">Abgelehnt</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
 
           {userType === 'talent' && (
-            <div>
-              <div className="text-sm font-medium mb-2">Verfügbare Aktionen</div>
-              <TalentActionButtons application={application} />
-            </div>
+            <>
+              <Separator />
+              <div>
+                <div className="text-sm font-medium mb-2">Verfügbare Aktionen</div>
+                <TalentOfferActions application={application} />
+              </div>
+            </>
           )}
         </div>
         
