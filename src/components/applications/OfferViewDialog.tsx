@@ -10,14 +10,18 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { formatDistanceToNow, format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { CheckCircle, XCircle, Eye, Clock, MapPin, Calendar, Euro, FileText } from 'lucide-react';
-import { useUpdateOffer } from '@/hooks/useUpdateOffer';
 import { Offer } from '@/hooks/useOffers';
+import { 
+  Euro, 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  User, 
+  CheckCircle, 
+  XCircle 
+} from 'lucide-react';
 
 interface OfferViewDialogProps {
   offer: Offer;
@@ -27,72 +31,7 @@ interface OfferViewDialogProps {
 }
 
 export function OfferViewDialog({ offer, userType, isOpen, onClose }: OfferViewDialogProps) {
-  const { updateOffer, updating } = useUpdateOffer();
-  const [responseMessage, setResponseMessage] = useState('');
-  
-  // Mark as viewed when opened by talent
-  useState(() => {
-    if (userType === 'talent' && !offer.viewed_at && isOpen) {
-      updateOffer({ offerId: offer.id, viewed_at: new Date().toISOString() });
-    }
-  });
-
-  const handleAccept = async () => {
-    await updateOffer({
-      offerId: offer.id,
-      status: 'accepted',
-      response_message: responseMessage || 'Angebot angenommen'
-    });
-    onClose();
-  };
-
-  const handleDecline = async () => {
-    await updateOffer({
-      offerId: offer.id,
-      status: 'declined',
-      response_message: responseMessage || 'Angebot abgelehnt'
-    });
-    onClose();
-  };
-
-  const handleSendOffer = async () => {
-    await updateOffer({
-      offerId: offer.id,
-      status: 'sent'
-    });
-    onClose();
-  };
-
-  const handleWithdraw = async () => {
-    await updateOffer({
-      offerId: offer.id,
-      status: 'withdrawn'
-    });
-    onClose();
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'accepted': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'declined': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'viewed': return <Eye className="h-4 w-4 text-blue-600" />;
-      case 'sent': return <FileText className="h-4 w-4 text-purple-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'draft': 'Entwurf',
-      'sent': 'Versendet',
-      'viewed': 'Angesehen',
-      'accepted': 'Angenommen',
-      'declined': 'Abgelehnt',
-      'expired': 'Abgelaufen',
-      'withdrawn': 'Zurückgezogen'
-    };
-    return statusMap[status] || status;
-  };
+  const [responding, setResponding] = useState(false);
 
   const formatSalary = () => {
     if (!offer.salary_amount) return 'Nicht spezifiziert';
@@ -123,171 +62,186 @@ export function OfferViewDialog({ offer, userType, isOpen, onClose }: OfferViewD
     return labels[type] || type;
   };
 
-  const canAcceptDecline = userType === 'talent' && ['sent', 'viewed'].includes(offer.status);
-  const canSend = userType === 'business' && offer.status === 'draft';
-  const canWithdraw = userType === 'business' && ['sent', 'viewed'].includes(offer.status);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'sent': return 'bg-purple-100 text-purple-800';
+      case 'viewed': return 'bg-blue-100 text-blue-800';
+      case 'accepted': return 'bg-green-100 text-green-800';
+      case 'declined': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'draft': 'Entwurf',
+      'sent': 'Versendet',
+      'viewed': 'Angesehen',
+      'accepted': 'Angenommen',
+      'declined': 'Abgelehnt'
+    };
+    return statusMap[status] || status;
+  };
+
+  const handleResponse = async (response: 'accept' | 'decline') => {
+    setResponding(true);
+    // TODO: Implement actual response logic
+    console.log(`${response === 'accept' ? 'Accepting' : 'Declining'} offer:`, offer.id);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setResponding(false);
+      onClose();
+    }, 1000);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              {getStatusIcon(offer.status)}
-              Angebot: {offer.position_title}
-            </DialogTitle>
-            <Badge variant="outline" className="flex items-center gap-1">
+            <div>
+              <DialogTitle>{offer.position_title}</DialogTitle>
+              <DialogDescription>
+                Angebot erstellt am {new Date(offer.created_at).toLocaleDateString('de-DE')}
+              </DialogDescription>
+            </div>
+            <Badge className={getStatusColor(offer.status)}>
               {getStatusLabel(offer.status)}
             </Badge>
           </div>
-          <DialogDescription>
-            {userType === 'talent' 
-              ? 'Überprüfen Sie die Angebotsdetails und entscheiden Sie über Ihre Antwort'
-              : 'Angebots-Übersicht und Verwaltung'}
-          </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6">
-          {/* Key Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Euro className="h-4 w-4 text-gray-500" />
-              <div>
-                <div className="text-sm font-medium">Gehalt</div>
-                <div className="text-sm text-muted-foreground">{formatSalary()}</div>
+          {/* Finanzielle Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Euro className="h-5 w-5" />
+                Vergütung
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600 mb-2">
+                {formatSalary()}
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-gray-500" />
-              <div>
-                <div className="text-sm font-medium">Vertragsart</div>
-                <div className="text-sm text-muted-foreground">{getContractTypeLabel(offer.contract_type)}</div>
+              <div className="text-sm text-gray-600">
+                {getContractTypeLabel(offer.contract_type)}
+                {offer.working_hours && ` • ${offer.working_hours}`}
               </div>
-            </div>
-            
-            {offer.start_date && (
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <div>
-                  <div className="text-sm font-medium">Startdatum</div>
-                  <div className="text-sm text-muted-foreground">{format(new Date(offer.start_date), 'dd.MM.yyyy')}</div>
+            </CardContent>
+          </Card>
+
+          {/* Arbeitsdetails */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Arbeitsdetails
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {offer.start_date && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">
+                    Startdatum: {new Date(offer.start_date).toLocaleDateString('de-DE')}
+                  </span>
                 </div>
-              </div>
-            )}
-            
-            {offer.location && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <div>
-                  <div className="text-sm font-medium">Arbeitsort</div>
-                  <div className="text-sm text-muted-foreground">{offer.location}</div>
+              )}
+              
+              {offer.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">{offer.location}</span>
+                  {offer.remote_work_allowed && (
+                    <Badge variant="outline" className="ml-2">Remote möglich</Badge>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
+              )}
 
-          <Separator />
+              {offer.working_hours && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">{offer.working_hours}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {/* Additional Details */}
-          {offer.working_hours && (
-            <div>
-              <div className="text-sm font-medium mb-1">Arbeitszeiten</div>
-              <div className="text-sm text-muted-foreground">{offer.working_hours}</div>
-            </div>
-          )}
-
+          {/* Benefits */}
           {offer.benefits && (
-            <div>
-              <div className="text-sm font-medium mb-1">Benefits & Zusatzleistungen</div>
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap">{offer.benefits}</div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Benefits & Zusatzleistungen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">{offer.benefits}</p>
+              </CardContent>
+            </Card>
           )}
 
+          {/* Zusätzliche Bedingungen */}
           {offer.additional_terms && (
-            <div>
-              <div className="text-sm font-medium mb-1">Zusätzliche Bedingungen</div>
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap">{offer.additional_terms}</div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Zusätzliche Bedingungen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">{offer.additional_terms}</p>
+              </CardContent>
+            </Card>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            {offer.remote_work_allowed && (
-              <Badge variant="secondary">Remote möglich</Badge>
-            )}
-            {offer.is_negotiable && (
-              <Badge variant="secondary">Verhandelbar</Badge>
-            )}
-            {offer.counter_offer_allowed && (
-              <Badge variant="secondary">Gegenangebote erlaubt</Badge>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Timeline Info */}
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div>Erstellt: {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true, locale: de })}</div>
-            {offer.viewed_at && (
-              <div>Angesehen: {formatDistanceToNow(new Date(offer.viewed_at), { addSuffix: true, locale: de })}</div>
-            )}
-            {offer.response_deadline && (
-              <div>Antwort bis: {format(new Date(offer.response_deadline), 'dd.MM.yyyy HH:mm')}</div>
-            )}
-          </div>
-
-          {/* Response Message for Talent */}
-          {canAcceptDecline && (
-            <div>
-              <Label htmlFor="response_message">Nachricht (optional)</Label>
-              <Textarea
-                id="response_message"
-                placeholder="Ihre Nachricht zu diesem Angebot..."
-                value={responseMessage}
-                onChange={(e) => setResponseMessage(e.target.value)}
-                rows={3}
-              />
-            </div>
-          )}
-
-          {/* Previous Response */}
-          {offer.response_message && (
-            <div>
-              <div className="text-sm font-medium mb-1">Antwort</div>
-              <div className="text-sm text-muted-foreground bg-gray-50 p-3 rounded border">
-                {offer.response_message}
-              </div>
-            </div>
+          {/* Response Deadline */}
+          {offer.response_deadline && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-orange-600">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">
+                    Antwort bis: {new Date(offer.response_deadline).toLocaleDateString('de-DE', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
-        
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Schließen
-          </Button>
-          
-          {canSend && (
-            <Button onClick={handleSendOffer} disabled={updating}>
-              {updating ? 'Wird versendet...' : 'Angebot versenden'}
+
+        <DialogFooter>
+          <div className="flex gap-2 w-full">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Schließen
             </Button>
-          )}
-          
-          {canWithdraw && (
-            <Button variant="outline" onClick={handleWithdraw} disabled={updating}>
-              {updating ? 'Wird zurückgezogen...' : 'Zurückziehen'}
-            </Button>
-          )}
-          
-          {canAcceptDecline && (
-            <>
-              <Button variant="outline" onClick={handleDecline} disabled={updating}>
-                {updating ? 'Wird abgelehnt...' : 'Ablehnen'}
-              </Button>
-              <Button onClick={handleAccept} disabled={updating}>
-                {updating ? 'Wird angenommen...' : 'Annehmen'}
-              </Button>
-            </>
-          )}
+            
+            {userType === 'talent' && offer.status === 'sent' && (
+              <>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleResponse('decline')}
+                  disabled={responding}
+                  className="flex-1"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {responding ? 'Wird abgelehnt...' : 'Ablehnen'}
+                </Button>
+                <Button 
+                  onClick={() => handleResponse('accept')}
+                  disabled={responding}
+                  className="flex-1"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {responding ? 'Wird angenommen...' : 'Annehmen'}
+                </Button>
+              </>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

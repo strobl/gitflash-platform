@@ -16,6 +16,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ApplicationDetailsModal } from './ApplicationDetailsModal';
+import { BusinessOfferActions } from './BusinessOfferActions';
 import { Eye } from 'lucide-react';
 
 interface ApplicationsListProps {
@@ -128,6 +129,7 @@ export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: Appl
                 <TableHead>{type === 'talent' ? 'Stelle' : 'Bewerber'}</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Eingereicht</TableHead>
+                {type === 'business' && <TableHead>Angebote</TableHead>}
                 <TableHead className="text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
@@ -160,6 +162,14 @@ export function ApplicationsList({ type, jobId, statusFilter, searchTerm }: Appl
                       {new Date(application.created_at).toLocaleDateString('de-DE')}
                     </div>
                   </TableCell>
+                  
+                  {/* NEW: Offer Actions Column for Business Users */}
+                  {type === 'business' && (
+                    <TableCell>
+                      <BusinessOfferActions application={application} />
+                    </TableCell>
+                  )}
+                  
                   <TableCell className="text-right">
                     <Button 
                       variant="ghost" 

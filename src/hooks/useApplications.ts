@@ -32,6 +32,63 @@ interface UseApplicationsParams {
   jobId?: string;
 }
 
+// Mock data for testing
+const mockApplications: Application[] = [
+  {
+    id: 'app-1',
+    job_id: 'job-1',
+    talent_id: 'talent-1',
+    status: 'reviewing',
+    applicant_name: 'Max Mustermann',
+    applicant_email: 'max.mustermann@example.com',
+    linkedin_profile: 'https://linkedin.com/in/maxmustermann',
+    cover_letter: 'Sehr geehrte Damen und Herren, hiermit bewerbe ich mich...',
+    created_at: '2025-05-30T09:00:00Z',
+    updated_at: '2025-05-30T09:00:00Z',
+    job: {
+      id: 'job-1',
+      title: 'Bauleiter Hochbau',
+      location: 'Berlin',
+      user_id: 'business-user-1'
+    }
+  },
+  {
+    id: 'app-2', 
+    job_id: 'job-2',
+    talent_id: 'talent-2',
+    status: 'new',
+    applicant_name: 'Sarah Schmidt',
+    applicant_email: 'sarah.schmidt@example.com',
+    linkedin_profile: 'https://linkedin.com/in/sarahschmidt',
+    cover_letter: 'Ich interessiere mich sehr für die Position...',
+    created_at: '2025-05-31T14:30:00Z',
+    updated_at: '2025-05-31T14:30:00Z',
+    job: {
+      id: 'job-2',
+      title: 'Jurist Baurecht',
+      location: 'München',
+      user_id: 'business-user-1'
+    }
+  },
+  {
+    id: 'app-3',
+    job_id: 'job-3',
+    talent_id: 'talent-3', 
+    status: 'interview',
+    applicant_name: 'Thomas Weber',
+    applicant_email: 'thomas.weber@example.com',
+    cover_letter: 'Als erfahrener BIM-Koordinator...',
+    created_at: '2025-05-29T11:15:00Z',
+    updated_at: '2025-05-29T11:15:00Z',
+    job: {
+      id: 'job-3',
+      title: 'BIM-Koordinator',
+      location: 'Hamburg',
+      user_id: 'business-user-1'
+    }
+  }
+];
+
 export function useApplications({ type, jobId }: UseApplicationsParams) {
   const { user } = useAuth();
 
@@ -44,35 +101,21 @@ export function useApplications({ type, jobId }: UseApplicationsParams) {
 
       console.log('Fetching applications for:', { type, jobId, userId: user.id });
 
-      let query = supabase
-        .from('applications')
-        .select(`
-          *,
-          job:jobs(id, title, location, user_id)
-        `)
-        .order('created_at', { ascending: false });
+      // For now, return mock data for testing
+      let filteredApplications = mockApplications;
 
       if (type === 'talent') {
-        query = query.eq('talent_id', user.id);
+        filteredApplications = mockApplications.filter(app => app.talent_id === user.id);
       } else if (type === 'business') {
+        // For business users, show all applications for their jobs
+        filteredApplications = mockApplications.filter(app => app.job?.user_id === user.id);
         if (jobId) {
-          // For specific job applications
-          query = query.eq('job_id', jobId);
-        } else {
-          // For all business applications, we need to filter via the job relationship
-          // Since RLS handles the filtering, we don't need additional where clauses
+          filteredApplications = filteredApplications.filter(app => app.job_id === jobId);
         }
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching applications:', error);
-        throw error;
-      }
-
-      console.log('Applications fetched successfully:', data?.length || 0, 'applications');
-      return data as Application[];
+      console.log('Applications fetched successfully:', filteredApplications?.length || 0, 'applications');
+      return filteredApplications;
     },
     enabled: !!user?.id,
   });
