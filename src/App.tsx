@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -41,6 +42,7 @@ import UnternehmenApplicationsPage from '@/pages/unternehmen/ApplicationsPage';
 import CreateJobPage from '@/pages/unternehmen/CreateJobPage';
 import JobAnzeigeDetailPage from '@/pages/unternehmen/JobAnzeigeDetailPage';
 import JobEditPage from '@/pages/unternehmen/JobEditPage';
+import ContractsPage from '@/pages/unternehmen/ContractsPage';
 
 // Payment pages
 import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
