@@ -29,16 +29,36 @@ interface CreateOfferDialogProps {
   onClose: () => void;
 }
 
+type SalaryType = 'hourly' | 'monthly' | 'yearly' | 'project';
+type ContractType = 'full-time' | 'part-time' | 'freelance' | 'contract';
+
+interface OfferFormData {
+  position_title: string;
+  salary_amount: string;
+  salary_type: SalaryType;
+  salary_currency: string;
+  start_date: string;
+  contract_type: ContractType;
+  working_hours: string;
+  location: string;
+  remote_work_allowed: boolean;
+  benefits: string;
+  additional_terms: string;
+  response_deadline: string;
+  is_negotiable: boolean;
+  counter_offer_allowed: boolean;
+}
+
 export function CreateOfferDialog({ application, isOpen, onClose }: CreateOfferDialogProps) {
   const { createOffer, creating } = useCreateOffer();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OfferFormData>({
     position_title: application.job?.title || '',
     salary_amount: '',
-    salary_type: 'monthly' as const,
+    salary_type: 'monthly',
     salary_currency: 'EUR',
     start_date: '',
-    contract_type: 'full-time' as const,
+    contract_type: 'full-time',
     working_hours: '',
     location: application.job?.location || '',
     remote_work_allowed: false,
@@ -121,7 +141,7 @@ export function CreateOfferDialog({ application, isOpen, onClose }: CreateOfferD
             
             <div>
               <Label htmlFor="salary_type">Gehaltstyp</Label>
-              <Select value={formData.salary_type} onValueChange={(value) => setFormData(prev => ({ ...prev, salary_type: value }))}>
+              <Select value={formData.salary_type} onValueChange={(value: SalaryType) => setFormData(prev => ({ ...prev, salary_type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -136,7 +156,7 @@ export function CreateOfferDialog({ application, isOpen, onClose }: CreateOfferD
             
             <div>
               <Label htmlFor="contract_type">Vertragsart</Label>
-              <Select value={formData.contract_type} onValueChange={(value) => setFormData(prev => ({ ...prev, contract_type: value }))}>
+              <Select value={formData.contract_type} onValueChange={(value: ContractType) => setFormData(prev => ({ ...prev, contract_type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
